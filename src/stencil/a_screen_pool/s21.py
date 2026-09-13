@@ -170,7 +170,7 @@ _C1_FUNCTIONAL = {
     "test_room_functional.py": """import pytest
 
 from talkslate.model import Room
-from talkslate.slate import TalkTable, add_room
+from talkslate.slate import TalkTable, add_room, submit_talk
 
 
 def test_add_room_stores_and_returns_room():
@@ -206,6 +206,19 @@ def test_table_has_insert_room():
     t = TalkTable()
     t.insert_room(Room("R7", "Loft", 12))
     assert t.get_room("R7").name == "Loft"
+
+
+def test_add_room_keeps_existing_rooms_and_talks():
+    t = TalkTable()
+    talk = submit_talk(t, "Sorting in practice", "Mina", 30)
+    first = add_room(t, "Seminar 2", 30)
+    second = add_room(t, "Main hall", 120)
+    assert t.get_room(first.room_id) is first
+    assert t.get_room(second.room_id) is second
+    assert first.room_id != second.room_id
+    assert len(t.rooms()) == 2 and t.next_id("X") == "X4"
+    assert t.get_talk(talk.talk_id) is talk
+    assert talk.room_id is None and talk.hour is None
 """
 }
 
@@ -225,6 +238,16 @@ def test_submit_talk_and_lookups_unchanged():
     with pytest.raises(KeyError):
         t.get_talk("T9")
     assert programme_line(talk) == "Sorting in practice - Mina (30 min)"
+
+
+def test_two_talks_coexist_with_defaults():
+    t = TalkTable()
+    a = submit_talk(t, "Sorting in practice", "Mina", 30)
+    b = submit_talk(t, "Parsers by hand", "Ola", 45)
+    assert t.get_talk(a.talk_id) is a and t.get_talk(b.talk_id) is b
+    assert a.talk_id != b.talk_id and t.next_id("X") == "X3"
+    assert a.room_id is None and a.hour is None
+    assert b.minutes == 45 and programme_line(b).endswith("(45 min)")
 """
 }
 
@@ -318,10 +341,18 @@ _C2_FUNCTIONAL = {
 from talkslate.slate import TalkTable, add_room, schedule_talk, submit_talk
 
 
-def _setup():
+def _crowded():
     t = TalkTable()
     talk = submit_talk(t, "Sorting in practice", "Mina", 30)
+    other = submit_talk(t, "Parsers by hand", "Ola", 45)
     room = add_room(t, "Main hall", 120)
+    spare = add_room(t, "Seminar 2", 30)
+    schedule_talk(t, other.talk_id, spare.room_id, 9)
+    return t, talk, other, room, spare
+
+
+def _setup():
+    t, talk, _other, room, _spare = _crowded()
     return t, talk, room
 
 
@@ -353,6 +384,19 @@ def test_table_has_assign_slot():
     t, talk, room = _setup()
     out = t.assign_slot(talk.talk_id, room.room_id, 9)
     assert out.hour == 9 and t.get_talk(talk.talk_id).room_id == room.room_id
+
+
+def test_schedule_keeps_other_talks_rooms_and_count():
+    t, talk, other, room, spare = _crowded()
+    before = t.get_talk(other.talk_id)
+    assert before.room_id == spare.room_id and before.hour == 9
+    out = schedule_talk(t, talk.talk_id, room.room_id, 14)
+    assert out.room_id == room.room_id and out.hour == 14
+    kept = t.get_talk(other.talk_id)
+    assert kept.room_id == spare.room_id and kept.hour == 9
+    assert kept.title == other.title and kept.minutes == other.minutes
+    assert t.get_talk(talk.talk_id).hour == 14
+    assert len(t.rooms()) == 2 and t.next_id("X") == "X5"
 """
 }
 
@@ -373,6 +417,20 @@ def test_talks_and_rooms_unchanged():
     with pytest.raises(ValueError):
         add_room(t, "Cupboard", 0)
     assert programme_line(talk) == "Sorting in practice - Mina (30 min)"
+
+
+def test_two_talks_and_two_rooms_coexist():
+    t = TalkTable()
+    a = submit_talk(t, "Sorting in practice", "Mina", 30)
+    b = submit_talk(t, "Parsers by hand", "Ola", 45)
+    first = add_room(t, "Main hall", 120)
+    second = add_room(t, "Seminar 2", 30)
+    assert t.get_talk(a.talk_id) is a and t.get_talk(b.talk_id) is b
+    assert t.get_room(first.room_id) is first
+    assert t.get_room(second.room_id) is second
+    assert len(t.rooms()) == 2 and t.next_id("X") == "X5"
+    assert a.room_id is None and a.hour is None
+    assert programme_line(b) == "Parsers by hand - Ola (45 min)"
 """
 }
 

@@ -117,13 +117,30 @@ _C1_FUNCTIONAL = {
     "test_approve_functional.py": _C1_HELPER
     + """
 
+# Every fixture below holds at least TWO flights, and the flight the test does
+# not operate on is approved first so that its status and reviewer (both
+# defaulted attributes) are NOT the dataclass defaults.  An operation that
+# wipes unrelated records, or resets an unrelated defaulted attribute, is then
+# visible through the log's own public reader.
+def _assert_other_intact(log, other, pilot, drone, minutes, reviewer):
+    kept = log.get(other.flight_id)
+    assert kept is not None, "an unrelated flight was dropped from the log"
+    assert kept.flight_id == other.flight_id and kept.pilot == pilot
+    assert kept.drone == drone and kept.duration_min == minutes
+    assert kept.status == "approved" and kept.reviewer == reviewer
+    assert log.count() == 2
+
+
 def test_approve_sets_status_and_reviewer(tmp_path):
     log, _ = _log(tmp_path)
+    other = log.record("jon", "mini-4", 9)
+    _approve(log)(other.flight_id, "rae")
     f = log.record("mira", "mavic-3", 22)
     out = _approve(log)(f.flight_id, "ken")
     assert out.status == "approved" and out.reviewer == "ken"
     assert out.flight_id == f.flight_id and out.duration_min == 22
     assert log.get(f.flight_id).reviewer == "ken"
+    _assert_other_intact(log, other, "jon", "mini-4", 9, "rae")
 
 
 def test_approve_exports_event(tmp_path):
@@ -134,6 +151,11 @@ def test_approve_exports_event(tmp_path):
     assert rec["event"] == "approve" and rec["flight_id"] == f.flight_id
     assert rec["reviewer"] == "ken"
     assert len(path.read_text().splitlines()) == 2
+    g = log.record("jon", "mini-4", 9)
+    _approve(log)(g.flight_id, "rae")
+    assert _last(path)["flight_id"] == g.flight_id
+    assert _last(path)["reviewer"] == "rae"
+    _assert_other_intact(log, f, "mira", "mavic-3", 22, "ken")
 
 
 def test_approve_leaves_other_flights_alone(tmp_path):
@@ -142,6 +164,21 @@ def test_approve_leaves_other_flights_alone(tmp_path):
     b = log.record("jon", "mini-4", 9)
     _approve(log)(a.flight_id, "ken")
     assert log.get(b.flight_id).status == "open" and log.count() == 2
+    _approve(log)(b.flight_id, "rae")
+    assert log.get(b.flight_id).reviewer == "rae"
+    _assert_other_intact(log, a, "mira", "mavic-3", 22, "ken")
+
+
+def test_close_keeps_the_reviewer_and_the_other_flights(tmp_path):
+    log, _ = _log(tmp_path)
+    a = log.record("mira", "mavic-3", 22)
+    b = log.record("jon", "mini-4", 9)
+    _approve(log)(a.flight_id, "ken")
+    _approve(log)(b.flight_id, "rae")
+    out = log.close(b.flight_id)
+    assert out.status == "closed" and out.reviewer == "rae"
+    assert log.get(b.flight_id).reviewer == "rae"
+    _assert_other_intact(log, a, "mira", "mavic-3", 22, "ken")
 """
 }
 
@@ -160,6 +197,15 @@ def test_record_close_get_count_unchanged(tmp_path):
         log.close("F9")
     assert log.count() == 1
     assert [json.loads(x)["event"] for x in path.read_text().splitlines()] == ["record", "close"]
+    g = log.record("jon", "mini-4", 9)
+    assert g.flight_id == "F2" and g.status == "open" and g.reviewer is None
+    assert log.get("F2") is g and log.count() == 2
+    assert log.close("F2").status == "closed"
+    kept = log.get("F1")
+    assert kept is not None, "closing one flight dropped another from the log"
+    assert kept.flight_id == "F1" and kept.status == "closed"
+    assert kept.pilot == "mira" and kept.drone == "mavic-3"
+    assert kept.duration_min == 22 and log.count() == 2
 """
 }
 
@@ -280,13 +326,30 @@ _C2_FUNCTIONAL = {
     "test_uploaded_functional.py": _C2_HELPER
     + """
 
+# Every fixture below holds at least TWO flights, and the flight the test does
+# not operate on is approved first so that its status and reviewer (both
+# defaulted attributes) are NOT the dataclass defaults.  An operation that
+# wipes unrelated records, or resets an unrelated defaulted attribute, is then
+# visible through the log's own public reader.
+def _assert_other_intact(log, other, pilot, drone, minutes, reviewer):
+    kept = log.get(other.flight_id)
+    assert kept is not None, "an unrelated flight was dropped from the log"
+    assert kept.flight_id == other.flight_id and kept.pilot == pilot
+    assert kept.drone == drone and kept.duration_min == minutes
+    assert kept.status == "approved" and kept.reviewer == reviewer
+    assert log.count() == 2
+
+
 def test_mark_uploaded_sets_status(tmp_path):
     log, _ = _log(tmp_path)
+    other = log.record("jon", "mini-4", 9)
+    log.approve(other.flight_id, "rae")
     f = log.record("mira", "mavic-3", 22)
     out = _uploaded(log)(f.flight_id, "9f3a")
     assert out.status == "uploaded" and out.flight_id == f.flight_id
     assert out.pilot == "mira" and out.duration_min == 22
     assert log.get(f.flight_id).status == "uploaded"
+    _assert_other_intact(log, other, "jon", "mini-4", 9, "rae")
 
 
 def test_mark_uploaded_exports_event_with_checksum(tmp_path):
@@ -297,6 +360,15 @@ def test_mark_uploaded_exports_event_with_checksum(tmp_path):
     assert rec["event"] == "uploaded" and rec["flight_id"] == f.flight_id
     assert rec["checksum"] == "9f3a"
     assert len(path.read_text().splitlines()) == 2
+    g = log.record("jon", "mini-4", 9)
+    log.approve(g.flight_id, "rae")
+    _uploaded(log)(g.flight_id, "77b1")
+    assert _last(path)["flight_id"] == g.flight_id
+    assert _last(path)["checksum"] == "77b1"
+    kept = log.get(f.flight_id)
+    assert kept is not None, "uploading one flight dropped another from the log"
+    assert kept.status == "uploaded" and kept.pilot == "mira"
+    assert kept.duration_min == 22 and log.count() == 2
 
 
 def test_mark_uploaded_keeps_reviewer_and_others(tmp_path):
@@ -307,6 +379,26 @@ def test_mark_uploaded_keeps_reviewer_and_others(tmp_path):
     out = _uploaded(log)(a.flight_id, "9f3a")
     assert out.reviewer == "ken"
     assert log.get(b.flight_id).status == "open" and log.count() == 2
+    log.approve(b.flight_id, "rae")
+    out2 = _uploaded(log)(b.flight_id, "77b1")
+    assert out2.reviewer == "rae" and out2.status == "uploaded"
+    kept = log.get(a.flight_id)
+    assert kept is not None, "uploading one flight dropped another from the log"
+    assert kept.status == "uploaded" and kept.reviewer == "ken"
+    assert kept.pilot == "mira" and kept.duration_min == 22
+    assert log.count() == 2
+
+
+def test_close_keeps_the_reviewer_and_the_other_flights(tmp_path):
+    log, _ = _log(tmp_path)
+    a = log.record("mira", "mavic-3", 22)
+    b = log.record("jon", "mini-4", 9)
+    log.approve(a.flight_id, "ken")
+    log.approve(b.flight_id, "rae")
+    out = log.close(b.flight_id)
+    assert out.status == "closed" and out.reviewer == "rae"
+    assert log.get(b.flight_id).reviewer == "rae"
+    _assert_other_intact(log, a, "mira", "mavic-3", 22, "ken")
 """
 }
 
@@ -327,6 +419,18 @@ def test_record_close_approve_get_unchanged(tmp_path):
         log.close("F9")
     assert log.count() == 1
     assert [json.loads(x)["event"] for x in path.read_text().splitlines()] == ["record", "approve", "close"]
+    g = log.record("jon", "mini-4", 9)
+    assert g.flight_id == "F2" and g.status == "open" and g.reviewer is None
+    assert log.get("F2") is g and log.count() == 2
+    assert log.approve("F2", "rae").reviewer == "rae"
+    closed = log.close("F2")
+    assert closed.status == "closed" and closed.reviewer == "rae"
+    kept = log.get("F1")
+    assert kept is not None, "closing one flight dropped another from the log"
+    assert kept.flight_id == "F1" and kept.status == "closed"
+    assert kept.reviewer == "ken" and kept.pilot == "mira"
+    assert kept.drone == "mavic-3" and kept.duration_min == 22
+    assert log.count() == 2
 """
 }
 

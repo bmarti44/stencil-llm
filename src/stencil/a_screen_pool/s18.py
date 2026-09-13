@@ -68,10 +68,15 @@ _C1_FUNCTIONAL = {
 
 from gaugenet.stations import StationLog, record_temperature, register_station
 
+HRB01 = {"station_id": "HRB01", "name": "Harbour mouth"}
+MST07 = {"station_id": "MST07", "name": "Moor street"}
+
 
 def _log():
+    # TWO stations; every test below records against the first one
     log = StationLog()
     register_station(log, "HRB01", "Harbour mouth")
+    register_station(log, "MST07", "Moor street")
     return log
 
 
@@ -81,6 +86,10 @@ def test_record_temperature_stores_and_returns_reading():
     assert out["station_id"] == "HRB01" and out["at"] == "2026-09-14T06:00"
     assert out["temp_c"] == 12.5
     assert log.readings_for("HRB01") == [out]
+    assert log.get_station("HRB01") == HRB01
+    assert log.get_station("MST07") == MST07
+    assert log.readings_for("MST07") == []
+    assert log.station_count() == 2
 
 
 def test_readings_kept_in_order():
@@ -89,6 +98,8 @@ def test_readings_kept_in_order():
     b = record_temperature(log, "HRB01", "2026-09-14T07:00", 13.0)
     assert log.readings_for("HRB01") == [a, b]
     assert log.readings_for("HRB02") == []
+    assert log.get_station("MST07") == MST07
+    assert log.station_count() == 2
 
 
 @pytest.mark.parametrize("bad", [-90.5, 60.1, -273.15, 999.0])
@@ -97,18 +108,33 @@ def test_record_temperature_rejects_out_of_range(bad):
     with pytest.raises(ValueError):
         record_temperature(log, "HRB01", "2026-09-14T06:00", bad)
     assert log.readings_for("HRB01") == []
+    assert log.get_station("HRB01") == HRB01
+    assert log.get_station("MST07") == MST07
+    assert log.station_count() == 2
 
 
 @pytest.mark.parametrize("edge", [-90.0, 60.0, 0.0])
 def test_record_temperature_accepts_bounds(edge):
     log = _log()
     assert record_temperature(log, "HRB01", "2026-09-14T06:00", edge)["temp_c"] == edge
+    assert log.get_station("MST07") == MST07
+    assert log.station_count() == 2
 
 
 def test_record_temperature_unknown_station_raises_keyerror():
     log = _log()
     with pytest.raises(KeyError):
         record_temperature(log, "XXX99", "2026-09-14T06:00", 10.0)
+    assert log.station_count() == 2
+
+
+def test_registering_a_station_keeps_the_earlier_ones():
+    log = _log()
+    third = register_station(log, "VLY11", "Valley floor")
+    assert log.get_station("HRB01") == HRB01
+    assert log.get_station("MST07") == MST07
+    assert log.get_station("VLY11") is third
+    assert log.station_count() == 3
 """
 }
 
@@ -134,7 +160,21 @@ def test_register_validates_and_stores():
 
 def test_put_station_stores_without_checking():
     log = StationLog()
+    kept = register_station(log, "HRB01", "Harbour mouth")
     assert log.put_station("nope", "")["station_id"] == "nope"
+    assert log.get_station("HRB01") is kept and log.station_count() == 2
+
+
+def test_register_keeps_every_earlier_station():
+    log = StationLog()
+    a = register_station(log, "HRB01", "Harbour mouth")
+    b = register_station(log, "MST07", "Moor street")
+    assert log.get_station("HRB01") is a and log.get_station("MST07") is b
+    assert log.station_count() == 2
+    c = register_station(log, "VLY11", "Valley floor")
+    assert log.get_station("HRB01") is a and log.get_station("MST07") is b
+    assert log.get_station("VLY11") is c
+    assert log.station_count() == 3
 
 
 def test_units_unchanged():
@@ -280,10 +320,15 @@ _C2_FUNCTIONAL = {
 
 from gaugenet.stations import StationLog, record_rainfall, register_station
 
+HRB01 = {"station_id": "HRB01", "name": "Harbour mouth"}
+MST07 = {"station_id": "MST07", "name": "Moor street"}
+
 
 def _log():
+    # TWO stations; every test below records against the first one
     log = StationLog()
     register_station(log, "HRB01", "Harbour mouth")
+    register_station(log, "MST07", "Moor street")
     return log
 
 
@@ -293,6 +338,10 @@ def test_record_rainfall_stores_and_returns_reading():
     assert out["station_id"] == "HRB01" and out["at"] == "2026-09-14T06:00"
     assert out["rain_mm"] == 3.4
     assert log.readings_for("HRB01") == [out]
+    assert log.get_station("HRB01") == HRB01
+    assert log.get_station("MST07") == MST07
+    assert log.readings_for("MST07") == []
+    assert log.station_count() == 2
 
 
 def test_rainfall_and_temperature_share_the_order():
@@ -300,6 +349,8 @@ def test_rainfall_and_temperature_share_the_order():
     a = record_rainfall(log, "HRB01", "2026-09-14T06:00", 0.0)
     b = record_rainfall(log, "HRB01", "2026-09-14T07:00", 1.2)
     assert log.readings_for("HRB01") == [a, b]
+    assert log.get_station("MST07") == MST07
+    assert log.station_count() == 2
 
 
 @pytest.mark.parametrize("bad", [-0.1, -5.0, 500.1])
@@ -308,18 +359,33 @@ def test_record_rainfall_rejects_out_of_range(bad):
     with pytest.raises(ValueError):
         record_rainfall(log, "HRB01", "2026-09-14T06:00", bad)
     assert log.readings_for("HRB01") == []
+    assert log.get_station("HRB01") == HRB01
+    assert log.get_station("MST07") == MST07
+    assert log.station_count() == 2
 
 
 @pytest.mark.parametrize("edge", [0.0, 500.0])
 def test_record_rainfall_accepts_bounds(edge):
     log = _log()
     assert record_rainfall(log, "HRB01", "2026-09-14T06:00", edge)["rain_mm"] == edge
+    assert log.get_station("MST07") == MST07
+    assert log.station_count() == 2
 
 
 def test_record_rainfall_unknown_station_raises_keyerror():
     log = _log()
     with pytest.raises(KeyError):
         record_rainfall(log, "XXX99", "2026-09-14T06:00", 1.0)
+    assert log.station_count() == 2
+
+
+def test_registering_a_station_keeps_the_earlier_ones():
+    log = _log()
+    third = register_station(log, "VLY11", "Valley floor")
+    assert log.get_station("HRB01") == HRB01
+    assert log.get_station("MST07") == MST07
+    assert log.get_station("VLY11") is third
+    assert log.station_count() == 3
 """
 }
 
@@ -328,10 +394,14 @@ _C2_REGRESSION = {
 
 from gaugenet.stations import StationLog, record_temperature, register_station
 
+HRB01 = {"station_id": "HRB01", "name": "Harbour mouth"}
+MST07 = {"station_id": "MST07", "name": "Moor street"}
+
 
 def test_register_and_temperature_unchanged():
     log = StationLog()
     register_station(log, "HRB01", "Harbour mouth")
+    other = register_station(log, "MST07", "Moor street")
     with pytest.raises(ValueError):
         register_station(log, "HRB1", "short id")
     r = record_temperature(log, "HRB01", "2026-09-14T06:00", 12.5)
@@ -340,6 +410,22 @@ def test_register_and_temperature_unchanged():
         record_temperature(log, "HRB01", "2026-09-14T07:00", 61.0)
     assert log.readings_for("HRB01") == [r]
     assert log.put_reading("HRB01", "2026-09-14T08:00", 61.0)["temp_c"] == 61.0
+    assert log.get_station("MST07") is other and log.get_station("MST07") == MST07
+    assert log.get_station("HRB01") == HRB01
+    assert log.readings_for("MST07") == []
+    assert log.station_count() == 2
+
+
+def test_register_keeps_every_earlier_station():
+    log = StationLog()
+    a = register_station(log, "HRB01", "Harbour mouth")
+    b = register_station(log, "MST07", "Moor street")
+    assert log.get_station("HRB01") is a and log.get_station("MST07") is b
+    assert log.station_count() == 2
+    c = register_station(log, "VLY11", "Valley floor")
+    assert log.get_station("HRB01") is a and log.get_station("MST07") is b
+    assert log.get_station("VLY11") is c
+    assert log.station_count() == 3
 """
 }
 

@@ -107,41 +107,68 @@ _C1_FUNCTIONAL = {
     "test_record_functional.py": _C1_HELPER
     + """
 
+def _two(store, name, interval):
+    # A keeper plant plus the plant under test. The keeper already carries a
+    # non-default last_watered, so a reply that rebuilds the whole mapping or
+    # resets an unrelated defaulted field cannot hide behind a bare fixture.
+    keeper = store.add_plant("keeper", 5)
+    _record(store)(keeper.plant_id, "2026-08-01")
+    target = store.add_plant(name, interval)
+    return keeper, target
+
+
+def _check_keeper(store, keeper):
+    kept = store.find(keeper.plant_id)
+    assert kept is not None, "the other plant was dropped"
+    assert kept.name == "keeper" and kept.interval_days == 5
+    assert kept.last_watered == date(2026, 8, 1)
+    assert store.count() == 2
+
+
 def test_record_sets_last_watered_and_stores():
     s = PlantStore()
-    p = s.add_plant("monstera", 10)
+    keeper, p = _two(s, "monstera", 10)
     out = _record(s)(p.plant_id, "2026-09-10")
     assert out.last_watered == date(2026, 9, 10)
     assert s.find(p.plant_id).last_watered == date(2026, 9, 10)
+    _check_keeper(s, keeper)
 
 
 def test_record_keeps_name_interval_and_id():
     s = PlantStore()
-    p = s.add_plant("fern", 3)
+    keeper, p = _two(s, "fern", 3)
     out = _record(s)(p.plant_id, " 2026-09-11 ")
     assert out.plant_id == p.plant_id and out.name == "fern" and out.interval_days == 3
+    back = s.find(p.plant_id)
+    assert back.name == "fern" and back.interval_days == 3
+    _check_keeper(s, keeper)
 
 
 def test_record_later_date_overwrites_earlier():
     s = PlantStore()
-    p = s.add_plant("basil", 2)
+    keeper, p = _two(s, "basil", 2)
     _record(s)(p.plant_id, "2026-09-01")
     out = _record(s)(p.plant_id, "2026-09-05")
     assert out.last_watered == date(2026, 9, 5)
+    assert s.find(p.plant_id).last_watered == date(2026, 9, 5)
+    _check_keeper(s, keeper)
 
 
 def test_record_unknown_plant_raises_keyerror():
     s = PlantStore()
+    keeper, _p = _two(s, "cactus", 30)
     with pytest.raises(KeyError):
         _record(s)("L42", "2026-09-10")
+    _check_keeper(s, keeper)
 
 
 def test_record_bad_date_leaves_plant_untouched():
     s = PlantStore()
-    p = s.add_plant("cactus", 30)
+    keeper, p = _two(s, "cactus", 30)
     with pytest.raises(Exception):
         _record(s)(p.plant_id, "10/09/2026")
     assert s.find(p.plant_id).last_watered is None
+    _check_keeper(s, keeper)
 """
 }
 
@@ -159,6 +186,16 @@ def test_add_find_count_unchanged():
     assert p.plant_id == "L1" and p.interval_days == 7 and p.last_watered is None
     assert s.find("L1") is p and s.find("L9") is None
     assert s.count() == 1
+
+
+def test_store_keeps_every_plant_it_is_given():
+    s = PlantStore()
+    a = s.add_plant("fern", 3)
+    b = s.add_plant("monstera")
+    assert (a.plant_id, b.plant_id) == ("L1", "L2")
+    assert s.find("L1") is a and s.find("L2") is b
+    assert s.count() == 2
+    assert b.interval_days == 7 and b.last_watered is None
 
 
 def test_schedule_helpers_unchanged():
@@ -261,42 +298,81 @@ _C2_FUNCTIONAL = {
     "test_interval_functional.py": _C2_HELPER
     + """
 
+def _record(store):
+    fn = getattr(store, "record_watering", None) or getattr(
+        store, "watering_record", None
+    )
+    assert fn is not None, "no record method found"
+    return fn
+
+
+def _two(store, name, interval):
+    # A keeper plant plus the plant under test, both already watered: the
+    # interval change must not drop the keeper nor reset last_watered.
+    keeper = store.add_plant("keeper", 5)
+    _record(store)(keeper.plant_id, "2026-08-01")
+    target = store.add_plant(name, interval)
+    _record(store)(target.plant_id, "2026-08-02")
+    return keeper, target
+
+
+def _check_keeper(store, keeper):
+    kept = store.find(keeper.plant_id)
+    assert kept is not None, "the other plant was dropped"
+    assert kept.name == "keeper" and kept.interval_days == 5
+    assert kept.last_watered == date(2026, 8, 1)
+    assert store.count() == 2
+
+
 def test_interval_in_days():
     s = PlantStore()
-    p = s.add_plant("monstera", 7)
+    keeper, p = _two(s, "monstera", 7)
     out = _set_interval(s)(p.plant_id, "10d")
     assert out.interval_days == 10
     assert s.find(p.plant_id).interval_days == 10
+    assert s.find(p.plant_id).last_watered == date(2026, 8, 2)
+    _check_keeper(s, keeper)
 
 
 def test_interval_in_weeks_and_case():
     s = PlantStore()
-    p = s.add_plant("fern", 7)
+    keeper, p = _two(s, "fern", 7)
     assert _set_interval(s)(p.plant_id, " 2W ").interval_days == 14
+    assert s.find(p.plant_id).interval_days == 14
+    assert s.find(p.plant_id).last_watered == date(2026, 8, 2)
+    _check_keeper(s, keeper)
 
 
 def test_interval_keeps_other_fields():
     s = PlantStore()
-    p = s.add_plant("basil", 2)
+    keeper, p = _two(s, "basil", 2)
     before = s.find(p.plant_id)
     out = _set_interval(s)(p.plant_id, "3d")
     assert out.plant_id == before.plant_id and out.name == "basil"
     assert out.last_watered == before.last_watered
+    back = s.find(p.plant_id)
+    assert back.name == "basil" and back.plant_id == before.plant_id
+    assert back.last_watered == date(2026, 8, 2)
+    _check_keeper(s, keeper)
 
 
 def test_interval_unknown_plant_raises_keyerror():
     s = PlantStore()
+    keeper, _p = _two(s, "cactus", 30)
     with pytest.raises(KeyError):
         _set_interval(s)("L42", "3d")
+    _check_keeper(s, keeper)
 
 
 def test_interval_bad_text_leaves_plant_untouched():
     s = PlantStore()
-    p = s.add_plant("cactus", 30)
+    keeper, p = _two(s, "cactus", 30)
     for bad in ("ten days", "0d", "3m"):
         with pytest.raises(Exception):
             _set_interval(s)(p.plant_id, bad)
     assert s.find(p.plant_id).interval_days == 30
+    assert s.find(p.plant_id).last_watered == date(2026, 8, 2)
+    _check_keeper(s, keeper)
 """
 }
 
@@ -315,6 +391,20 @@ def test_add_find_record_unchanged():
     p = s.add_plant("monstera", 10)
     assert s.find("L1") is p and s.count() == 1
     assert _record(s)("L1", "2026-09-10").last_watered == date(2026, 9, 10)
+
+
+def test_record_watering_keeps_the_other_plants():
+    s = PlantStore()
+    a = s.add_plant("fern", 3)
+    b = s.add_plant("monstera", 10)
+    _record(s)(a.plant_id, "2026-09-01")
+    out = _record(s)(b.plant_id, "2026-09-10")
+    assert out.last_watered == date(2026, 9, 10)
+    assert s.count() == 2
+    kept = s.find(a.plant_id)
+    assert kept is not None, "the other plant was dropped"
+    assert kept.name == "fern" and kept.interval_days == 3
+    assert kept.last_watered == date(2026, 9, 1)
 """
 }
 

@@ -76,18 +76,26 @@ _C1_FUNCTIONAL = {
 def test_move_sets_rack_and_stores():
     c = Cellar()
     b = c.bottle_add("Ridge Zinfandel", 2018)
+    other = c.bottle_add("Sancerre", 2019)
     out = _move(c)(b.bottle_id, "A3")
     assert out.rack == "A3"
     assert c.bottle_find(b.bottle_id).rack == "A3"
+    assert c.bottle_count() == 2
+    assert c.bottle_find(other.bottle_id) == other
+    assert c.bottle_find(other.bottle_id).rack == "unsorted"
 
 
 def test_move_keeps_label_vintage_status():
     c = Cellar()
     b = c.bottle_add("Chablis 1er Cru", 2020)
+    kept = _move(c)(c.bottle_add("Sancerre", 2019).bottle_id, "F2")
     out = _move(c)(b.bottle_id, "C1")
     assert out.bottle_id == b.bottle_id
     assert out.label == "Chablis 1er Cru" and out.vintage == 2020
     assert out.status == "stored"
+    assert c.bottle_count() == 2
+    assert c.bottle_find(kept.bottle_id) == kept
+    assert c.bottle_find(kept.bottle_id).rack == "F2"
 
 
 def test_move_to_same_rack_is_noop():
@@ -105,6 +113,23 @@ def test_move_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown bottle")
+
+
+def test_move_leaves_other_bottles_untouched():
+    c = Cellar()
+    first = c.bottle_add("Riesling", 2021)
+    second = c.bottle_add("Barolo", 2016)
+    third = c.bottle_add("Sancerre", 2019)
+    _move(c)(first.bottle_id, "B7")  # a neighbour with a non-default rack
+    before = c.bottle_count()
+    out = _move(c)(third.bottle_id, "E4")
+    assert out.bottle_id == third.bottle_id and out.rack == "E4"
+    assert c.bottle_count() == before
+    assert c.bottle_find(first.bottle_id).rack == "B7"
+    assert c.bottle_find(first.bottle_id).label == "Riesling"
+    assert c.bottle_find(second.bottle_id) == second
+    assert c.bottle_find(second.bottle_id).status == "stored"
+    assert c.bottle_find(third.bottle_id) == out
 """
 }
 
@@ -119,6 +144,10 @@ def test_add_find_count_unchanged():
     assert c.bottle_find("B001") is b
     assert c.bottle_find("B002") is None
     assert c.bottle_count() == 1
+    second = c.bottle_add("Sancerre", 2019)
+    assert second.bottle_id == "B002" and second.rack == "unsorted"
+    assert second.status == "stored" and c.bottle_find("B002") is second
+    assert c.bottle_find("B001") is b and c.bottle_count() == 2
 """
 }
 
@@ -213,9 +242,13 @@ _C2_FUNCTIONAL = {
 def test_drink_sets_status_and_stores():
     c = Cellar()
     b = c.bottle_add("Ridge Zinfandel", 2018)
+    other = c.bottle_add("Sancerre", 2019)
     out = _drink(c)(b.bottle_id)
     assert out.status == "drunk"
     assert c.bottle_find(b.bottle_id).status == "drunk"
+    assert c.bottle_count() == 2
+    assert c.bottle_find(other.bottle_id) == other
+    assert c.bottle_find(other.bottle_id).status == "stored"
 
 
 def test_drink_keeps_label_vintage_rack():
@@ -241,6 +274,29 @@ def test_drink_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown bottle")
+
+
+def _move(cellar):
+    fn = getattr(cellar, "bottle_move", None) or getattr(cellar, "move_bottle", None)
+    assert fn is not None, "no move method found"
+    return fn
+
+
+def test_drink_keeps_non_default_rack_and_other_bottles():
+    c = Cellar()
+    first = c.bottle_add("Riesling", 2021)
+    second = c.bottle_add("Barolo", 2016)
+    kept = _move(c)(first.bottle_id, "F2")
+    target = _move(c)(second.bottle_id, "B7")
+    before = c.bottle_count()
+    out = _drink(c)(target.bottle_id)
+    assert out.status == "drunk" and out.rack == "B7"
+    assert c.bottle_find(target.bottle_id).rack == "B7"
+    assert c.bottle_find(target.bottle_id).status == "drunk"
+    assert c.bottle_count() == before
+    assert c.bottle_find(first.bottle_id) == kept
+    assert c.bottle_find(first.bottle_id).rack == "F2"
+    assert c.bottle_find(first.bottle_id).status == "stored"
 """
 }
 
@@ -252,12 +308,39 @@ def _move(cellar):
     return getattr(cellar, "bottle_move", None) or getattr(cellar, "move_bottle", None)
 
 
+def _drink(cellar):
+    fn = getattr(cellar, "drink_bottle", None)
+    return fn or getattr(cellar, "bottle_drink", None)
+
+
 def test_add_find_count_move_unchanged():
     c = Cellar()
     b = c.bottle_add("Riesling", 2021)
     assert b.bottle_id == "B001" and c.bottle_find("B001") is b
     assert c.bottle_count() == 1
     assert _move(c)(b.bottle_id, "D2").rack == "D2"
+    second = c.bottle_add("Sancerre", 2019)
+    assert second.bottle_id == "B002" and c.bottle_find("B002") is second
+    assert c.bottle_count() == 2
+    assert _move(c)(second.bottle_id, "A1").rack == "A1"
+    assert c.bottle_find("B001").rack == "D2" and c.bottle_count() == 2
+
+
+def test_move_keeps_status_and_other_bottles():
+    c = Cellar()
+    first = c.bottle_add("Riesling", 2021)
+    second = c.bottle_add("Sancerre", 2019)
+    kept = _move(c)(second.bottle_id, "F2")
+    _drink(c)(first.bottle_id)
+    before = c.bottle_count()
+    out = _move(c)(first.bottle_id, "E4")
+    assert out.rack == "E4" and out.status == "drunk"
+    assert c.bottle_find(first.bottle_id).status == "drunk"
+    assert c.bottle_find(first.bottle_id).rack == "E4"
+    assert c.bottle_count() == before
+    assert c.bottle_find(second.bottle_id) == kept
+    assert c.bottle_find(second.bottle_id).rack == "F2"
+    assert c.bottle_find(second.bottle_id).status == "stored"
 """
 }
 

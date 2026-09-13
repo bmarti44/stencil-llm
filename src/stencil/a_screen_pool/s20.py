@@ -162,10 +162,27 @@ from pledgebook.book import PledgeTable, open_campaign, record_pledge
 from pledgebook.model import Pledge
 
 
-def _setup():
+def _setup2():
+    # Two campaigns and a pledge on the one the tests do NOT touch, so a reply
+    # that rebuilds a whole mapping instead of storing one record is visible.
     t = PledgeTable()
+    other = open_campaign(t, "organ fund", 950)
+    record_pledge(t, other.campaign_id, "zed", 60)
     c = open_campaign(t, "new roof", 5000)
+    return t, other, c
+
+
+def _setup():
+    t, _other, c = _setup2()
     return t, c
+
+
+def _check_other(t, other):
+    kept = t.get_campaign(other.campaign_id)
+    assert kept.name == "organ fund" and kept.goal == 950
+    held = t.pledges_for(other.campaign_id)
+    assert [x.donor for x in held] == ["zed"], "the other pledge was dropped"
+    assert held[0].amount == 60
 
 
 def test_record_pledge_stores_and_returns_pledge():
@@ -202,6 +219,22 @@ def test_table_has_insert_pledge():
     t, c = _setup()
     t.insert_pledge(Pledge("P7", c.campaign_id, "cy", 40))
     assert [p.pledge_id for p in t.pledges_for(c.campaign_id)] == ["P7"]
+
+
+def test_record_pledge_keeps_the_other_campaign_and_its_pledges():
+    t, other, c = _setup2()
+    p = record_pledge(t, c.campaign_id, "ann", 250)
+    assert t.pledges_for(c.campaign_id) == [p]
+    _check_other(t, other)
+    assert t.next_id("Z") == "Z5", "a stored record went missing"
+
+
+def test_insert_pledge_keeps_the_other_campaign_and_its_pledges():
+    t, other, c = _setup2()
+    t.insert_pledge(Pledge("P7", c.campaign_id, "cy", 40))
+    assert [p.pledge_id for p in t.pledges_for(c.campaign_id)] == ["P7"]
+    _check_other(t, other)
+    assert t.next_id("Z") == "Z5", "a stored record went missing"
 """
 }
 
@@ -221,6 +254,16 @@ def test_open_campaign_and_lookups_unchanged():
     with pytest.raises(KeyError):
         t.get_campaign("C9")
     assert progress_line(c, t.pledges_for("C1")) == "bells: 0/1200"
+
+
+def test_table_holds_every_campaign_it_is_given():
+    t = PledgeTable()
+    a = open_campaign(t, "bells", 1200)
+    b = open_campaign(t, "organ fund", 950)
+    assert (a.campaign_id, b.campaign_id) == ("C1", "C2")
+    assert t.get_campaign("C1") is a and t.get_campaign("C2") is b
+    assert t.next_id("Z") == "Z3"
+    assert progress_line(b, t.pledges_for("C2")) == "organ fund: 0/950"
 """
 }
 
@@ -317,13 +360,30 @@ _REQ1 = Request(
 _C2_FUNCTIONAL = {
     "test_goal_functional.py": """import pytest
 
-from pledgebook.book import PledgeTable, adjust_goal, open_campaign
+from pledgebook.book import PledgeTable, adjust_goal, open_campaign, record_pledge
+
+
+def _setup2():
+    # Two campaigns and a pledge on the one the tests do NOT touch, so a reply
+    # that rebuilds a whole mapping instead of storing one record is visible.
+    t = PledgeTable()
+    other = open_campaign(t, "organ fund", 950)
+    record_pledge(t, other.campaign_id, "zed", 60)
+    c = open_campaign(t, "new roof", 500)
+    return t, other, c
 
 
 def _setup():
-    t = PledgeTable()
-    c = open_campaign(t, "new roof", 500)
+    t, _other, c = _setup2()
     return t, c
+
+
+def _check_other(t, other):
+    kept = t.get_campaign(other.campaign_id)
+    assert kept.name == "organ fund" and kept.goal == 950
+    held = t.pledges_for(other.campaign_id)
+    assert [x.donor for x in held] == ["zed"], "the other pledge was dropped"
+    assert held[0].amount == 60
 
 
 def test_adjust_goal_updates_and_returns_campaign():
@@ -348,16 +408,27 @@ def test_adjust_goal_nonpositive_raises_and_keeps_old_goal():
 
 
 def test_table_has_update_goal():
-    t, c = _setup()
+    t, other, c = _setup2()
     out = t.update_goal(c.campaign_id, 900)
     assert out.goal == 900 and t.get_campaign(c.campaign_id).goal == 900
+    _check_other(t, other)
+    assert t.next_id("Z") == "Z4", "a stored record went missing"
+
+
+def test_adjust_goal_keeps_the_other_campaign_and_its_pledges():
+    t, other, c = _setup2()
+    out = adjust_goal(t, c.campaign_id, 800)
+    assert out.goal == 800 and t.get_campaign(c.campaign_id).goal == 800
+    assert t.get_campaign(c.campaign_id).name == "new roof"
+    _check_other(t, other)
+    assert t.next_id("Z") == "Z4", "a stored record went missing"
 """
 }
 
 _C2_REGRESSION = {
     "test_goal_regression.py": """import pytest
 
-from pledgebook.book import PledgeTable, open_campaign, record_pledge
+from pledgebook.book import PledgeTable, adjust_goal, open_campaign, record_pledge
 from pledgebook.report import progress_line
 
 
@@ -373,6 +444,21 @@ def test_campaigns_and_pledges_unchanged():
     with pytest.raises(KeyError):
         record_pledge(t, "C9", "ann", 5)
     assert progress_line(c, t.pledges_for(c.campaign_id)) == "bells: 200/1200"
+
+
+def test_goal_change_keeps_other_campaigns_and_pledges():
+    t = PledgeTable()
+    a = open_campaign(t, "bells", 1200)
+    b = open_campaign(t, "organ fund", 950)
+    pa = record_pledge(t, a.campaign_id, "ann", 200)
+    pb = record_pledge(t, b.campaign_id, "bo", 75)
+    assert adjust_goal(t, b.campaign_id, 800).goal == 800
+    assert t.get_campaign(a.campaign_id).goal == 1200
+    assert t.get_campaign(a.campaign_id).name == "bells"
+    assert t.pledges_for(a.campaign_id) == [pa]
+    assert t.pledges_for(b.campaign_id) == [pb]
+    assert progress_line(a, t.pledges_for(a.campaign_id)) == "bells: 200/1200"
+    assert t.next_id("Z") == "Z5", "a stored record went missing"
 """
 }
 

@@ -110,32 +110,54 @@ _C1_FUNCTIONAL = {
     "test_categorize_functional.py": _C1_SETUP
     + """
 
+# The folio always holds TWO receipts, and every test below gives the one it
+# does NOT operate on a non-empty category, so that an operation which wipes
+# unrelated records, or resets an unrelated defaulted attribute, is visible.
+def _intact(folio, rid, vendor, cents, category):
+    kept = folio.get(rid)
+    assert kept is not None, "an unrelated receipt was dropped from the folio"
+    assert kept.receipt_id == rid and kept.vendor == vendor
+    assert kept.amount_cents == cents and kept.category == category
+    assert folio.total_cents() == 4849
+
+
 def test_categorize_sets_and_returns_receipt():
     folio = _folio()
+    categorize(folio, "R2", "travel")
     out = categorize(folio, "R1", "supplies")
     assert isinstance(out, Receipt)
     assert out.category == "supplies" and out.vendor == "Office Depot"
     assert folio.get("R1").category == "supplies"
+    _intact(folio, "R2", "Metro Transit", 250, "travel")
 
 
 def test_categorize_overwrites_existing_category():
     folio = _folio()
+    categorize(folio, "R1", "supplies")
     categorize(folio, "R2", "travel")
     out = categorize(folio, "R2", "transport")
     assert out.category == "transport" and out.amount_cents == 250
+    assert folio.get("R2").category == "transport"
+    _intact(folio, "R1", "Office Depot", 4599, "supplies")
 
 
 def test_categorize_rejects_blank():
     folio = _folio()
+    categorize(folio, "R2", "travel")
     with pytest.raises(ValueError):
         categorize(folio, "R1", " ")
     assert folio.get("R1").category == ""
+    _intact(folio, "R2", "Metro Transit", 250, "travel")
 
 
 def test_categorize_unknown_id_raises_keyerror():
     folio = _folio()
+    categorize(folio, "R1", "supplies")
+    categorize(folio, "R2", "travel")
     with pytest.raises(KeyError):
         categorize(folio, "R9", "supplies")
+    _intact(folio, "R1", "Office Depot", 4599, "supplies")
+    _intact(folio, "R2", "Metro Transit", 250, "travel")
 """
 }
 
@@ -161,6 +183,16 @@ def test_put_still_validates_in_store():
     with pytest.raises(ValueError):
         add_receipt(folio, "", 100)
     assert folio.total_cents() == 0
+    add_receipt(folio, "Office Depot", 4599)
+    add_receipt(folio, "Metro Transit", 250)
+    with pytest.raises(ValueError):
+        folio.put("Office Depot", 0)
+    with pytest.raises(ValueError):
+        add_receipt(folio, "", 100)
+    assert folio.total_cents() == 4849
+    assert folio.get("R1") is not None and folio.get("R2") is not None
+    assert folio.get("R1").vendor == "Office Depot"
+    assert folio.get("R2").vendor == "Metro Transit"
 """
 }
 
@@ -305,32 +337,56 @@ _C2_FUNCTIONAL = {
     "test_amount_functional.py": _C2_SETUP
     + """
 
+# The folio always holds TWO receipts; R1 already carries the non-default
+# category "supplies", and every test below gives the receipt it does NOT
+# operate on a non-empty category too, so an operation that wipes unrelated
+# records, or resets an unrelated defaulted attribute, is visible.
+def _intact(folio, rid, vendor, cents, category, total):
+    kept = folio.get(rid)
+    assert kept is not None, "an unrelated receipt was dropped from the folio"
+    assert kept.receipt_id == rid and kept.vendor == vendor
+    assert kept.amount_cents == cents and kept.category == category
+    assert folio.total_cents() == total
+
+
 def test_adjust_amount_sets_and_returns_receipt():
     folio = _folio()
+    categorize(folio, "R2", "travel")
     out = adjust_amount(folio, "R1", 4499)
     assert isinstance(out, Receipt)
     assert out.amount_cents == 4499 and out.category == "supplies"
     assert folio.get("R1").amount_cents == 4499
     assert folio.total_cents() == 4749
+    _intact(folio, "R2", "Metro Transit", 250, "travel", 4749)
 
 
 def test_adjust_amount_large_change_still_applies():
     folio = _folio()
+    categorize(folio, "R2", "travel")
     out = adjust_amount(folio, "R2", 25000)
     assert out.amount_cents == 25000 and out.vendor == "Metro Transit"
+    assert out.category == "travel"
+    assert folio.get("R2").amount_cents == 25000
+    _intact(folio, "R1", "Office Depot", 4599, "supplies", 29599)
 
 
 def test_adjust_amount_rejects_nonpositive():
     folio = _folio()
+    categorize(folio, "R2", "travel")
     with pytest.raises(ValueError):
         adjust_amount(folio, "R1", 0)
     assert folio.get("R1").amount_cents == 4599
+    assert folio.get("R1").category == "supplies"
+    _intact(folio, "R2", "Metro Transit", 250, "travel", 4849)
 
 
 def test_adjust_amount_unknown_id_raises_keyerror():
     folio = _folio()
+    categorize(folio, "R2", "travel")
     with pytest.raises(KeyError):
         adjust_amount(folio, "R9", 100)
+    _intact(folio, "R1", "Office Depot", 4599, "supplies", 4849)
+    _intact(folio, "R2", "Metro Transit", 250, "travel", 4849)
 """
 }
 
@@ -344,11 +400,21 @@ def test_add_get_total_categorize_unchanged():
     folio = ReceiptFolio()
     r = add_receipt(folio, "Office Depot", 4599)
     assert folio.get("R1") is r and folio.total_cents() == 4599
+    add_receipt(folio, "Metro Transit", 250)
+    assert folio.total_cents() == 4849
+    assert categorize(folio, "R2", "travel").category == "travel"
     assert categorize(folio, "R1", "supplies").category == "supplies"
+    kept = folio.get("R2")
+    assert kept is not None, "categorising one receipt dropped another"
+    assert kept.vendor == "Metro Transit" and kept.amount_cents == 250
+    assert kept.category == "travel" and folio.total_cents() == 4849
     with pytest.raises(ValueError):
         categorize(folio, "R1", "")
     with pytest.raises(ValueError):
         folio.put("Office Depot", -1)
+    assert folio.get("R1").category == "supplies"
+    assert folio.get("R2").category == "travel"
+    assert folio.total_cents() == 4849
 """
 }
 

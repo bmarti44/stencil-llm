@@ -71,27 +71,59 @@ _C1_FUNCTIONAL = {
     "test_freeze_functional.py": _C1_HELPER
     + """
 
+from dataclasses import replace
+
+
 def test_freeze_sets_status_frozen():
     r = MemberRoll()
     m = r.member_enroll("Priya", "annual")
+    other = r.member_enroll("Ines", "monthly")
     out = _freeze(r)(m.member_id)
     assert out.status == "frozen"
     assert r.find(m.member_id).status == "frozen"
+    assert r.find(other.member_id) == other
+    assert r.count() == 2
 
 
 def test_freeze_keeps_name_plan_renewals():
     r = MemberRoll()
     m = r.member_enroll("Tomasz", "student")
+    other = r.member_enroll("Ines", "monthly")
     out = _freeze(r)(m.member_id)
     assert out.member_id == m.member_id
     assert out.name == "Tomasz" and out.plan == "student" and out.renewals == 0
+    assert r.find(other.member_id) == other
+    assert r.count() == 2
+
+
+def test_freeze_keeps_nondefault_attributes_of_both_records():
+    # two members, both holding NON-DEFAULT values for the defaulted
+    # attributes (status, renewals); freezing one must touch nothing else
+    r = MemberRoll()
+    a = r.member_enroll("Priya", "annual")
+    b = r.member_enroll("Ines", "monthly")
+    r._members[a.member_id] = replace(r.find(a.member_id), renewals=3)
+    seeded = replace(r.find(b.member_id), renewals=7, status="frozen")
+    r._members[b.member_id] = seeded
+    out = _freeze(r)(a.member_id)
+    assert out.status == "frozen" and out.renewals == 3
+    got = r.find(a.member_id)
+    assert got.renewals == 3 and got.name == "Priya" and got.plan == "annual"
+    kept = r.find(b.member_id)
+    assert kept is not None and kept.renewals == 7
+    assert kept.status == "frozen" and kept.name == "Ines"
+    assert kept.plan == "monthly" and kept == seeded
+    assert r.count() == 2
 
 
 def test_freeze_unknown_raises_keyerror():
     r = MemberRoll()
+    r.member_enroll("Priya", "annual")
+    r.member_enroll("Ines", "monthly")
     try:
         _freeze(r)("M999")
     except KeyError:
+        assert r.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown member")
 """
@@ -109,6 +141,16 @@ def test_enroll_and_find_unchanged():
     assert r.find("nope") is None
     assert r.count() == 1
     assert PLANS == ("monthly", "annual", "student")
+
+
+def test_enroll_keeps_every_earlier_member():
+    r = MemberRoll()
+    a = r.member_enroll("Priya", "annual")
+    b = r.member_enroll("Ines", "monthly")
+    c = r.member_enroll("Tomasz", "student")
+    assert r.find("M1") is a and r.find("M2") is b and r.find("M3") is c
+    assert [m.plan for m in (a, b, c)] == ["annual", "monthly", "student"]
+    assert r.count() == 3
 """
 }
 
@@ -198,26 +240,55 @@ _C2_FUNCTIONAL = {
 def test_renew_increments_renewals():
     r = MemberRoll()
     m = r.member_enroll("Priya", "annual")
+    other = r.member_enroll("Ines", "monthly")
     out = _renew(r)(m.member_id)
     assert out.renewals == 1 and out.status == "active"
     assert r.find(m.member_id).renewals == 1
+    assert r.find(other.member_id) == other
+    assert r.count() == 2
 
 
 def test_renew_reactivates_frozen_and_accumulates():
     r = MemberRoll()
     m = r.member_enroll("Tomasz", "student")
+    other = r.member_enroll("Ines", "monthly")
+    out = _renew(r)(m.member_id)
+    assert out.renewals == 1
     _freeze(r)(m.member_id)
-    _renew(r)(m.member_id)
     out = _renew(r)(m.member_id)
     assert out.status == "active" and out.renewals == 2
     assert out.name == "Tomasz" and out.plan == "student"
+    assert r.find(other.member_id) == other
+    assert r.count() == 2
+
+
+def test_renew_leaves_a_nondefault_neighbour_untouched():
+    # two members; the neighbour holds NON-DEFAULT values for both defaulted
+    # attributes (status "frozen", renewals 1) and the operated record holds a
+    # non-default renewal count before the renewal under test
+    r = MemberRoll()
+    a = r.member_enroll("Priya", "annual")
+    b = r.member_enroll("Ines", "monthly")
+    _renew(r)(b.member_id)
+    _freeze(r)(b.member_id)
+    _renew(r)(a.member_id)
+    out = _renew(r)(a.member_id)
+    assert out.renewals == 2 and out.status == "active"
+    assert r.find(a.member_id).renewals == 2
+    kept = r.find(b.member_id)
+    assert kept is not None and kept.status == "frozen" and kept.renewals == 1
+    assert kept.name == "Ines" and kept.plan == "monthly"
+    assert r.count() == 2
 
 
 def test_renew_unknown_raises_keyerror():
     r = MemberRoll()
+    r.member_enroll("Priya", "annual")
+    r.member_enroll("Ines", "monthly")
     try:
         _renew(r)("M999")
     except KeyError:
+        assert r.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown member")
 """
@@ -236,6 +307,19 @@ def test_enroll_find_freeze_unchanged():
     m = r.member_enroll("Priya", "annual")
     assert r.find("M1") is m and r.count() == 1
     assert _freeze(r)(m.member_id).status == "frozen"
+
+
+def test_freeze_keeps_the_other_members_and_the_count():
+    r = MemberRoll()
+    a = r.member_enroll("Priya", "annual")
+    b = r.member_enroll("Ines", "monthly")
+    assert _freeze(r)(b.member_id).status == "frozen"
+    kept = r.find(a.member_id)
+    assert kept is not None and kept == a
+    assert kept.status == "active" and kept.renewals == 0
+    assert kept.name == "Priya" and kept.plan == "annual"
+    assert r.find(b.member_id).status == "frozen"
+    assert r.count() == 2
 """
 }
 

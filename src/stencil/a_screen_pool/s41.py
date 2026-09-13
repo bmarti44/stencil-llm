@@ -321,6 +321,24 @@ def test_file_close_assign_get_unchanged(tmp_path):
         "assigned R1 saturday crew",
         "closed R1",
     ]
+
+
+def test_close_keeps_the_crew_and_the_other_report(tmp_path):
+    b, path = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    assert b.assign_crew(a.report_id, "saturday crew").crew == "saturday crew"
+    assert b.assign_crew(c.report_id, "sunday crew").crew == "sunday crew"
+    b.close(a.report_id)
+    kept = b.get(a.report_id)
+    assert kept is not None, "closing the report dropped it from the board"
+    assert kept.status == "closed"
+    assert kept.crew == "saturday crew", "closing the report dropped its crew"
+    other = b.get(c.report_id)
+    assert other is not None, "closing one report dropped the other"
+    assert other.status == "assigned" and other.crew == "sunday crew"
+    assert b.count() == 2, "closing a report changed the stored count"
+    assert path.read_text().splitlines()[-1] == f"closed {a.report_id}"
 """
 }
 

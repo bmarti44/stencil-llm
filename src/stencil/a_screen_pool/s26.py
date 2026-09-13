@@ -165,6 +165,41 @@ def test_set_note_unknown_source_raises_keyerror(tmp_path):
     book = _book(tmp_path)
     with pytest.raises(KeyError):
         set_note(book, "horse", "equine")
+
+
+def _saved_sources(tmp_path):
+    import json
+
+    rows = json.loads((tmp_path / "terms.json").read_text())
+    return sorted(r["source"] for r in rows)
+
+
+def test_set_note_keeps_the_other_term_and_the_row_count(tmp_path):
+    book = _book(tmp_path)
+    kept = set_note(book, "dog", "canine; the animal")
+    out = set_note(book, "cat", "feline; not the verb")
+    assert out.note == "feline; not the verb" and out.target == "gato"
+    assert book.get("cat").note == "feline; not the verb"
+    back = book.get("dog")
+    assert back is not None, "noting one term dropped the other"
+    assert back == kept and back.note == "canine; the animal"
+    assert back.target == "perro" and back.lang == "es"
+    assert _saved_sources(tmp_path) == ["cat", "dog"]
+
+
+def test_set_note_over_an_existing_note_keeps_the_rest(tmp_path):
+    book = _book(tmp_path)
+    set_note(book, "dog", "canine; the animal")
+    set_note(book, "cat", "first reading")
+    out = set_note(book, "cat", "second reading")
+    assert out.note == "second reading" and out.source == "cat"
+    assert out.target == "gato" and out.lang == "es"
+    stored = book.get("cat")
+    assert stored.note == "second reading" and stored.target == "gato"
+    back = book.get("dog")
+    assert back is not None, "noting one term dropped the other"
+    assert back.note == "canine; the animal" and back.target == "perro"
+    assert _saved_sources(tmp_path) == ["cat", "dog"]
 """
 }
 
@@ -191,6 +226,15 @@ def test_add_term_still_validates_in_public_function(tmp_path):
         add_term(book, "", "gato", "es")
     with pytest.raises(ValueError):
         add_term(book, "cat", "gato", "spa")
+
+
+def test_add_term_keeps_every_earlier_term(tmp_path):
+    book = TermBook(tmp_path / "terms.json")
+    first = add_term(book, "cat", "gato", "es")
+    second = add_term(book, "dog", "perro", "es")
+    assert book.get("cat") is first and book.get("dog") is second
+    rows = json.loads((tmp_path / "terms.json").read_text())
+    assert [r["source"] for r in rows] == ["cat", "dog"]
 """
 }
 
@@ -372,11 +416,49 @@ def test_rename_target_unknown_source_raises_keyerror(tmp_path):
     book = _book(tmp_path)
     with pytest.raises(KeyError):
         rename_target(book, "horse", "caballo")
+
+
+def _saved_sources(tmp_path):
+    import json
+
+    rows = json.loads((tmp_path / "terms.json").read_text())
+    return sorted(r["source"] for r in rows)
+
+
+def test_rename_target_keeps_the_other_term_and_the_note(tmp_path):
+    book = _book(tmp_path)
+    kept = set_note(book, "dog", "canine; the animal")
+    out = rename_target(book, "cat", "gata")
+    assert out.target == "gata" and out.note == "feline"
+    assert out.lang == "es" and out.source == "cat"
+    stored = book.get("cat")
+    assert stored.target == "gata" and stored.note == "feline"
+    assert stored.lang == "es"
+    back = book.get("dog")
+    assert back is not None, "renaming one target dropped the other term"
+    assert back == kept and back.target == "perro"
+    assert back.note == "canine; the animal" and back.lang == "es"
+    assert _saved_sources(tmp_path) == ["cat", "dog"]
+
+
+def test_rename_target_twice_keeps_note_and_other_term(tmp_path):
+    book = _book(tmp_path)
+    set_note(book, "dog", "canine; the animal")
+    rename_target(book, "cat", "gata")
+    out = rename_target(book, "cat", "minina")
+    assert out.target == "minina" and out.note == "feline"
+    assert book.get("cat").note == "feline"
+    back = book.get("dog")
+    assert back is not None, "renaming one target dropped the other term"
+    assert back.note == "canine; the animal" and back.target == "perro"
+    assert _saved_sources(tmp_path) == ["cat", "dog"]
 """
 }
 
 _C2_REGRESSION = {
-    "test_target_regression.py": """import pytest
+    "test_target_regression.py": """import json
+
+import pytest
 
 from termbook.book import TermBook, add_term, set_note
 
@@ -390,6 +472,22 @@ def test_add_term_get_and_set_note_unchanged(tmp_path):
         set_note(book, "cat", "")
     with pytest.raises(ValueError):
         add_term(book, "", "gato", "es")
+
+
+def test_set_note_keeps_the_other_term(tmp_path):
+    book = TermBook(tmp_path / "terms.json")
+    add_term(book, "cat", "gato", "es")
+    add_term(book, "dog", "perro", "es")
+    kept = set_note(book, "dog", "canine; the animal")
+    out = set_note(book, "cat", "feline")
+    assert out.note == "feline" and out.target == "gato"
+    assert book.get("cat").note == "feline"
+    back = book.get("dog")
+    assert back is not None, "noting one term dropped the other"
+    assert back == kept and back.note == "canine; the animal"
+    assert back.target == "perro" and back.lang == "es"
+    rows = json.loads((tmp_path / "terms.json").read_text())
+    assert sorted(r["source"] for r in rows) == ["cat", "dog"]
 """
 }
 

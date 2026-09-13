@@ -119,11 +119,20 @@ _C1_FUNCTIONAL = {
 
 def test_shortlist_sets_status_and_note(tmp_path):
     reg, _ = _reg(tmp_path)
+    keeper = reg.submit("tom", "conference", 400)
     a = reg.submit("priya", "fieldwork", 1200)
     out = _shortlist(reg)(a.app_id, "strong references")
     assert out.status == "shortlisted" and out.note == "strong references"
     assert out.app_id == a.app_id and out.amount == 1200
     assert reg.get(a.app_id).status == "shortlisted"
+    back = reg.get(a.app_id)
+    assert back.note == "strong references" and back.amount == 1200
+    assert back.student == "priya" and back.program == "fieldwork"
+    assert reg.count() == 2
+    kept = reg.get(keeper.app_id)
+    assert kept is not None, "the other application was dropped"
+    assert kept.student == "tom" and kept.amount == 400
+    assert kept.status == "submitted" and kept.note is None
 
 
 def test_shortlist_writes_audit_entry(tmp_path):
@@ -140,12 +149,51 @@ def test_shortlist_leaves_other_applications_alone(tmp_path):
     b = reg.submit("tom", "conference", 400)
     _shortlist(reg)(a.app_id, "ok")
     assert reg.get(b.app_id).status == "submitted" and reg.count() == 2
+    kept = reg.get(b.app_id)
+    assert kept.student == "tom" and kept.amount == 400
+    assert kept.program == "conference" and kept.note is None
+
+
+def test_shortlist_writes_one_audit_line_among_several_records(tmp_path):
+    reg, path = _reg(tmp_path)
+    a = reg.submit("priya", "fieldwork", 1200)
+    reg.submit("tom", "conference", 400)
+    before = path.read_text().splitlines()
+    _shortlist(reg)(a.app_id, "strong references")
+    assert path.read_text().splitlines() == before + [f"shortlist {a.app_id}"]
+    assert reg.count() == 2
+
+
+def test_shortlist_again_keeps_the_other_shortlisted_record(tmp_path):
+    # Both records already carry non-default status and note, so a reply that
+    # rebuilds the mapping or resets a defaulted field cannot pass unseen.
+    reg, _ = _reg(tmp_path)
+    keeper = reg.submit("tom", "conference", 400)
+    _shortlist(reg)(keeper.app_id, "panel noted the venue")
+    a = reg.submit("priya", "fieldwork", 1200)
+    _shortlist(reg)(a.app_id, "first pass")
+    out = _shortlist(reg)(a.app_id, "strong references")
+    assert out.status == "shortlisted" and out.note == "strong references"
+    assert out.student == "priya" and out.amount == 1200
+    assert reg.get(a.app_id).note == "strong references"
+    assert reg.count() == 2
+    kept = reg.get(keeper.app_id)
+    assert kept is not None, "the other application was dropped"
+    assert kept.status == "shortlisted" and kept.note == "panel noted the venue"
+    assert kept.student == "tom" and kept.amount == 400
 """
 }
 
 _C1_REGRESSION = {
     "test_shortlist_regression.py": _HELPER_COMMON
     + """
+
+def _shortlist_fn(reg):
+    # The shortlist name is the request-1 contract's business; stay agnostic.
+    fn = getattr(reg, "shortlist", None) or getattr(reg, "shortlist_application", None)
+    assert fn is not None, "no shortlist method found"
+    return fn
+
 
 def test_submit_withdraw_get_count_unchanged(tmp_path):
     reg, path = _reg(tmp_path)
@@ -158,6 +206,36 @@ def test_submit_withdraw_get_count_unchanged(tmp_path):
         reg.withdraw("A9")
     assert reg.count() == 1
     assert path.read_text().splitlines() == ["submit A1 fieldwork 1200", "withdraw A1"]
+
+
+def test_withdraw_keeps_the_other_applications(tmp_path):
+    reg, path = _reg(tmp_path)
+    keeper = reg.submit("tom", "conference", 400)
+    _shortlist_fn(reg)(keeper.app_id, "panel noted the venue")
+    a = reg.submit("priya", "fieldwork", 1200)
+    out = reg.withdraw(a.app_id)
+    assert out.status == "withdrawn" and out.amount == 1200
+    assert reg.get(a.app_id).status == "withdrawn"
+    assert reg.count() == 2
+    kept = reg.get(keeper.app_id)
+    assert kept is not None, "the other application was dropped"
+    assert kept.status == "shortlisted" and kept.note == "panel noted the venue"
+    assert kept.student == "tom" and kept.amount == 400
+    assert path.read_text().splitlines()[-1] == f"withdraw {a.app_id}"
+
+
+def test_withdraw_keeps_the_committee_note(tmp_path):
+    reg, _ = _reg(tmp_path)
+    a = reg.submit("priya", "fieldwork", 1200)
+    keeper = reg.submit("tom", "conference", 400)
+    _shortlist_fn(reg)(a.app_id, "strong references")
+    out = reg.withdraw(a.app_id)
+    assert out.status == "withdrawn" and out.note == "strong references"
+    back = reg.get(a.app_id)
+    assert back.note == "strong references" and back.amount == 1200
+    assert back.student == "priya" and back.program == "fieldwork"
+    assert reg.get(keeper.app_id).status == "submitted"
+    assert reg.count() == 2
 """
 }
 
@@ -278,11 +356,20 @@ _C2_FUNCTIONAL = {
 
 def test_award_sets_status_and_amount(tmp_path):
     reg, _ = _reg(tmp_path)
+    keeper = reg.submit("tom", "conference", 400)
     a = reg.submit("priya", "fieldwork", 1200)
     out = _award(reg)(a.app_id, 900)
     assert out.status == "awarded" and out.amount == 900
     assert out.app_id == a.app_id and out.student == "priya"
     assert reg.get(a.app_id).amount == 900
+    back = reg.get(a.app_id)
+    assert back.status == "awarded" and back.student == "priya"
+    assert back.program == "fieldwork" and back.note is None
+    assert reg.count() == 2
+    kept = reg.get(keeper.app_id)
+    assert kept is not None, "the other application was dropped"
+    assert kept.student == "tom" and kept.amount == 400
+    assert kept.status == "submitted" and kept.note is None
 
 
 def test_award_writes_audit_entry_with_amount(tmp_path):
@@ -301,12 +388,54 @@ def test_award_keeps_note_and_other_applications(tmp_path):
     out = _award(reg)(a.app_id, 1200)
     assert out.note == "strong references"
     assert reg.get(b.app_id).status == "submitted" and reg.count() == 2
+    back = reg.get(a.app_id)
+    assert back.note == "strong references" and back.status == "awarded"
+    assert back.student == "priya" and back.program == "fieldwork"
+    kept = reg.get(b.app_id)
+    assert kept.student == "tom" and kept.amount == 400 and kept.note is None
+
+
+def test_award_on_a_shortlisted_record_keeps_the_other_one(tmp_path):
+    # Both records already carry non-default status and note.
+    reg, _ = _reg(tmp_path)
+    keeper = reg.submit("tom", "conference", 400)
+    reg.shortlist(keeper.app_id, "panel noted the venue")
+    a = reg.submit("priya", "fieldwork", 1200)
+    reg.shortlist(a.app_id, "strong references")
+    out = _award(reg)(a.app_id, 900)
+    assert out.status == "awarded" and out.amount == 900
+    assert out.note == "strong references"
+    back = reg.get(a.app_id)
+    assert back.note == "strong references" and back.amount == 900
+    assert back.student == "priya" and back.program == "fieldwork"
+    assert reg.count() == 2
+    kept = reg.get(keeper.app_id)
+    assert kept is not None, "the other application was dropped"
+    assert kept.status == "shortlisted" and kept.note == "panel noted the venue"
+    assert kept.student == "tom" and kept.amount == 400
+
+
+def test_award_writes_one_audit_line_among_several_records(tmp_path):
+    reg, path = _reg(tmp_path)
+    a = reg.submit("priya", "fieldwork", 1200)
+    reg.submit("tom", "conference", 400)
+    before = path.read_text().splitlines()
+    _award(reg)(a.app_id, 900)
+    assert path.read_text().splitlines() == before + [f"award {a.app_id} 900"]
+    assert reg.count() == 2
 """
 }
 
 _C2_REGRESSION = {
     "test_award_regression.py": _HELPER_COMMON
     + """
+
+def _shortlist_fn(reg):
+    # The shortlist name is the request-1 contract's business; stay agnostic.
+    fn = getattr(reg, "shortlist", None) or getattr(reg, "shortlist_application", None)
+    assert fn is not None, "no shortlist method found"
+    return fn
+
 
 def test_submit_withdraw_shortlist_get_unchanged(tmp_path):
     reg, path = _reg(tmp_path)
@@ -320,6 +449,25 @@ def test_submit_withdraw_shortlist_get_unchanged(tmp_path):
         reg.withdraw("A9")
     assert reg.count() == 1
     assert path.read_text().splitlines() == ["submit A1 fieldwork 1200", "shortlist A1", "withdraw A1"]
+
+
+def test_withdraw_and_shortlist_keep_the_other_applications(tmp_path):
+    reg, path = _reg(tmp_path)
+    keeper = reg.submit("tom", "conference", 400)
+    _shortlist_fn(reg)(keeper.app_id, "panel noted the venue")
+    a = reg.submit("priya", "fieldwork", 1200)
+    _shortlist_fn(reg)(a.app_id, "strong references")
+    out = reg.withdraw(a.app_id)
+    assert out.status == "withdrawn" and out.note == "strong references"
+    back = reg.get(a.app_id)
+    assert back.note == "strong references" and back.amount == 1200
+    assert back.student == "priya" and back.program == "fieldwork"
+    assert reg.count() == 2
+    kept = reg.get(keeper.app_id)
+    assert kept is not None, "the other application was dropped"
+    assert kept.status == "shortlisted" and kept.note == "panel noted the venue"
+    assert kept.student == "tom" and kept.amount == 400
+    assert path.read_text().splitlines()[-1] == f"withdraw {a.app_id}"
 """
 }
 

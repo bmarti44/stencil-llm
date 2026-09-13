@@ -70,25 +70,42 @@ _C1_FUNCTIONAL = {
 
 def test_scale_sets_servings():
     b = RecipeBook()
-    r = b.add_recipe("lentil soup", servings=4)
+    r = b.add_recipe("lentil soup", servings=6)
+    other = b.add_recipe("rye loaf", servings=9)
     out = _scale(b)(r.recipe_id, 10)
     assert out.servings == 10
     assert b.find(r.recipe_id).servings == 10
+    assert b.count() == 2
+    kept = b.find(other.recipe_id)
+    assert kept is not None and kept == other
+    assert kept.servings == 9 and kept.title == "rye loaf" and kept.tags == ()
+    assert b.find(r.recipe_id).title == "lentil soup"
 
 
 def test_scale_keeps_title_id_and_tags():
     b = RecipeBook()
     r = b.add_recipe("flatbread", servings=2)
+    other = b.add_recipe("rye loaf", servings=9)
     out = _scale(b)(r.recipe_id, 6)
     assert out.recipe_id == r.recipe_id and out.title == "flatbread"
     assert out.tags == ()
+    stored = b.find(r.recipe_id)
+    assert stored.title == "flatbread" and stored.tags == ()
+    kept = b.find(other.recipe_id)
+    assert kept is not None and kept == other and kept.servings == 9
+    assert b.count() == 2
 
 
 def test_scale_unknown_raises_keyerror():
     b = RecipeBook()
+    first = b.add_recipe("lentil soup", servings=6)
+    second = b.add_recipe("rye loaf", servings=9)
     try:
         _scale(b)("R404", 3)
     except KeyError:
+        assert b.find(first.recipe_id) == first
+        assert b.find(second.recipe_id) == second
+        assert b.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown recipe")
 """
@@ -105,6 +122,10 @@ def test_add_and_find_unchanged():
     assert b.find("R1") is r
     assert b.find("nope") is None
     assert b.count() == 1
+    second = b.add_recipe("b", servings=9)
+    assert second.recipe_id == "R2" and second.servings == 9
+    assert b.find("R1") is r and b.find("R2") is second
+    assert b.count() == 2
 """
 }
 
@@ -189,27 +210,51 @@ _C2_FUNCTIONAL = {
 
 def test_tag_appends_tag():
     b = RecipeBook()
-    r = b.add_recipe("lentil soup")
+    r = b.add_recipe("lentil soup", servings=6)
+    other = b.add_recipe("rye loaf", servings=9)
     out = _tag(b)(r.recipe_id, "vegan")
     assert out.tags == ("vegan",)
     assert b.find(r.recipe_id).tags == ("vegan",)
+    stored = b.find(r.recipe_id)
+    assert stored.servings == 6 and stored.title == "lentil soup"
+    assert b.count() == 2
+    kept = b.find(other.recipe_id)
+    assert kept is not None and kept == other
+    assert kept.servings == 9 and kept.title == "rye loaf" and kept.tags == ()
 
 
 def test_tag_twice_keeps_order_and_no_duplicates():
     b = RecipeBook()
     r = b.add_recipe("flatbread")
+    other = b.add_recipe("rye loaf", servings=9)
     _tag(b)(r.recipe_id, "bread")
     _tag(b)(r.recipe_id, "quick")
     out = _tag(b)(r.recipe_id, "bread")
     assert out.tags == ("bread", "quick")
     assert out.title == "flatbread" and out.servings == 4
+    stored = b.find(r.recipe_id)
+    assert stored.tags == ("bread", "quick") and stored.servings == 4
+    kept = b.find(other.recipe_id)
+    assert kept is not None and kept == other and kept.servings == 9
+    assert kept.tags == () and b.count() == 2
+    _tag(b)(other.recipe_id, "bread")
+    assert b.find(r.recipe_id).tags == ("bread", "quick")
+    assert b.find(other.recipe_id).tags == ("bread",)
+    assert b.count() == 2
 
 
 def test_tag_unknown_raises_keyerror():
     b = RecipeBook()
+    first = b.add_recipe("lentil soup", servings=6)
+    second = b.add_recipe("rye loaf", servings=9)
+    _tag(b)(first.recipe_id, "vegan")
     try:
         _tag(b)("R404", "vegan")
     except KeyError:
+        assert b.find(first.recipe_id).tags == ("vegan",)
+        assert b.find(first.recipe_id).servings == 6
+        assert b.find(second.recipe_id) == second
+        assert b.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown recipe")
 """
@@ -223,11 +268,38 @@ def _scale(book):
     return getattr(book, "scale_recipe", None) or getattr(book, "recipe_scale", None)
 
 
+def _tag(book):
+    return getattr(book, "tag_recipe", None) or getattr(book, "recipe_tag", None)
+
+
+def test_scale_keeps_tags_and_other_recipes():
+    b = RecipeBook()
+    r = b.add_recipe("a", servings=2)
+    other = b.add_recipe("b", servings=9)
+    _tag(b)(r.recipe_id, "vegan")
+    _tag(b)(other.recipe_id, "bread")
+    out = _scale(b)(r.recipe_id, 6)
+    assert out.servings == 6 and out.tags == ("vegan",)
+    stored = b.find(r.recipe_id)
+    assert stored is not None and stored.tags == ("vegan",)
+    assert stored.servings == 6 and stored.title == "a"
+    kept = b.find(other.recipe_id)
+    assert kept is not None and kept.tags == ("bread",)
+    assert kept.servings == 9 and kept.title == "b"
+    assert b.count() == 2
+
+
 def test_add_find_scale_unchanged():
     b = RecipeBook()
     r = b.add_recipe("a", servings=2)
     assert b.find("R1") is r and b.count() == 1
     assert _scale(b)(r.recipe_id, 5).servings == 5
+    other = b.add_recipe("b", servings=9)
+    assert _scale(b)(r.recipe_id, 7).servings == 7
+    kept = b.find(other.recipe_id)
+    assert kept is not None and kept == other and kept.servings == 9
+    assert kept.title == "b" and kept.tags == ()
+    assert b.find(r.recipe_id).title == "a" and b.count() == 2
 """
 }
 

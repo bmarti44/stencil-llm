@@ -125,6 +125,10 @@ def test_void_sets_status_and_stores():
     assert out.status == "void"
     assert s.find("INV-2026-0002").status == "void"
     assert s.find("INV-2026-0001").status == "issued"
+    kept = s.find("INV-2026-0001")
+    assert kept is not None and kept.customer == "Acme"
+    assert kept.amount_cents == 12000
+    assert s.count() == 2
 
 
 def test_void_accepts_printed_variants():
@@ -137,12 +141,33 @@ def test_void_keeps_customer_and_amount():
     s = _store()
     out = _void(s)("INV-2026-0001")
     assert out.customer == "Acme" and out.amount_cents == 12000
+    stored = s.find("INV-2026-0001")
+    assert stored.customer == "Acme" and stored.amount_cents == 12000
+    other = s.find("INV-2026-0002")
+    assert other is not None and other.customer == "Birch & Co"
+    assert other.amount_cents == 4550 and other.status == "issued"
+    assert s.count() == 2
+
+
+def test_voiding_a_second_invoice_keeps_the_first_voided():
+    s = _store()
+    _void(s)("INV-2026-0001")
+    _void(s)("INV-2026-0002")
+    first = s.find("INV-2026-0001")
+    assert first is not None and first.status == "void"
+    assert first.customer == "Acme" and first.amount_cents == 12000
+    assert s.find("INV-2026-0002").status == "void"
+    assert s.count() == 2
 
 
 def test_void_unknown_number_raises_keyerror():
     s = _store()
+    _void(s)("INV-2026-0001")
     with pytest.raises(KeyError):
         _void(s)("INV-2026-0009")
+    assert s.find("INV-2026-0001").status == "void"
+    assert s.find("INV-2026-0002").status == "issued"
+    assert s.count() == 2
 
 
 def test_void_malformed_text_changes_nothing():
@@ -150,6 +175,13 @@ def test_void_malformed_text_changes_nothing():
     with pytest.raises(Exception):
         _void(s)("2026/1")
     assert s.find("INV-2026-0001").status == "issued"
+    assert s.count() == 2
+    _void(s)("INV-2026-0002")
+    with pytest.raises(Exception):
+        _void(s)("2026/1")
+    assert s.find("INV-2026-0002").status == "void"
+    assert s.find("INV-2026-0001").status == "issued"
+    assert s.find("INV-2026-0001").customer == "Acme"
     assert s.count() == 2
 """
 }
@@ -168,6 +200,10 @@ def test_add_find_count_unchanged():
     assert inv.number == "INV-2026-0001" and inv.status == "issued"
     assert s.find("INV-2026-0001") is inv and s.find("INV-2026-0002") is None
     assert s.count() == 1
+    second = s.add_invoice("Birch & Co", 4550)
+    assert second.number == "INV-2026-0002" and second.amount_cents == 4550
+    assert s.find("INV-2026-0001") is inv and s.find("INV-2026-0002") is second
+    assert s.count() == 2
 
 
 def test_numbering_and_archive_unchanged():
@@ -274,6 +310,12 @@ _C2_FUNCTIONAL = {
     "test_archive_functional.py": _C2_HELPER
     + """
 
+def _void(store):
+    fn = getattr(store, "void_invoice", None) or getattr(store, "invoice_void", None)
+    assert fn is not None, "no void method found"
+    return fn
+
+
 def test_archive_copies_invoice_from_store():
     s = _store()
     a = InvoiceArchive()
@@ -282,6 +324,26 @@ def test_archive_copies_invoice_from_store():
     assert a.find("INV-2026-0002") == out
     assert a.count() == 1
     assert s.find("INV-2026-0002") is not None
+    out1 = _archive(a)(s, "INV-2026-0001")
+    assert out1.number == "INV-2026-0001" and out1.customer == "Acme"
+    kept = a.find("INV-2026-0002")
+    assert kept is not None and kept == out
+    assert kept.customer == "Birch & Co" and kept.amount_cents == 4550
+    assert a.count() == 2
+
+
+def test_archive_keeps_a_voided_status_and_earlier_entries():
+    s = _store()
+    a = InvoiceArchive()
+    _void(s)("INV-2026-0001")
+    first = _archive(a)(s, "INV-2026-0001")
+    assert first.status == "void"
+    _archive(a)(s, "INV-2026-0002")
+    kept = a.find("INV-2026-0001")
+    assert kept is not None and kept.status == "void"
+    assert kept.customer == "Acme" and kept.amount_cents == 12000
+    assert a.find("INV-2026-0002").status == "issued"
+    assert a.count() == 2
 
 
 def test_archive_accepts_printed_variants():
@@ -298,6 +360,11 @@ def test_archive_same_number_twice_keeps_one_entry():
     _archive(a)(s, "INV-2026-0001")
     _archive(a)(s, "INV-2026-0001")
     assert a.count() == 1
+    _archive(a)(s, "INV-2026-0002")
+    _archive(a)(s, "INV-2026-0002")
+    assert a.count() == 2
+    assert a.find("INV-2026-0001").customer == "Acme"
+    assert a.find("INV-2026-0002").customer == "Birch & Co"
 
 
 def test_archive_unknown_number_raises_keyerror():
@@ -306,6 +373,14 @@ def test_archive_unknown_number_raises_keyerror():
     with pytest.raises(KeyError):
         _archive(a)(s, "INV-2026-0009")
     assert a.count() == 0
+    _void(s)("INV-2026-0001")
+    _archive(a)(s, "INV-2026-0001")
+    _archive(a)(s, "INV-2026-0002")
+    with pytest.raises(KeyError):
+        _archive(a)(s, "INV-2026-0009")
+    assert a.count() == 2
+    assert a.find("INV-2026-0001").status == "void"
+    assert a.find("INV-2026-0002").customer == "Birch & Co"
 
 
 def test_archive_malformed_text_changes_nothing():
@@ -314,6 +389,15 @@ def test_archive_malformed_text_changes_nothing():
     with pytest.raises(Exception):
         _archive(a)(s, "invoice one")
     assert a.count() == 0
+    _void(s)("INV-2026-0002")
+    _archive(a)(s, "INV-2026-0001")
+    _archive(a)(s, "INV-2026-0002")
+    with pytest.raises(Exception):
+        _archive(a)(s, "invoice one")
+    assert a.count() == 2
+    assert a.find("INV-2026-0001").status == "issued"
+    assert a.find("INV-2026-0002").status == "void"
+    assert a.find("INV-2026-0002").amount_cents == 4550
 """
 }
 
@@ -333,6 +417,14 @@ def test_store_and_archive_basics_unchanged():
     assert _void(s)("inv-2026-0001").status == "void"
     a = InvoiceArchive()
     assert a.count() == 0 and a.find("INV-2026-0001") is None
+    second = s.add_invoice("Birch & Co", 4550)
+    assert second.number == "INV-2026-0002" and s.count() == 2
+    assert _void(s)(second.number).status == "void"
+    kept = s.find("INV-2026-0001")
+    assert kept is not None and kept.status == "void"
+    assert kept.customer == "Acme" and kept.amount_cents == 100
+    assert s.find("INV-2026-0002").amount_cents == 4550
+    assert s.count() == 2
 """
 }
 

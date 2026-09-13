@@ -75,7 +75,9 @@ _FILES = {
 # ----------------------------------------------------------------- checkpoint 1: collect
 
 _C1_FUNCTIONAL = {
-    "test_collect_functional.py": """from bakeorders.orders import OrderBook
+    "test_collect_functional.py": """from dataclasses import replace
+
+from bakeorders.orders import OrderBook
 
 
 def test_collect_sets_status_and_stores():
@@ -93,11 +95,49 @@ def test_collect_keeps_customer_item_and_payment():
     out = book.collect(order.order_id)
     assert out.customer == "Dev" and out.item == "birthday cake"
     assert out.qty == 1 and out.paid_p == 2400 and out.order_id == order.order_id
+
+
+def _two_orders():
+    book = OrderBook()
+    other = book.place("Dev", "birthday cake", 1, 2400)
+    book.save(replace(other, note="candles, no nuts"))
+    target = book.place("Mrs Okafor", "sourdough", 2, 900)
+    book.save(replace(target, note="seeded crust"))
+    return book, book.find(other.order_id), book.find(target.order_id)
+
+
+def test_collect_keeps_note_payment_and_the_other_order():
+    book, other, target = _two_orders()
+    out = book.collect(target.order_id)
+    assert out.status == "collected"
+    assert out.note == "seeded crust" and out.paid_p == 900
+    assert out.customer == "Mrs Okafor" and out.qty == 2
+    stored = book.find(target.order_id)
+    assert stored.note == "seeded crust" and stored.paid_p == 900
+    back = book.find(other.order_id)
+    assert back is not None, "collecting one order dropped the other"
+    assert back == other and back.note == "candles, no nuts"
+    assert back.paid_p == 2400 and back.status == "placed"
+    assert back.customer == "Dev" and back.item == "birthday cake"
+
+
+def test_collect_after_ready_keeps_note_and_the_other_order():
+    book, other, target = _two_orders()
+    book.ready(target.order_id)
+    out = book.collect(target.order_id)
+    assert out.status == "collected" and out.note == "seeded crust"
+    assert out.paid_p == 900 and out.qty == 2
+    back = book.find(other.order_id)
+    assert back is not None, "collecting one order dropped the other"
+    assert back == other and back.note == "candles, no nuts"
+    assert back.paid_p == 2400 and back.status == "placed"
 """
 }
 
 _C1_REGRESSION = {
-    "test_collect_regression.py": """from bakeorders.orders import OrderBook
+    "test_collect_regression.py": """from dataclasses import replace
+
+from bakeorders.orders import OrderBook
 from bakeorders.refunds import refundable
 
 
@@ -110,6 +150,34 @@ def test_place_find_save_ready_unchanged():
     assert book.ready("O1").status == "ready"
     assert book.ready("O9") is None
     assert refundable(book.find("O1")) is True
+
+
+def test_ready_keeps_note_payment_and_the_other_order():
+    book = OrderBook()
+    other = book.place("Dev", "birthday cake", 1, 2400)
+    book.save(replace(other, note="candles, no nuts"))
+    other = book.find(other.order_id)
+    target = book.place("Mrs Okafor", "sourdough", 2, 900)
+    book.save(replace(target, note="seeded crust"))
+    out = book.ready(target.order_id)
+    assert out.status == "ready"
+    assert out.note == "seeded crust" and out.paid_p == 900
+    assert book.find(target.order_id).note == "seeded crust"
+    back = book.find(other.order_id)
+    assert back is not None, "readying one order dropped the other"
+    assert back == other and back.note == "candles, no nuts"
+    assert back.paid_p == 2400 and back.status == "placed"
+    assert refundable(back) is True
+
+
+def test_save_keeps_every_other_order():
+    book = OrderBook()
+    first = book.place("Dev", "birthday cake", 1, 2400)
+    second = book.place("Mrs Okafor", "sourdough", 2, 900)
+    book.save(replace(second, note="seeded crust"))
+    assert book.find(first.order_id) == first
+    assert book.find(second.order_id).note == "seeded crust"
+    assert book.find(second.order_id).paid_p == 900
 """
 }
 
@@ -193,7 +261,9 @@ _REQ1 = Request(
 # ----------------------------------------------------------------- checkpoint 2: refund
 
 _C2_FUNCTIONAL = {
-    "test_refund_functional.py": """from bakeorders.orders import OrderBook
+    "test_refund_functional.py": """from dataclasses import replace
+
+from bakeorders.orders import OrderBook
 from bakeorders.refunds import refund, refundable
 
 
@@ -213,11 +283,48 @@ def test_refund_keeps_identity_and_item():
     out = refund(book, order.order_id, "wrong_item")
     assert out.order_id == order.order_id and out.customer == "Dev"
     assert out.item == "birthday cake" and out.qty == 1
+
+
+def _two_orders():
+    book = OrderBook()
+    other = book.place("Dev", "birthday cake", 1, 2400)
+    book.save(replace(other, note="candles, no nuts", status="ready"))
+    target = book.place("Mrs Okafor", "sourdough", 2, 900)
+    book.save(replace(target, note="seeded crust"))
+    return book, book.find(other.order_id), book.find(target.order_id)
+
+
+def test_refund_keeps_the_other_order_untouched():
+    book, other, target = _two_orders()
+    out = refund(book, target.order_id, "stale")
+    assert out.status == "refunded" and out.paid_p == 0
+    assert out.note == "stale" and out.customer == "Mrs Okafor"
+    assert out.item == "sourdough" and out.qty == 2
+    assert book.find(target.order_id).status == "refunded"
+    back = book.find(other.order_id)
+    assert back is not None, "refunding one order dropped the other"
+    assert back == other and back.note == "candles, no nuts"
+    assert back.paid_p == 2400 and back.status == "ready"
+    assert refundable(back) is True
+
+
+def test_refund_after_collect_keeps_the_other_order():
+    book, other, target = _two_orders()
+    book.collect(target.order_id)
+    out = refund(book, target.order_id, "late")
+    assert out.status == "refunded" and out.paid_p == 0
+    assert out.note == "late" and out.qty == 2
+    back = book.find(other.order_id)
+    assert back is not None, "refunding one order dropped the other"
+    assert back == other and back.note == "candles, no nuts"
+    assert back.paid_p == 2400 and back.status == "ready"
 """
 }
 
 _C2_REGRESSION = {
-    "test_refund_regression.py": """from bakeorders.orders import OrderBook
+    "test_refund_regression.py": """from dataclasses import replace
+
+from bakeorders.orders import OrderBook
 from bakeorders.refunds import REASONS, refundable
 
 
@@ -230,6 +337,25 @@ def test_book_and_helpers_unchanged():
     assert book.ready("O9") is None and book.collect("O9") is None
     assert refundable(book.find("O1")) is True
     assert REASONS == ("stale", "wrong_item", "late")
+
+
+def test_ready_and_collect_keep_notes_and_other_orders():
+    book = OrderBook()
+    other = book.place("Dev", "birthday cake", 1, 2400)
+    book.save(replace(other, note="candles, no nuts"))
+    other = book.find(other.order_id)
+    target = book.place("Mrs Okafor", "sourdough", 2, 900)
+    book.save(replace(target, note="seeded crust"))
+    assert book.ready(target.order_id).note == "seeded crust"
+    out = book.collect(target.order_id)
+    assert out.status == "collected"
+    assert out.note == "seeded crust" and out.paid_p == 900
+    assert book.find(target.order_id).status == "collected"
+    back = book.find(other.order_id)
+    assert back is not None, "the book dropped an untouched order"
+    assert back == other and back.note == "candles, no nuts"
+    assert back.paid_p == 2400 and back.status == "placed"
+    assert refundable(back) is True
 """
 }
 

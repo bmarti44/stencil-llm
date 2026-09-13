@@ -108,18 +108,48 @@ _C1_FUNCTIONAL = {
 def test_assign_host_sets_host_and_stores():
     g = Grid()
     s = g.add_slot("Morning Mix", "mon", 420, 120)
+    other = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    _assign(g)(other.slot_id, "june")
     out = _assign(g)(s.slot_id, "ravi")
     assert out.host == "ravi" and out.slot_id == s.slot_id
     assert out.show == "Morning Mix" and out.status == "planned"
     assert g.get(s.slot_id).host == "ravi"
+    kept = g.get(other.slot_id)
+    assert kept is not None and kept.host == "june"
+    assert kept.show == "Lunch Jazz" and kept.status == "planned"
+    assert kept.start == 720 and kept.length_min == 60
+    assert len(g.on_day("mon")) == 1 and len(g.on_day("tue")) == 1
+
+
+def test_assign_host_keeps_a_cancelled_status_and_other_slots():
+    g = Grid()
+    a = g.add_slot("Morning Mix", "mon", 420, 120)
+    b = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    g.cancel(a.slot_id)
+    _assign(g)(b.slot_id, "june")
+    out = _assign(g)(a.slot_id, "ravi")
+    assert out.status == "cancelled" and out.host == "ravi"
+    stored = g.get(a.slot_id)
+    assert stored is not None and stored.status == "cancelled"
+    assert stored.host == "ravi" and stored.show == "Morning Mix"
+    kept = g.get(b.slot_id)
+    assert kept is not None and kept.host == "june"
+    assert kept.status == "planned" and kept.show == "Lunch Jazz"
+    assert len(g.on_day("mon")) == 1 and len(g.on_day("tue")) == 1
 
 
 def test_assign_host_replaces_previous_host():
     g = Grid()
     s = g.add_slot("Morning Mix", "mon", 420, 120)
+    other = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    _assign(g)(other.slot_id, "dara")
     _assign(g)(s.slot_id, "ravi")
     out = _assign(g)(s.slot_id, "june")
     assert out.host == "june" and g.get(s.slot_id).host == "june"
+    kept = g.get(other.slot_id)
+    assert kept is not None and kept.host == "dara"
+    assert kept.show == "Lunch Jazz" and kept.status == "planned"
+    assert len(g.on_day("mon")) == 1 and len(g.on_day("tue")) == 1
 
 
 def test_assign_host_leaves_other_slots_alone():
@@ -128,6 +158,10 @@ def test_assign_host_leaves_other_slots_alone():
     b = g.add_slot("Lunch Jazz", "mon", 720, 60)
     _assign(g)(a.slot_id, "ravi")
     assert g.get(b.slot_id).host is None and len(g.on_day("mon")) == 2
+    kept = g.get(b.slot_id)
+    assert kept.show == "Lunch Jazz" and kept.status == "planned"
+    assert kept.start == 720 and kept.length_min == 60
+    assert g.get(a.slot_id).host == "ravi"
 """
 }
 
@@ -148,6 +182,23 @@ def test_add_cancel_get_on_day_unchanged(caplog):
     assert caplog.records == []
     g.add_slot("Breakfast Chat", "mon", 480, 30)
     assert len(_warnings(caplog)) == 1 and len(caplog.records) == 1
+
+
+def test_cancel_keeps_the_other_slots(caplog):
+    caplog.set_level(logging.DEBUG)
+    g = Grid()
+    a = g.add_slot("Morning Mix", "mon", 420, 120)
+    b = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    assert g.cancel(b.slot_id).status == "cancelled"
+    out = g.cancel(a.slot_id)
+    assert out.status == "cancelled" and out.show == "Morning Mix"
+    kept = g.get(b.slot_id)
+    assert kept is not None and kept.status == "cancelled"
+    assert kept.show == "Lunch Jazz" and kept.start == 720
+    assert kept.length_min == 60 and kept.host is None
+    assert [x.slot_id for x in g.on_day("mon")] == ["S1"]
+    assert [x.slot_id for x in g.on_day("tue")] == ["S2"]
+    assert caplog.records == []
 """
 }
 
@@ -277,28 +328,46 @@ _C2_FUNCTIONAL = {
 def test_go_live_sets_status_on_air():
     g = Grid()
     s = g.add_slot("Morning Mix", "mon", 420, 120)
+    other = g.add_slot("Lunch Jazz", "tue", 720, 60)
     g.assign_host(s.slot_id, "ravi")
+    g.assign_host(other.slot_id, "june")
     out = _live(g)(s.slot_id)
     assert out.status == "on_air" and out.slot_id == s.slot_id
     assert out.host == "ravi" and out.show == "Morning Mix"
     assert g.get(s.slot_id).status == "on_air"
+    assert g.get(s.slot_id).host == "ravi"
+    kept = g.get(other.slot_id)
+    assert kept is not None and kept.host == "june"
+    assert kept.status == "planned" and kept.show == "Lunch Jazz"
+    assert kept.start == 720 and kept.length_min == 60
+    assert len(g.on_day("mon")) == 1 and len(g.on_day("tue")) == 1
 
 
 def test_go_live_when_another_is_on_air_still_goes_live():
     g = Grid()
     a = g.add_slot("Morning Mix", "mon", 420, 120)
     b = g.add_slot("Lunch Jazz", "mon", 720, 60)
+    g.assign_host(a.slot_id, "ravi")
     _live(g)(a.slot_id)
     out = _live(g)(b.slot_id)
     assert out.status == "on_air" and g.get(a.slot_id).status == "on_air"
+    kept = g.get(a.slot_id)
+    assert kept is not None and kept.host == "ravi"
+    assert kept.show == "Morning Mix" and kept.start == 420
+    assert len(g.on_day("mon")) == 2
 
 
 def test_go_live_leaves_other_slots_alone():
     g = Grid()
     a = g.add_slot("Morning Mix", "mon", 420, 120)
     b = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    g.assign_host(b.slot_id, "june")
     _live(g)(a.slot_id)
     assert g.get(b.slot_id).status == "planned" and len(g.on_day("mon")) == 1
+    kept = g.get(b.slot_id)
+    assert kept is not None and kept.host == "june"
+    assert kept.show == "Lunch Jazz" and kept.start == 720
+    assert len(g.on_day("tue")) == 1
 """
 }
 
@@ -321,6 +390,33 @@ def test_add_cancel_assign_get_unchanged(caplog):
     t = g.add_slot("Lunch Jazz", "mon", 720, 60)
     g.assign_host(t.slot_id, "ravi")
     assert len(_warnings(caplog)) == 1 and len(caplog.records) == 1
+
+
+def _assign(grid):
+    fn = getattr(grid, "assign_host", None) or getattr(grid, "set_host", None)
+    assert fn is not None, "no assign_host method found"
+    return fn
+
+
+def test_cancel_keeps_hosts_and_other_slots(caplog):
+    caplog.set_level(logging.DEBUG)
+    g = Grid()
+    a = g.add_slot("Morning Mix", "mon", 420, 120)
+    b = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    _assign(g)(a.slot_id, "ravi")
+    _assign(g)(b.slot_id, "june")
+    assert g.cancel(b.slot_id).status == "cancelled"
+    out = g.cancel(a.slot_id)
+    assert out.status == "cancelled" and out.host == "ravi"
+    kept = g.get(b.slot_id)
+    assert kept is not None and kept.host == "june"
+    assert kept.status == "cancelled" and kept.show == "Lunch Jazz"
+    assert kept.start == 720 and kept.length_min == 60
+    assert g.get(a.slot_id).host == "ravi"
+    assert g.get(a.slot_id).status == "cancelled"
+    assert [x.slot_id for x in g.on_day("mon")] == ["S1"]
+    assert [x.slot_id for x in g.on_day("tue")] == ["S2"]
+    assert caplog.records == []
 """
 }
 

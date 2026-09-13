@@ -69,27 +69,52 @@ _C1_FUNCTIONAL = {
     "test_sow_functional.py": _C1_HELPER
     + """
 
+def _seed_other(bin_):
+    # A second packet, sown right out, so its status is NOT the dataclass
+    # default: an operation that wipes the bin or resets status is visible.
+    other = bin_.packet_add("Golden Bantam corn", 12, 2023)
+    _sow(bin_)(other.packet_id, 12)
+    return other
+
+
+def _assert_other_intact(bin_, other):
+    kept = bin_.find(other.packet_id)
+    assert kept is not None, "an unrelated packet was dropped from the bin"
+    assert kept.packet_id == other.packet_id
+    assert kept.variety == "Golden Bantam corn" and kept.year == 2023
+    assert kept.quantity == 0 and kept.status == "empty"
+    assert bin_.count() == 2
+
+
 def test_sow_reduces_quantity():
     b = SeedBin()
+    other = _seed_other(b)
     p = b.packet_add("Cherokee Purple tomato", 40, 2025)
     out = _sow(b)(p.packet_id, 15)
     assert out.quantity == 25 and out.status == "in_stock"
     assert b.find(p.packet_id).quantity == 25
+    _assert_other_intact(b, other)
 
 
 def test_sow_to_zero_marks_empty_and_clamps():
     b = SeedBin()
+    other = _seed_other(b)
     p = b.packet_add("Painted Mountain corn", 10, 2024)
     out = _sow(b)(p.packet_id, 12)
     assert out.quantity == 0 and out.status == "empty"
     assert out.variety == "Painted Mountain corn" and out.year == 2024
+    assert b.find(p.packet_id).quantity == 0
+    _assert_other_intact(b, other)
 
 
 def test_sow_unknown_raises_keyerror():
     b = SeedBin()
+    other = _seed_other(b)
+    b.packet_add("Cherokee Purple tomato", 40, 2025)
     try:
         _sow(b)("K999", 1)
     except KeyError:
+        _assert_other_intact(b, other)
         return
     raise AssertionError("expected KeyError for an unknown packet")
 """
@@ -106,6 +131,11 @@ def test_add_and_find_unchanged():
     assert b.find("K1") is p
     assert b.find("nope") is None
     assert b.count() == 1
+    q = b.packet_add("Golden Bantam corn", 12, 2023)
+    assert q.packet_id == "K2" and q.quantity == 12 and q.year == 2023
+    assert q.status == "in_stock" and q.variety == "Golden Bantam corn"
+    assert b.find("K2") is q and b.find("K1") is p
+    assert b.count() == 2
 """
 }
 
@@ -196,27 +226,70 @@ _C2_FUNCTIONAL = {
     "test_retire_functional.py": _C2_HELPER
     + """
 
+def _sow(bin_):
+    fn = getattr(bin_, "packet_sow", None) or getattr(bin_, "sow_packet", None)
+    assert fn is not None, "no sow method found"
+    return fn
+
+
+def _seed_other(bin_):
+    # A second packet, sown right out, so its status is NOT the dataclass
+    # default: an operation that wipes the bin or resets status is visible.
+    other = bin_.packet_add("Golden Bantam corn", 12, 2023)
+    _sow(bin_)(other.packet_id, 12)
+    return other
+
+
+def _assert_other_intact(bin_, other):
+    kept = bin_.find(other.packet_id)
+    assert kept is not None, "an unrelated packet was dropped from the bin"
+    assert kept.packet_id == other.packet_id
+    assert kept.variety == "Golden Bantam corn" and kept.year == 2023
+    assert kept.quantity == 0 and kept.status == "empty"
+    assert bin_.count() == 2
+
+
 def test_retire_sets_status_retired():
     b = SeedBin()
+    other = _seed_other(b)
     p = b.packet_add("Cherokee Purple tomato", 40, 2021)
     out = _retire(b)(p.packet_id)
     assert out.status == "retired"
     assert b.find(p.packet_id).status == "retired"
+    _assert_other_intact(b, other)
 
 
 def test_retire_keeps_quantity_variety_year():
     b = SeedBin()
+    other = _seed_other(b)
     p = b.packet_add("Painted Mountain corn", 10, 2020)
     out = _retire(b)(p.packet_id)
     assert out.packet_id == p.packet_id
     assert out.quantity == 10 and out.variety == "Painted Mountain corn" and out.year == 2020
+    assert b.find(p.packet_id).quantity == 10
+    _assert_other_intact(b, other)
+
+
+def test_retire_keeps_an_emptied_packet_at_zero():
+    b = SeedBin()
+    other = _seed_other(b)
+    p = b.packet_add("Blue Lake bean", 8, 2019)
+    _sow(b)(p.packet_id, 8)
+    out = _retire(b)(p.packet_id)
+    assert out.status == "retired" and out.quantity == 0
+    assert out.variety == "Blue Lake bean" and out.year == 2019
+    assert b.find(p.packet_id).quantity == 0
+    _assert_other_intact(b, other)
 
 
 def test_retire_unknown_raises_keyerror():
     b = SeedBin()
+    other = _seed_other(b)
+    b.packet_add("Cherokee Purple tomato", 40, 2021)
     try:
         _retire(b)("K999")
     except KeyError:
+        _assert_other_intact(b, other)
         return
     raise AssertionError("expected KeyError for an unknown packet")
 """
@@ -234,8 +307,15 @@ def test_add_find_sow_unchanged():
     b = SeedBin()
     p = b.packet_add("Blue Lake bean", 30, 2025)
     assert b.find("K1") is p and b.count() == 1
+    q = b.packet_add("Golden Bantam corn", 12, 2023)
+    assert q.packet_id == "K2" and b.count() == 2
     out = _sow(b)(p.packet_id, 30)
     assert out.quantity == 0 and out.status == "empty"
+    kept = b.find(q.packet_id)
+    assert kept is not None, "sowing one packet dropped another from the bin"
+    assert kept == q and kept.quantity == 12 and kept.status == "in_stock"
+    assert kept.variety == "Golden Bantam corn" and kept.year == 2023
+    assert b.find(p.packet_id).quantity == 0 and b.count() == 2
 """
 }
 

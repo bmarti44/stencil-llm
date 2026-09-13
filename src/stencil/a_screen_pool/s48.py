@@ -79,29 +79,69 @@ _C1_FUNCTIONAL = {
     "test_collect_functional.py": _C1_HELPER
     + """
 
+def _seed_other(store):
+    # A SECOND box, filled and collected, so neither its contents nor its
+    # status is the dataclass default: an operation that wipes the store, or
+    # resets an unrelated defaulted attribute, is then visible.
+    other = store.pack_box("ayla", 36)
+    store.add_item(other.box_id, "leeks")
+    _collect(store)(other.box_id)
+    return other
+
+
+def _assert_other_intact(store, other):
+    kept = store.find(other.box_id)
+    assert kept is not None, "an unrelated box was dropped from the store"
+    assert kept.box_id == other.box_id and kept.member == "ayla"
+    assert kept.week == 36 and kept.contents == ("leeks",)
+    assert kept.status == "collected"
+    assert store.count() == 2
+
+
 def test_collect_sets_status_collected():
     s = BoxStore()
+    other = _seed_other(s)
     b = s.pack_box("hollis", 37)
     out = _collect(s)(b.box_id)
     assert out.status == "collected"
     assert s.find(b.box_id).status == "collected"
+    _assert_other_intact(s, other)
 
 
 def test_collect_keeps_member_week_and_contents():
     s = BoxStore()
+    other = _seed_other(s)
     b = s.pack_box("ayla", 37)
     s.add_item(b.box_id, "chard")
     out = _collect(s)(b.box_id)
     assert out.box_id == b.box_id and out.member == "ayla" and out.week == 37
     assert out.contents == ("chard",)
+    assert s.find(b.box_id).contents == ("chard",)
+    _assert_other_intact(s, other)
 
 
 def test_collect_twice_stays_collected():
     s = BoxStore()
+    other = _seed_other(s)
     b = s.pack_box("hollis", 37)
     _collect(s)(b.box_id)
     out = _collect(s)(b.box_id)
     assert out.status == "collected" and s.find(b.box_id).status == "collected"
+    _assert_other_intact(s, other)
+
+
+def test_add_item_to_a_collected_box_keeps_status_and_siblings():
+    s = BoxStore()
+    other = _seed_other(s)
+    b = s.pack_box("hollis", 37)
+    s.add_item(b.box_id, "kale")
+    _collect(s)(b.box_id)
+    out = s.add_item(b.box_id, "beets")
+    assert out.status == "collected"
+    assert out.contents == ("kale", "beets")
+    assert s.find(b.box_id).status == "collected"
+    assert s.find(b.box_id).contents == ("kale", "beets")
+    _assert_other_intact(s, other)
 """
 }
 
@@ -120,6 +160,15 @@ def test_pack_find_count_add_item_unchanged():
     assert s.add_item("B1", "kale").contents == ("kale",)
     with pytest.raises(KeyError):
         s.add_item("B9", "kale")
+    c = s.pack_box("ayla", 36)
+    assert c.box_id == "B2" and c.status == "packed" and c.contents == ()
+    assert s.find("B2") is c and s.count() == 2
+    assert s.add_item("B2", "chard").contents == ("chard",)
+    kept = s.find("B1")
+    assert kept is not None, "filling one box dropped another from the store"
+    assert kept.box_id == "B1" and kept.member == "hollis" and kept.week == 37
+    assert kept.contents == ("kale",) and kept.status == "packed"
+    assert s.count() == 2
 """
 }
 
@@ -229,29 +278,69 @@ _C2_FUNCTIONAL = {
     "test_hold_functional.py": _C2_HELPER
     + """
 
+def _seed_other(store):
+    # A SECOND box, filled and collected, so neither its contents nor its
+    # status is the dataclass default: an operation that wipes the store, or
+    # resets an unrelated defaulted attribute, is then visible.
+    other = store.pack_box("ayla", 36)
+    store.add_item(other.box_id, "leeks")
+    store.collect_box(other.box_id)
+    return other
+
+
+def _assert_other_intact(store, other):
+    kept = store.find(other.box_id)
+    assert kept is not None, "an unrelated box was dropped from the store"
+    assert kept.box_id == other.box_id and kept.member == "ayla"
+    assert kept.week == 36 and kept.contents == ("leeks",)
+    assert kept.status == "collected"
+    assert store.count() == 2
+
+
 def test_hold_sets_status_held():
     s = BoxStore()
+    other = _seed_other(s)
     b = s.pack_box("hollis", 38)
     out = _hold(s)(b.box_id)
     assert out.status == "held"
     assert s.find(b.box_id).status == "held"
+    _assert_other_intact(s, other)
 
 
 def test_hold_keeps_member_week_and_contents():
     s = BoxStore()
+    other = _seed_other(s)
     b = s.pack_box("ayla", 38)
     s.add_item(b.box_id, "squash")
     out = _hold(s)(b.box_id)
     assert out.box_id == b.box_id and out.member == "ayla" and out.week == 38
     assert out.contents == ("squash",)
+    assert s.find(b.box_id).contents == ("squash",)
+    _assert_other_intact(s, other)
 
 
 def test_hold_collected_box_still_holds():
     s = BoxStore()
+    other = _seed_other(s)
     b = s.pack_box("hollis", 38)
     s.collect_box(b.box_id)
     out = _hold(s)(b.box_id)
     assert out.status == "held" and s.find(b.box_id).status == "held"
+    _assert_other_intact(s, other)
+
+
+def test_add_item_to_a_held_box_keeps_status_and_siblings():
+    s = BoxStore()
+    other = _seed_other(s)
+    b = s.pack_box("hollis", 38)
+    s.add_item(b.box_id, "kale")
+    _hold(s)(b.box_id)
+    out = s.add_item(b.box_id, "beets")
+    assert out.status == "held"
+    assert out.contents == ("kale", "beets")
+    assert s.find(b.box_id).status == "held"
+    assert s.find(b.box_id).contents == ("kale", "beets")
+    _assert_other_intact(s, other)
 """
 }
 
@@ -269,6 +358,16 @@ def test_pack_find_add_item_collect_unchanged():
     with pytest.raises(KeyError):
         s.add_item("B9", "kale")
     assert s.collect_box("B1").status == "collected"
+    c = s.pack_box("ayla", 36)
+    assert c.box_id == "B2" and c.status == "packed" and s.count() == 2
+    assert s.add_item("B1", "beets").contents == ("kale", "beets")
+    assert s.find("B1").status == "collected"
+    assert s.collect_box("B2").status == "collected"
+    kept = s.find("B1")
+    assert kept is not None, "collecting one box dropped another from the store"
+    assert kept.box_id == "B1" and kept.member == "hollis" and kept.week == 38
+    assert kept.contents == ("kale", "beets") and kept.status == "collected"
+    assert s.count() == 2
 """
 }
 

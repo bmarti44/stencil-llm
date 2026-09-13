@@ -140,6 +140,23 @@ def test_record_treatment_leaves_other_hives_alone(tmp_path):
     _treat(y)(a.hive_id, "formic strip")
     assert y.get(b.hive_id).status == "active" and y.get(b.hive_id).note is None
     assert y.count() == 2
+
+
+def test_requeen_after_treatment_keeps_note_and_other_hives(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    _treat(y)(a.hive_id, "formic strip")
+    _treat(y)(b.hive_id, "oxalic acid dribble")
+    out = y.requeen(a.hive_id, 2026)
+    assert out.queen_year == 2026 and out.status == "treated"
+    assert out.note == "formic strip" and out.site == "orchard"
+    kept = y.get(b.hive_id)
+    assert kept is not None, "the other hive was dropped from the yard"
+    assert kept.status == "treated" and kept.note == "oxalic acid dribble"
+    assert kept.queen_year == 2024 and kept.site == "allotment"
+    assert y.count() == 2
+    assert y.get(a.hive_id).note == "formic strip"
 """
 }
 
@@ -158,6 +175,21 @@ def test_add_requeen_get_count_unchanged(tmp_path):
         y.requeen("H9", 2026)
     assert y.count() == 1
     assert path.read_text().splitlines() == ["add H1 orchard 2025", "requeen H1 2026"]
+
+
+def test_requeen_keeps_other_hives_and_count(tmp_path):
+    y, path = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    out = y.requeen(a.hive_id, 2026)
+    assert out.queen_year == 2026 and out.status == "active"
+    assert out.note is None and out.site == "orchard"
+    kept = y.get(b.hive_id)
+    assert kept is not None, "the other hive was dropped from the yard"
+    assert kept.site == "allotment" and kept.queen_year == 2024
+    assert kept.status == "active" and kept.note is None
+    assert y.count() == 2 and y.get(a.hive_id).queen_year == 2026
+    assert path.read_text().splitlines()[-1] == f"requeen {a.hive_id} 2026"
 """
 }
 
@@ -301,6 +333,23 @@ def test_retire_keeps_note_and_other_hives(tmp_path):
     out = _retire(y)(a.hive_id)
     assert out.note == "formic strip"
     assert y.get(b.hive_id).status == "active" and y.count() == 2
+
+
+def test_retire_keeps_treated_siblings_and_count(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    y.record_treatment(a.hive_id, "formic strip")
+    y.record_treatment(b.hive_id, "oxalic acid dribble")
+    y.requeen(b.hive_id, 2026)
+    out = _retire(y)(a.hive_id)
+    assert out.status == "retired" and out.note == "formic strip"
+    assert out.queen_year == 2025 and out.site == "orchard"
+    kept = y.get(b.hive_id)
+    assert kept is not None, "the other hive was dropped from the yard"
+    assert kept.status == "treated" and kept.note == "oxalic acid dribble"
+    assert kept.queen_year == 2026 and kept.site == "allotment"
+    assert y.count() == 2 and y.get(a.hive_id).status == "retired"
 """
 }
 
@@ -321,6 +370,23 @@ def test_add_requeen_treatment_get_unchanged(tmp_path):
         y.requeen("H9", 2026)
     assert y.count() == 1
     assert path.read_text().splitlines() == ["add H1 orchard 2025", "treat H1 formic strip", "requeen H1 2026"]
+
+
+def test_requeen_keeps_treated_siblings_and_count(tmp_path):
+    y, path = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    y.record_treatment(a.hive_id, "formic strip")
+    y.record_treatment(b.hive_id, "oxalic acid dribble")
+    out = y.requeen(a.hive_id, 2026)
+    assert out.queen_year == 2026 and out.status == "treated"
+    assert out.note == "formic strip" and out.site == "orchard"
+    kept = y.get(b.hive_id)
+    assert kept is not None, "the other hive was dropped from the yard"
+    assert kept.status == "treated" and kept.note == "oxalic acid dribble"
+    assert kept.queen_year == 2024 and kept.site == "allotment"
+    assert y.count() == 2 and y.get(a.hive_id).note == "formic strip"
+    assert path.read_text().splitlines()[-1] == f"requeen {a.hive_id} 2026"
 """
 }
 

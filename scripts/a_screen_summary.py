@@ -28,6 +28,7 @@ SHARED_IDENTITY = (
     "hub_sha256",
     "eos",
     "max_new",
+    "deadline_s",
     "prompt_budget",
 )
 

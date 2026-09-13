@@ -90,6 +90,22 @@ def test_close_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown ticket")
+
+
+def test_close_keeps_the_other_ticket_and_the_count():
+    s = TicketStore()
+    other = s.open_ticket("badge reader")
+    other_closed = _close(s)(other.ticket_id)
+    t = s.open_ticket("printer jams")
+    out = _close(s)(t.ticket_id)
+    assert out.status == "closed" and out.title == "printer jams"
+    assert s.count() == 2, "closing one ticket changed the stored count"
+    kept = s.find(other.ticket_id)
+    assert kept is not None, "closing one ticket dropped the other"
+    assert kept == other_closed
+    assert kept.ticket_id == other.ticket_id
+    assert kept.title == "badge reader"
+    assert kept.status == "closed" and kept.assignee is None
 """
 }
 
@@ -104,6 +120,12 @@ def test_open_and_find_unchanged():
     assert s.find("T1") is t
     assert s.find("nope") is None
     assert s.count() == 1
+    u = s.open_ticket("b")
+    assert u.ticket_id == "T2" and u.status == "open"
+    assert u.assignee is None
+    assert s.find("T2") is u
+    assert s.find("T1") is t, "opening a second ticket dropped the first"
+    assert s.count() == 2
 """
 }
 
@@ -208,6 +230,32 @@ def test_assign_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown ticket")
+
+
+def _close_fn(store):
+    fn = getattr(store, "close_ticket", None)
+    return fn or getattr(store, "ticket_close", None)
+
+
+def test_assign_keeps_a_closed_status_and_the_other_ticket():
+    s = TicketStore()
+    other = s.open_ticket("badge reader")
+    other_closed = _close_fn(s)(other.ticket_id)
+    t = s.open_ticket("printer jams")
+    _close_fn(s)(t.ticket_id)
+    out = _assign(s)(t.ticket_id, "dana")
+    assert out.assignee == "dana"
+    assert out.status == "closed", "assigning reset the ticket's status"
+    stored = s.find(t.ticket_id)
+    assert stored.assignee == "dana"
+    assert stored.status == "closed", "the stored status was reset"
+    assert stored.title == "printer jams"
+    assert s.count() == 2, "assigning one ticket changed the stored count"
+    kept = s.find(other.ticket_id)
+    assert kept is not None, "assigning one ticket dropped the other"
+    assert kept == other_closed
+    assert kept.status == "closed" and kept.assignee is None
+    assert kept.title == "badge reader"
 """
 }
 
@@ -219,11 +267,41 @@ def _close(store):
     return getattr(store, "close_ticket", None) or getattr(store, "ticket_close", None)
 
 
+def _assign(store):
+    return getattr(store, "assign_ticket", None) or getattr(store, "ticket_assign", None)
+
+
 def test_open_find_close_unchanged():
     s = TicketStore()
     t = s.open_ticket("a")
     assert s.find("T1") is t and s.count() == 1
     assert _close(s)(t.ticket_id).status == "closed"
+    u = s.open_ticket("b")
+    assert u.ticket_id == "T2" and s.count() == 2
+    assert _close(s)(u.ticket_id).status == "closed"
+    assert s.find("T2").status == "closed"
+    assert s.count() == 2, "closing a ticket changed the stored count"
+    kept = s.find("T1")
+    assert kept is not None, "closing one ticket dropped the other"
+    assert kept.status == "closed" and kept.title == "a"
+    assert kept.assignee is None
+
+
+def test_closing_an_assigned_ticket_keeps_its_assignee():
+    s = TicketStore()
+    t = s.open_ticket("a")
+    u = s.open_ticket("b")
+    _assign(s)(t.ticket_id, "dana")
+    _assign(s)(u.ticket_id, "ravi")
+    _close(s)(t.ticket_id)
+    stored = s.find("T1")
+    assert stored is not None, "closing the ticket dropped it from the store"
+    assert stored.status == "closed"
+    assert stored.assignee == "dana", "closing the ticket dropped its assignee"
+    other = s.find("T2")
+    assert other is not None, "closing one ticket dropped the other"
+    assert other.assignee == "ravi" and other.status == "open"
+    assert s.count() == 2, "closing a ticket changed the stored count"
 """
 }
 

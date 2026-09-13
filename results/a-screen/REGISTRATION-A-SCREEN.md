@@ -421,3 +421,209 @@ Each of the twelve now has one added assertion that re-reads through the store's
 reader (or calls the lookup with an unknown id). The audit re-runs at **149 mutations, 0
 undetected**. This is why the SCREEN pool hash moves in amendment 2. The audit script is the
 standing check for this question: a new slot or a changed regression test must keep it at zero.
+
+## 15. Amendment 3 (2026-09-13, after the Astra re-review round 3, before any pilot, training or evaluation generation)
+
+Round 3 read **DO NOT LAUNCH**: "It can award J = 1 after an edit deletes unrelated records,
+and the summary can still turn a failed gate into a pass." F6, F8, F16 and F17 were confirmed
+RESOLVED; six findings were PARTIAL. Every counterexample was reproduced before it was changed.
+**No arm, model, outcome unit, gate or ceiling changes.**
+
+### 15.1 Request 2 renders the whole repository (F1, third and final form)
+
+Amendment 2 added request 2's own target to the rendering. That was still not enough: in S03 the
+target's record type `Fine` and its `frozen=True` declaration live in `model.py`, so a reply that
+assigns in place raises `FrozenInstanceError` while the constraint appears nowhere in the window.
+Request 2 now renders the CURRENT content of EVERY file, exactly as request 1 does. This ends the
+defect class instead of patching instances of it, and it fits: over all 48 slots the required
+messages plus every file need at most **2,383 of the 2,560-token budget** (S08; 177 tokens
+spare). The self-check asserts that every file appears in request 2, with an applied reply and
+with an unapplied one.
+
+Compaction is unchanged by it, measured over all 48 slots with the shipping tokenizer:
+
+| | min | median | max |
+|---|---:|---:|---:|
+| prefix turns surviving at request 1 (of 16) | 13 | 14 | 15 |
+| prefix turns surviving at request 2, gold first reply | 12 | 13 | 15 |
+| prefix turns surviving at request 2, maximum-length first reply | 4 | 8 | 9 |
+| packed request-2 tokens, gold first reply | 2,350 | 2,451 | 2,556 |
+
+The superseded request and its reply are evicted at request 2 in **48/48** slots. Round 3's
+observation is recorded as a scope limit, not a defect: the rule turns are protected, so the
+screen does not test recovery of an evicted rule. §14.6's claim is written accordingly.
+
+### 15.2 The summary can no longer turn a failed gate into a pass (F12)
+
+Two executed counterexamples each flipped **GATE FAILED → GATE PASSED**:
+
+- relabelling CF's S03 `lifecycle` from `scope` to `replacement` moved a session between strata,
+  because the strata were read from CF's own records. Strata now come from the **frozen
+  manifest**, and any record whose label disagrees with the manifest is refused by name.
+- leaving a failed functional suite in place while setting the stored `function_only` flags true
+  bypassed gate 3. `function_only` is now **recomputed** from its three suites
+  (`functional`, `regression`, `protected_function`) and a disagreement is refused.
+
+Also closed: an identity that is non-empty but incomplete now fails (every field in
+`SHARED_IDENTITY` is required), the one shared identity must match the **current** SCREEN freeze
+rather than merely being self-consistent, and an empty stratum is reported instead of dividing by
+zero (one completed stable session used to raise `ZeroDivisionError` on the changing-rule
+subset; gate 4 also cannot pass on an empty subset).
+
+### 15.3 Provenance now establishes the registered comparison (F13, F15)
+
+The model fingerprint hashed JSON below 2 MB in full and everything else by size, so the
+11,422,654-byte `tokenizer.json`, the 2,776,833-byte `vocab.json` and all three weight shards
+were size-only: different content of the same length fingerprinted identically. `dir_sha` now
+hashes every file's **actual bytes** (8.06 GB in 5.9 s, stable across calls; verified that a
+one-byte change in the tokenizer, the vocabulary or a weight shard changes the fingerprint and
+that restoring the bytes restores it). The adapter's `adapter_config.json` is hashed into the
+identity too, and the per-request **deadline** is recorded and must equal the registered 300 s.
+
+The adapter guard no longer accepts a log that merely looks finished. It requires the frozen
+TRAIN pool hash, no `--limit` subset, the evaluation trunk, at least one completed optimizer step
+**as an integer** (`not steps` had accepted `-1`), at least half the allocation in elapsed
+seconds, and every value of the registered recipe: `seed 0`, `lr 1e-4`, `rank 16`, `alpha 32`,
+`beta 0.1`, `dpo_weight 0.1`, `accum 8`. Verified against Astra's fabricated log: all eight
+deviations plus the 1-second runtime are named in the refusal.
+
+### 15.4 Resume, budget and the trainer (F3, F13)
+
+A complete final record missing only its newline is now **completed** rather than deleted; only
+malformed trailing bytes are discarded; all four file shapes were checked. An output file holding
+records from another arm or identity is refused **before** any generation rather than producing a
+file the summary rejects after the GPU time is spent.
+
+`--budget-min` counts **resident** wall time, not `model.generate` seconds: every record carries
+a `resident_s` stamp and a resumed run continues from the largest stamp in the file. The
+protocol's five-minute starting margin is applied. In the trainer: one packing path shared with
+the harness (`pack_session`), the stop estimate includes the optimizer step as well as the
+micro-step, a periodic save cannot consume the allowance reserved for the final save, and
+`status` is `"complete"` only when at least one optimizer step completed.
+
+### 15.5 Corrected compute accounting
+
+Round 3's count is adopted. The amended scorer runs **five suites at checkpoint 1 and six at
+checkpoint 2**, so the evaluation entails **48 × 3 × 11 = 1,584** suite subprocesses, plus 132
+for the pilot's 12 arm-sessions. §14.4's 1,296 is superseded.
+
+| component | hours |
+|---|---:|
+| two training allocations, CF reference scoring included | 8.0 |
+| evaluation generations, 288 × 15 s × 1.5 | 1.8 |
+| pilot generations, 24 × 15 s | 0.1 |
+| subtotal | **9.9** |
+| one permitted training re-run | 4.0 |
+| subtotal with the re-run | **13.9** |
+| remaining allowance against the 16 GPU-h ceiling | **2.1** |
+
+The 2.1 h remainder must cover model loads, checkpoint writes and all 1,716 suite invocations,
+which is **at most 4.41 s per invocation** before any other resident overhead. That is not
+asserted here: the registered timing pilot now measures `resident_s`, which includes suite
+execution, and §8's ceiling is applied to the pilot's measurement. If the pilot shows the
+evaluation cannot fit with the re-run reserve, the re-run reserve is given up first and the
+screen runs without it; §8's INCOMPLETE rule is never rescued.
+
+### 15.6 The audit's own question, asked of the fixtures instead of the scorer (F7 class, final)
+
+§14.8 audited the scorer against two mutation classes and closed twelve holes. Round 3's
+criticism was that the audit itself was too narrow: "it can award J = 1 after an edit deletes
+unrelated records." Three classes were added, all of them things a reply to the registered
+request can plausibly write, and all of them leaving the repository wrong:
+
+| # | mutation | what it would mean in a reply |
+|---|---|---|
+| 1 | `store.get(k)` → `store[k]` | a declared `-> X \| None` lookup starts raising |
+| 2 | the write-back line is deleted | the operation returns a correct record that is never persisted |
+| 3 | `self._m[k] = v` → `self._m = {k: v}` | the edit **deletes every other record** |
+| 4 | `replace(rec, …)` gains `field=<default>` | the update **resets an unrelated attribute** |
+| 5 | `rec.with_X(…)` wrapped in `replace(…, field=<default>)` | the same reset where the slot updates through a record helper |
+
+Class 5 exists because round 3's second S01 example updates through `recipe.with_servings(…)`,
+which has no `replace(` call site at all, so class 4 generated nothing for it.
+
+At five classes the audit found **82 undetected mutations across 38 of the 48 slots** (61
+whole-mapping replacements, 21 attribute resets). Every one was a construction defect rather than
+a scorer defect: a fixture that stores exactly ONE record, with every defaulted attribute left at
+its default, asserting only the record the operation returned. Such a fixture cannot distinguish
+"updated this record" from "replaced the store with this record", and cannot distinguish "kept the
+other fields" from "reset them".
+
+All 38 were repaired under a written standard, now AUTHORING.md amendment 2 so a future slot
+cannot be added without it. For every `functional_tests` and `regression_tests` suite of both
+requests:
+
+1. the fixture stores **at least two records** and the tests operate on one of them;
+2. at least one record carries a **non-default** value in each defaulted attribute the operation
+   does not itself set;
+3. after the operation the suite **reads the other record back through the store's own public
+   reader** and asserts the count is unchanged — by the public counter where one exists, else by
+   reading every record back **and** asserting `get(<a key never stored>) is None`;
+4. every "the other record survived" assertion is preceded by an explicit non-`None` guard, so it
+   cannot pass vacuously (AGENTS.md's exact-zero rule applied to record survival).
+
+Class 5 was added while that repair was in flight, so the slots repaired before it existed had
+never been audited against it. The **pool-wide** re-run found exactly that residue: **2 undetected
+mutations**, `S02 close_ticket` silently clearing `assignee` and `S41 close` silently clearing
+`crew` — in both cases a pre-existing close operation that erases a field only the *other*
+operation sets, which no single-operation fixture can observe. One regression test each now
+assigns two records, closes one, and reads both back. This is recorded rather than smoothed over
+because it is the reason the audit is run pool-wide and not per repair.
+
+Final state: **292 mutations, 0 undetected**, and `tests/test_a_screen.py`
+**301 passed**, including that both states' gold reaches every suite at both
+checkpoints for all 48 slots.
+
+Nothing outside the two fixture fields changed, and that is checked mechanically rather than
+asserted. `scripts/a_screen_containment.py` rebuilds each changed slot's `Session` from git and
+compares every session and request field except `functional_tests` and `regression_tests`: **39
+slots changed, 9 untouched, 0 violations**. It also reports a slot whose file changed without any
+fixture body changing, so an edit cannot hide in a helper. Its own non-vacuity was verified by
+injecting six edits one at a time: a project file, a request text, a contract suite, a support
+suite, and a behaviour-neutral edit inside a gold builder are each reported; an added functional
+test and an added regression test are each correctly not.
+
+Three limits are recorded rather than engineered away:
+
+- Requirement 2 is **vacuous** where a slot has nothing unrelated to preserve: S18 stores plain
+  dicts with no defaults at all, S27's `Screening` has no defaulted field, and in several slots the
+  operation's own field is the only defaulted one. There the NEIGHBOUR record carries the
+  non-default value, so classes 3 and 5 are still caught.
+- Four seeds are not reachable through the public API at the checkpoint that needs them (S05's
+  `renewals` before a freeze, S47's `borrower` before a retire, S01's `tags` and S43's `host` at
+  checkpoint 1). Those are seeded through the store's own mapping with `dataclasses.replace` — the
+  idiom the pool already used — or pinned in the other request's suite where the operation is
+  pre-existing. A fixture that reaches into private state is weaker evidence than one that does
+  not, so it is stated.
+- S29 has no public price setter until request 2, so its checkpoint-1 fixture writes the
+  non-default value into private store state; a second pin using only the public API was added to
+  request 2's regression suite, so the mutation is caught without relying on private access.
+
+No existing assertion was weakened or deleted. Where a test's exact assertion pins a single record
+(`count() == 1`, an exact audit-log body), the test was left verbatim and a two-record sibling was
+added beside it.
+
+One consequence is stated plainly because it cuts against the arm under test as much as for it: a
+two-record fixture at checkpoint 2 can fail a session for a defect introduced by the **request-1**
+reply that request 1's own suites could not observe. In S02, a request-1 reply that rebuilds the
+record (`Ticket(ticket_id=…, title=…, status="closed")`) instead of updating it drops `assignee` —
+invisible at checkpoint 1, where no ticket has an assignee, and caught at checkpoint 2 once one
+does. That is the intended reading: J requires both checkpoints to pass every suite, the repository
+at checkpoint 2 really is wrong in that case, and the protected suites already re-run request 1's
+tests there. It applies identically to all three arms.
+
+A sixth class — persisting the record under a different key — was considered and **declined**: a
+wrong-key write either destroys the neighbours, which is class 3, or is observationally identical
+to the deleted write-back, which is class 2, and no form of it is something a reply plausibly
+writes. The audit stays at five classes.
+
+### 15.7 Re-frozen pool and self-checks
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `4f5d59eb87bb99f8` | `eb9c5c97e2d42d61` |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | unchanged; no TRAIN file was touched |
+
+`uv run pytest -q tests/test_a_screen.py` → **301 passed**.
+`uv run python scripts/a_screen_mutate.py` → **292 mutations, 0 undetected**.
+`uv run python scripts/a_screen_containment.py` → **0 violations**.

@@ -108,29 +108,57 @@ _C1_FUNCTIONAL = {
 def test_lend_sets_status_out_and_borrower():
     s = ToolStore()
     t = s.add_tool("cordless drill")
+    other = s.add_tool("tile cutter")
     out = _lend(s)(t.tool_id, "kofi")
     assert out.status == "out" and out.borrower == "kofi"
     assert s.find(t.tool_id).borrower == "kofi"
+    assert s.find(other.tool_id) == other
+    assert s.count() == 2
 
 
 def test_lend_keeps_name_and_id():
     s = ToolStore()
     t = s.add_tool("tile cutter")
+    other = s.add_tool("hedge trimmer")
     out = _lend(s)(t.tool_id, "mira")
     assert out.tool_id == t.tool_id and out.name == "tile cutter"
+    assert s.find(other.tool_id) == other
+    assert s.count() == 2
 
 
 def test_lend_needs_repair_tool_still_lends():
     s = ToolStore()
     t = s.add_tool("hedge trimmer")
+    other = s.add_tool("tile cutter")
     s._tools[t.tool_id] = t.with_status("needs-repair")
     out = _lend(s)(t.tool_id, "kofi")
     assert out.status == "out" and out.borrower == "kofi"
+    assert s.find(other.tool_id) == other
+    assert s.count() == 2
+
+
+def test_lend_leaves_the_other_tool_untouched():
+    # two tools; the neighbour carries NON-DEFAULT values for both
+    # defaulted attributes (status "out", borrower "mira")
+    s = ToolStore()
+    a = s.add_tool("cordless drill")
+    b = s.add_tool("tile cutter")
+    _lend(s)(b.tool_id, "mira")
+    out = _lend(s)(a.tool_id, "kofi")
+    assert out.status == "out" and out.borrower == "kofi"
+    kept = s.find(b.tool_id)
+    assert kept is not None and kept.status == "out"
+    assert kept.borrower == "mira" and kept.name == "tile cutter"
+    assert s.find(a.tool_id).borrower == "kofi"
+    assert s.find(a.tool_id).name == "cordless drill"
+    assert s.count() == 2
 """
 }
 
 _C1_REGRESSION = {
-    "test_lend_regression.py": """import pytest
+    "test_lend_regression.py": """from dataclasses import replace
+
+import pytest
 
 from toolshed.store import ToolStore
 
@@ -145,6 +173,35 @@ def test_add_find_count_retire_unchanged():
     assert s.find("T1").status == "retired"
     with pytest.raises(KeyError):
         s.retire_tool("T9")
+
+
+def test_add_keeps_every_earlier_tool():
+    s = ToolStore()
+    a = s.add_tool("a")
+    b = s.add_tool("b")
+    c = s.add_tool("c")
+    assert s.find("T1") is a and s.find("T2") is b and s.find("T3") is c
+    assert s.count() == 3
+
+
+def test_retire_keeps_other_tools_and_their_borrowers():
+    # two tools, BOTH carrying NON-DEFAULT values for the defaulted
+    # attributes; retiring one must leave the other alone and must not
+    # reset the borrower of the record it does retire
+    s = ToolStore()
+    a = s.add_tool("a")
+    b = s.add_tool("b")
+    s._tools[a.tool_id] = replace(s.find(a.tool_id), status="out", borrower="kofi")
+    s._tools[b.tool_id] = replace(s.find(b.tool_id), status="out", borrower="mira")
+    out = s.retire_tool(b.tool_id)
+    assert out.status == "retired" and out.borrower == "mira"
+    kept = s.find(a.tool_id)
+    assert kept is not None and kept.status == "out"
+    assert kept.borrower == "kofi" and kept.name == "a"
+    got = s.find(b.tool_id)
+    assert got.status == "retired" and got.borrower == "mira"
+    assert got.name == "b"
+    assert s.count() == 2
 """
 }
 
@@ -257,9 +314,12 @@ _C2_FUNCTIONAL = {
 def test_cancel_sets_status_cancelled():
     b = HoldBook()
     h = b.place_hold("T1", "kofi")
+    other = b.place_hold("T2", "mira")
     out = _cancel(b)(h.hold_id)
     assert out.status == "cancelled"
     assert b.find(h.hold_id).status == "cancelled"
+    assert b.find(other.hold_id) == other
+    assert b.waiting_for("T2") == [other]
 
 
 def test_cancel_keeps_tool_and_member_and_drops_from_waiting():
@@ -269,14 +329,39 @@ def test_cancel_keeps_tool_and_member_and_drops_from_waiting():
     out = _cancel(b)(h.hold_id)
     assert out.hold_id == h.hold_id and out.tool_id == "T1" and out.member == "mira"
     assert [x.member for x in b.waiting_for("T1")] == ["kofi"]
+    kept = b.find("H2")
+    assert kept is not None and kept.status == "waiting"
+    assert kept.member == "kofi" and kept.tool_id == "T1"
 
 
 def test_cancel_twice_stays_cancelled():
     b = HoldBook()
     h = b.place_hold("T2", "kofi")
+    other = b.place_hold("T3", "mira")
     _cancel(b)(h.hold_id)
     out = _cancel(b)(h.hold_id)
     assert out.status == "cancelled" and b.find(h.hold_id).status == "cancelled"
+    assert b.find(other.hold_id) == other
+    assert b.waiting_for("T3") == [other]
+
+
+def test_cancel_keeps_the_other_holds_and_the_queue():
+    # three holds; the untouched one stays waiting and the cancelled
+    # neighbour keeps its NON-DEFAULT status, all read back through find
+    b = HoldBook()
+    h1 = b.place_hold("T1", "mira")
+    h2 = b.place_hold("T1", "kofi")
+    h3 = b.place_hold("T2", "ada")
+    _cancel(b)(h2.hold_id)
+    out = _cancel(b)(h1.hold_id)
+    assert out.status == "cancelled" and out.member == "mira"
+    kept = b.find(h3.hold_id)
+    assert kept is not None and kept == h3 and kept.status == "waiting"
+    assert kept.tool_id == "T2" and kept.member == "ada"
+    neighbour = b.find(h2.hold_id)
+    assert neighbour is not None and neighbour.status == "cancelled"
+    assert neighbour.member == "kofi" and neighbour.tool_id == "T1"
+    assert b.waiting_for("T1") == [] and b.waiting_for("T2") == [h3]
 """
 }
 
@@ -290,6 +375,7 @@ from toolshed.store import ToolStore
 def test_store_and_holds_unchanged():
     s = ToolStore()
     t = s.add_tool("a")
+    other = s.add_tool("b")
     assert s.lend_tool(t.tool_id, "kofi").status == "out"
     with pytest.raises(KeyError):
         s.retire_tool("T9")
@@ -298,6 +384,29 @@ def test_store_and_holds_unchanged():
     assert h.hold_id == "H1" and h.status == "waiting"
     assert b.find("H1") is h and b.find("nope") is None
     assert b.waiting_for("T1") == [h] and b.waiting_for("T2") == []
+    assert s.find(other.tool_id) == other and s.count() == 2
+    assert s.find(t.tool_id).borrower == "kofi"
+    second = b.place_hold("T3", "ada")
+    assert b.find("H1") is h and b.find("H2") is second
+    assert b.waiting_for("T3") == [second]
+
+
+def test_lend_and_retire_keep_the_other_tools():
+    # two tools, both holding NON-DEFAULT values for the defaulted
+    # attributes; retiring one must not disturb the other or its borrower
+    s = ToolStore()
+    a = s.add_tool("a")
+    b = s.add_tool("b")
+    assert s.lend_tool(a.tool_id, "kofi").borrower == "kofi"
+    assert s.lend_tool(b.tool_id, "mira").borrower == "mira"
+    out = s.retire_tool(b.tool_id)
+    assert out.status == "retired" and out.borrower == "mira"
+    kept = s.find(a.tool_id)
+    assert kept is not None and kept.status == "out"
+    assert kept.borrower == "kofi" and kept.name == "a"
+    assert s.find(b.tool_id).status == "retired"
+    assert s.find(b.tool_id).borrower == "mira"
+    assert s.count() == 2
 """
 }
 

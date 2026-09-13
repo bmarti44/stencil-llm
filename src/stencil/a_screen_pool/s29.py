@@ -120,37 +120,83 @@ _C1_FUNCTIONAL = {
     "test_odometer_functional.py": _C1_SETUP
     + """
 
+from dataclasses import replace
+
+
+def _priced(fl, entry_id, price_cents):
+    # The operated record must carry a NON-DEFAULT price_cents, or a correction
+    # that silently resets an unrelated defaulted field goes unnoticed. No
+    # public price setter exists at this checkpoint, so the fixture writes into
+    # the store directly, as the contract suite's spy already does.
+    fl._entries[entry_id] = replace(fl._entries[entry_id], price_cents=price_cents)
+    return fl._entries[entry_id]
+
+
+def _check_both_entries(fl):
+    assert fl.get("F1") is not None, "an entry was dropped"
+    assert fl.get("F2") is not None, "an entry was dropped"
+    assert fl.litres_for("KX61 VAN") == 80.5
+
+
 def test_correct_odometer_updates_and_returns_entry():
     fl = _log()
     out = correct_odometer(fl, "F2", 118950)
     assert isinstance(out, FuelEntry)
     assert out.odometer_km == 118950 and out.litres == 38.0 and out.plate == "KX61 VAN"
     assert fl.get("F2").odometer_km == 118950
+    back = fl.get("F2")
+    assert back.litres == 38.0 and back.plate == "KX61 VAN"
+    _check_both_entries(fl)
+    kept = fl.get("F1")
+    assert kept.odometer_km == 118400 and kept.litres == 42.5
+
+
+def test_correct_odometer_keeps_price_and_other_entries():
+    fl = _log()
+    _priced(fl, "F1", 161)
+    _priced(fl, "F2", 173)
+    out = correct_odometer(fl, "F2", 118950)
+    assert out.odometer_km == 118950 and out.price_cents == 173
+    back = fl.get("F2")
+    assert back.price_cents == 173 and back.litres == 38.0
+    _check_both_entries(fl)
+    kept = fl.get("F1")
+    assert kept.price_cents == 161 and kept.odometer_km == 118400
+    assert kept.litres == 42.5 and kept.plate == "KX61 VAN"
 
 
 def test_large_correction_still_applies():
     fl = _log()
+    _priced(fl, "F1", 161)
     out = correct_odometer(fl, "F1", 128400)
     assert out.odometer_km == 128400
     assert fl.get("F1").odometer_km == 128400
+    assert fl.get("F1").price_cents == 161
+    _check_both_entries(fl)
+    assert fl.get("F2").odometer_km == 118910
 
 
 def test_correct_odometer_rejects_negative():
     fl = _log()
+    _priced(fl, "F1", 161)
     with pytest.raises(ValueError):
         correct_odometer(fl, "F1", -1)
     assert fl.get("F1").odometer_km == 118400
+    assert fl.get("F1").price_cents == 161
+    _check_both_entries(fl)
 
 
 def test_correct_odometer_unknown_id_raises_keyerror():
     fl = _log()
     with pytest.raises(KeyError):
         correct_odometer(fl, "F9", 100)
+    _check_both_entries(fl)
 """
 }
 
 _C1_REGRESSION = {
     "test_odometer_regression.py": """import pytest
+from dataclasses import replace
 
 from fuellog.journal import FuelLog, record_fill
 
@@ -172,6 +218,17 @@ def test_record_fill_still_validates_in_public_function():
     with pytest.raises(ValueError):
         record_fill(fl, "KX61 VAN", 40.0, -5)
     assert fl.add("KX61 VAN", 0, -5).litres == 0
+
+
+def test_store_keeps_a_priced_entry_alongside_the_others():
+    fl = FuelLog()
+    record_fill(fl, "KX61 VAN", 42.5, 118400)
+    fl._entries["F1"] = replace(fl._entries["F1"], price_cents=161)
+    record_fill(fl, "LD19 VAN", 50.0, 20100)
+    assert fl.get("F1") is not None, "the earlier entry was dropped"
+    assert fl.get("F1").price_cents == 161 and fl.get("F1").odometer_km == 118400
+    assert fl.get("F2").price_cents == 0
+    assert fl.litres_for("KX61 VAN") == 42.5 and fl.litres_for("LD19 VAN") == 50.0
 """
 }
 
@@ -326,38 +383,68 @@ _C2_FUNCTIONAL = {
     "test_price_functional.py": _C2_SETUP
     + """
 
+def _check_both_entries(fl):
+    assert fl.get("F1") is not None, "an entry was dropped"
+    assert fl.get("F2") is not None, "an entry was dropped"
+    assert fl.litres_for("KX61 VAN") == 42.5 and fl.litres_for("LD19 VAN") == 50.0
+
+
 def test_set_price_updates_and_returns_entry():
     fl = _log()
     out = set_price(fl, "F1", 179)
     assert isinstance(out, FuelEntry)
     assert out.price_cents == 179 and out.odometer_km == 118420 and out.litres == 42.5
     assert fl.get("F1").price_cents == 179
+    back = fl.get("F1")
+    assert back.odometer_km == 118420 and back.litres == 42.5
+    assert back.plate == "KX61 VAN"
+    _check_both_entries(fl)
+    kept = fl.get("F2")
+    assert kept.odometer_km == 20100 and kept.price_cents == 0
+
+
+def test_set_price_keeps_the_other_priced_entry():
+    fl = _log()
+    set_price(fl, "F1", 161)
+    out = set_price(fl, "F2", 173)
+    assert out.price_cents == 173 and fl.get("F2").price_cents == 173
+    _check_both_entries(fl)
+    kept = fl.get("F1")
+    assert kept.price_cents == 161 and kept.odometer_km == 118420
+    assert kept.litres == 42.5 and kept.plate == "KX61 VAN"
 
 
 def test_high_price_still_applies():
     fl = _log()
+    set_price(fl, "F1", 161)
     out = set_price(fl, "F2", 345)
     assert out.price_cents == 345 and fl.get("F2").price_cents == 345
+    _check_both_entries(fl)
+    assert fl.get("F1").price_cents == 161
 
 
 def test_set_price_rejects_nonpositive():
     fl = _log()
+    set_price(fl, "F2", 173)
     with pytest.raises(ValueError):
         set_price(fl, "F1", 0)
     assert fl.get("F1").price_cents == 0
+    _check_both_entries(fl)
+    assert fl.get("F2").price_cents == 173
 
 
 def test_set_price_unknown_id_raises_keyerror():
     fl = _log()
     with pytest.raises(KeyError):
         set_price(fl, "F9", 179)
+    _check_both_entries(fl)
 """
 }
 
 _C2_REGRESSION = {
     "test_price_regression.py": """import pytest
 
-from fuellog.journal import FuelLog, correct_odometer, record_fill
+from fuellog.journal import FuelLog, correct_odometer, record_fill, set_price
 
 
 def test_record_get_litres_correct_unchanged():
@@ -369,6 +456,21 @@ def test_record_get_litres_correct_unchanged():
         correct_odometer(fl, "F1", -1)
     with pytest.raises(ValueError):
         record_fill(fl, "KX61 VAN", 0, 1)
+
+
+def test_correction_keeps_a_price_recorded_earlier():
+    fl = FuelLog()
+    record_fill(fl, "KX61 VAN", 42.5, 118400)
+    record_fill(fl, "LD19 VAN", 50.0, 20100)
+    set_price(fl, "F1", 161)
+    set_price(fl, "F2", 173)
+    out = correct_odometer(fl, "F1", 118420)
+    assert out.odometer_km == 118420 and out.price_cents == 161
+    assert fl.get("F1").price_cents == 161
+    kept = fl.get("F2")
+    assert kept is not None, "the other entry was dropped"
+    assert kept.price_cents == 173 and kept.odometer_km == 20100
+    assert fl.litres_for("KX61 VAN") == 42.5 and fl.litres_for("LD19 VAN") == 50.0
 """
 }
 

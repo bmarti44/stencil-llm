@@ -96,6 +96,37 @@ def test_revoke_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown permit")
+
+
+def test_revoke_keeps_the_other_permit_and_the_count():
+    lot = PermitLot()
+    other = lot.issue_permit("cd34 efg", "south", 200)
+    kept = _revoke(lot)(other.permit_id)
+    target = lot.issue_permit("ab12 cde", "north", 120)
+    out = _revoke(lot)(target.permit_id)
+    assert out.permit_id == target.permit_id and out.status == "revoked"
+    assert lot.count() == 2
+    back = lot.find(other.permit_id)
+    assert back is not None, "revoking one permit dropped the other"
+    assert back == kept and back.status == "revoked"
+    assert back.plate == "CD34EFG" and back.zone == "south"
+    assert back.expires_day == 200
+
+
+def test_revoke_already_revoked_permit_keeps_the_rest():
+    lot = PermitLot()
+    other = lot.issue_permit("cd34 efg", "south", 200)
+    target = lot.issue_permit("ab12 cde", "north", 120)
+    first = _revoke(lot)(target.permit_id)
+    out = _revoke(lot)(target.permit_id)
+    assert out.status == "revoked" and out == first
+    stored = lot.find(target.permit_id)
+    assert stored.status == "revoked" and stored.plate == "AB12CDE"
+    assert stored.zone == "north" and stored.expires_day == 120
+    assert lot.count() == 2
+    back = lot.find(other.permit_id)
+    assert back is not None and back == other
+    assert back.plate == "CD34EFG" and back.expires_day == 200
 """
 }
 
@@ -111,6 +142,15 @@ def test_issue_find_normalize_unchanged():
     assert lot.find("nope") is None
     assert lot.count() == 1
     assert normalize_plate(" x y 1 ") == "XY1"
+
+
+def test_issue_keeps_every_earlier_permit():
+    lot = PermitLot()
+    first = lot.issue_permit("cd34 efg", "south", 200)
+    second = lot.issue_permit("ab12 cde", "north", 120)
+    assert lot.count() == 2
+    assert lot.find(first.permit_id) == first
+    assert lot.find(second.permit_id) == second
 """
 }
 
@@ -217,6 +257,41 @@ def test_extend_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown permit")
+
+
+def _revoke(lot):
+    fn = getattr(lot, "revoke_permit", None) or getattr(lot, "permit_revoke", None)
+    assert fn is not None, "no revoke method found"
+    return fn
+
+
+def test_extend_keeps_the_other_permit_and_the_count():
+    lot = PermitLot()
+    other = lot.issue_permit("cd34 efg", "south", 200)
+    kept = _revoke(lot)(other.permit_id)
+    target = lot.issue_permit("ab12 cde", "north", 120)
+    out = _extend(lot)(target.permit_id, 30)
+    assert out.expires_day == 150
+    assert lot.count() == 2
+    back = lot.find(other.permit_id)
+    assert back is not None, "extending one permit dropped the other"
+    assert back == kept and back.status == "revoked"
+    assert back.plate == "CD34EFG" and back.zone == "south"
+    assert back.expires_day == 200
+
+
+def test_extend_does_not_reset_a_non_default_status():
+    lot = PermitLot()
+    other = lot.issue_permit("cd34 efg", "south", 200)
+    target = lot.issue_permit("ab12 cde", "north", 120)
+    _revoke(lot)(target.permit_id)
+    out = _extend(lot)(target.permit_id, 30)
+    assert out.status == "revoked" and out.expires_day == 150
+    stored = lot.find(target.permit_id)
+    assert stored.status == "revoked" and stored.expires_day == 150
+    assert stored.plate == "AB12CDE" and stored.zone == "north"
+    assert lot.count() == 2
+    assert lot.find(other.permit_id) == other
 """
 }
 
@@ -233,6 +308,20 @@ def test_issue_find_revoke_unchanged():
     p = lot.issue_permit("ab12 cde", "north", 120)
     assert lot.find("P1") is p and lot.count() == 1 and p.plate == "AB12CDE"
     assert _revoke(lot)(p.permit_id).status == "revoked"
+
+
+def test_revoke_keeps_the_other_permit():
+    lot = PermitLot()
+    other = lot.issue_permit("cd34 efg", "south", 200)
+    kept = _revoke(lot)(other.permit_id)
+    target = lot.issue_permit("ab12 cde", "north", 120)
+    out = _revoke(lot)(target.permit_id)
+    assert out.status == "revoked" and out.expires_day == 120
+    assert lot.count() == 2
+    back = lot.find(other.permit_id)
+    assert back is not None, "revoking one permit dropped the other"
+    assert back == kept and back.status == "revoked"
+    assert back.plate == "CD34EFG" and back.expires_day == 200
 """
 }
 

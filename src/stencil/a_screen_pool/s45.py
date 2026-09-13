@@ -81,15 +81,24 @@ _C1_FUNCTIONAL = {
 def test_retire_sets_status_retired():
     s = SingerStore()
     p = s.add_singer("Maya Okafor", "alto")
+    other = s.add_singer("Jonas Lind", "bass")
     out = _retire(s)(p.singer_id)
     assert out.status == "retired"
     assert s.find(p.singer_id).status == "retired"
+    assert s.count() == 2
+    assert s.find(other.singer_id) == other
+    assert s.find(other.singer_id).status == "active"
+    assert s.find(other.singer_id).section_lead is False
 
 
 def test_retire_keeps_name_part_and_id():
     s = SingerStore()
     p = s.add_singer("Jonas Lind", "bass")
+    kept = s.move_singer(s.add_singer("Ines Marti", "soprano").singer_id, "mezzo")
     out = _retire(s)(p.singer_id)
+    assert s.count() == 2
+    assert s.find(kept.singer_id) == kept
+    assert s.find(kept.singer_id).part == "mezzo"
     assert out.singer_id == p.singer_id and out.name == "Jonas Lind" and out.part == "bass"
 
 
@@ -99,11 +108,30 @@ def test_retire_section_lead_still_retires():
     s._singers[p.singer_id] = replace(p, section_lead=True)
     out = _retire(s)(p.singer_id)
     assert out.status == "retired" and out.section_lead is True
+
+
+def test_retire_leaves_other_singers_untouched():
+    s = SingerStore()
+    first = s.add_singer("Maya Okafor", "alto")
+    second = s.add_singer("Jonas Lind", "bass")
+    s._singers[second.singer_id] = replace(second, section_lead=True)
+    kept = s.find(second.singer_id)
+    before = s.count()
+    out = _retire(s)(first.singer_id)
+    assert out.status == "retired" and out.section_lead is False
+    assert s.count() == before
+    assert s.find(second.singer_id) == kept
+    assert s.find(second.singer_id).section_lead is True
+    assert s.find(second.singer_id).status == "active"
+    assert s.find(second.singer_id).part == "bass"
+    assert s.find(first.singer_id) == out
 """
 }
 
 _C1_REGRESSION = {
-    "test_retire_regression.py": """import pytest
+    "test_retire_regression.py": """from dataclasses import replace
+
+import pytest
 
 from choirroster.store import SingerStore
 
@@ -118,6 +146,31 @@ def test_add_find_count_move_unchanged():
     assert s.find("S1").part == "bass"
     with pytest.raises(KeyError):
         s.move_singer("S9", "bass")
+    other = s.add_singer("b", "alto")
+    assert other.singer_id == "S2" and s.find("S2") is other
+    assert other.status == "active" and other.section_lead is False
+    assert s.count() == 2
+    assert s.move_singer("S2", "soprano").part == "soprano"
+    assert s.find("S1").part == "bass" and s.count() == 2
+
+
+def test_move_keeps_status_lead_and_other_singers():
+    s = SingerStore()
+    first = s.add_singer("a", "tenor")
+    second = s.add_singer("b", "alto")
+    s._singers[first.singer_id] = replace(first, section_lead=True)
+    s.retire_singer(first.singer_id)
+    kept = s.find(second.singer_id)
+    before = s.count()
+    out = s.move_singer(first.singer_id, "baritone")
+    assert out.part == "baritone"
+    assert out.status == "retired" and out.section_lead is True
+    assert s.find(first.singer_id).status == "retired"
+    assert s.find(first.singer_id).section_lead is True
+    assert s.count() == before
+    assert s.find(second.singer_id) == kept
+    assert s.find(second.singer_id).status == "active"
+    assert s.find(second.singer_id).section_lead is False
 """
 }
 
@@ -226,9 +279,14 @@ _C2_FUNCTIONAL = {
 def test_promote_sets_section_lead():
     s = SingerStore()
     p = s.add_singer("Maya Okafor", "alto")
+    other = s.add_singer("Jonas Lind", "bass")
     out = _promote(s)(p.singer_id)
     assert out.section_lead is True
     assert s.find(p.singer_id).section_lead is True
+    assert s.count() == 2
+    assert s.find(other.singer_id) == other
+    assert s.find(other.singer_id).section_lead is False
+    assert s.find(other.singer_id).status == "active"
 
 
 def test_promote_keeps_other_fields():
@@ -246,11 +304,38 @@ def test_promote_second_lead_in_same_part():
     _promote(s)(a.singer_id)
     out = _promote(s)(b.singer_id)
     assert out.section_lead is True and s.find(a.singer_id).section_lead is True
+    assert s.count() == 2
+    assert s.find(a.singer_id).part == "soprano"
+    assert s.find(a.singer_id).name == "Ines Marti"
+
+
+def test_promote_keeps_a_non_default_status_and_other_singers():
+    s = SingerStore()
+    first = s.add_singer("Maya Okafor", "alto")
+    second = s.add_singer("Jonas Lind", "bass")
+    s.retire_singer(first.singer_id)  # a non-default status on the target
+    kept = s.find(second.singer_id)
+    before = s.count()
+    out = _promote(s)(first.singer_id)
+    assert out.section_lead is True and out.status == "retired"
+    assert out.part == "alto" and out.name == "Maya Okafor"
+    assert s.find(first.singer_id).status == "retired"
+    assert s.find(first.singer_id).section_lead is True
+    assert s.count() == before
+    assert s.find(second.singer_id) == kept
+    assert s.find(second.singer_id).section_lead is False
+    assert s.find(second.singer_id).status == "active"
 """
 }
 
 _C2_REGRESSION = {
     "test_promote_regression.py": """from choirroster.store import SingerStore
+
+
+def _promote(store):
+    fn = getattr(store, "promote_lead", None)
+    assert fn is not None, "no promote_lead method found"
+    return fn
 
 
 def test_add_find_move_retire_unchanged():
@@ -260,6 +345,32 @@ def test_add_find_move_retire_unchanged():
     assert s.move_singer("S1", "bass").part == "bass"
     assert s.find("S1").part == "bass"
     assert s.retire_singer("S1").status == "retired"
+    other = s.add_singer("b", "alto")
+    assert other.singer_id == "S2" and s.find("S2") is other
+    assert s.count() == 2
+    assert s.move_singer("S2", "soprano").part == "soprano"
+    assert s.retire_singer("S2").status == "retired"
+    assert s.count() == 2
+    assert s.find("S1").status == "retired" and s.find("S1").part == "bass"
+
+
+def test_move_keeps_status_lead_and_other_singers():
+    s = SingerStore()
+    first = s.add_singer("a", "tenor")
+    second = s.add_singer("b", "alto")
+    _promote(s)(first.singer_id)
+    s.retire_singer(first.singer_id)
+    kept = s.find(second.singer_id)
+    before = s.count()
+    out = s.move_singer(first.singer_id, "baritone")
+    assert out.part == "baritone"
+    assert out.status == "retired" and out.section_lead is True
+    assert s.find(first.singer_id).status == "retired"
+    assert s.find(first.singer_id).section_lead is True
+    assert s.count() == before
+    assert s.find(second.singer_id) == kept
+    assert s.find(second.singer_id).status == "active"
+    assert s.find(second.singer_id).section_lead is False
 """
 }
 

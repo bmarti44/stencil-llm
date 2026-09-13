@@ -189,6 +189,29 @@ def test_set_runtime_unknown_title_raises_keyerror(tmp_path):
     store = _store(tmp_path)
     with pytest.raises(KeyError):
         set_runtime(store, "Unlisted", 90)
+    assert store.get("Slow River").minutes == 0
+    assert store.get("Night Shift").minutes == 0
+
+
+def test_set_runtime_leaves_the_other_film_untouched(tmp_path):
+    # two films, BOTH carrying a NON-DEFAULT running time before the
+    # operation, so a write-back that replaces the whole catalogue or
+    # resets an unrelated field is visible
+    store = FilmStore(tmp_path / "films.log")
+    register_film(store, "Slow River", "A. Okafor")
+    register_film(store, "Night Shift", "L. Berg")
+    set_runtime(store, "Night Shift", 112)
+    set_runtime(store, "Slow River", 90)
+    out = set_runtime(store, "Slow River", 96)
+    assert isinstance(out, Film) and out.minutes == 96
+    kept = store.get("Night Shift")
+    assert kept is not None and kept.minutes == 112
+    assert kept.title == "Night Shift" and kept.director == "L. Berg"
+    got = store.get("Slow River")
+    assert got.minutes == 96 and got.director == "A. Okafor"
+    assert store.get("Unlisted") is None
+    lines = (tmp_path / "films.log").read_text().splitlines()
+    assert len(lines) == 5 and lines[-1] == "runtime Slow River 96"
 """
 }
 
@@ -212,6 +235,21 @@ def test_register_still_validates_in_public_function(tmp_path):
         register_film(store, "", "A. Okafor")
     with pytest.raises(ValueError):
         register_film(store, "Slow River", " ")
+
+
+def test_register_keeps_every_earlier_film(tmp_path):
+    store = FilmStore(tmp_path / "films.log")
+    a = register_film(store, "Slow River", "A. Okafor")
+    b = register_film(store, "Night Shift", "L. Berg")
+    assert store.get("Slow River") is a and store.get("Night Shift") is b
+    c = register_film(store, "Low Tide", "M. Haas")
+    assert store.get("Slow River") is a and store.get("Night Shift") is b
+    assert store.get("Low Tide") is c
+    assert (tmp_path / "films.log").read_text().splitlines() == [
+        "film Slow River",
+        "film Night Shift",
+        "film Low Tide",
+    ]
 """
 }
 
@@ -380,6 +418,29 @@ def test_assign_room_unknown_id_raises_keyerror(tmp_path):
     store = _store(tmp_path)
     with pytest.raises(KeyError):
         assign_room(store, "SC9", "Rialto")
+    assert store.get("SC1").room == "Odeon 1"
+    assert store.get("SC2").room == "Odeon 2"
+
+
+def test_assign_room_leaves_the_other_screening_untouched(tmp_path):
+    # two screenings, both already moved once, so a write-back that
+    # replaces the whole schedule or resets an unrelated field is visible
+    store = ScreeningStore(tmp_path / "schedule.log")
+    book_screening(store, "Slow River", "Odeon 1", "18:30")
+    book_screening(store, "Night Shift", "Odeon 2", "21:00")
+    assign_room(store, "SC2", "Rialto")
+    assign_room(store, "SC1", "Roxy")
+    out = assign_room(store, "SC1", "Gaumont")
+    assert isinstance(out, Screening) and out.room == "Gaumont"
+    kept = store.get("SC2")
+    assert kept is not None and kept.room == "Rialto"
+    assert kept.title == "Night Shift" and kept.start == "21:00"
+    got = store.get("SC1")
+    assert got.room == "Gaumont" and got.start == "18:30"
+    assert got.title == "Slow River" and got.screening_id == "SC1"
+    assert store.get("SC9") is None
+    lines = (tmp_path / "schedule.log").read_text().splitlines()
+    assert len(lines) == 5 and lines[-1] == "room SC1 Gaumont"
 """
 }
 
@@ -402,12 +463,32 @@ def test_book_and_get_unchanged(tmp_path):
     assert (tmp_path / "schedule.log").read_text() == "screening SC1 Slow River\\n"
 
 
+def test_book_keeps_every_earlier_screening(tmp_path):
+    store = ScreeningStore(tmp_path / "schedule.log")
+    a = book_screening(store, "Slow River", "Odeon 1", "18:30")
+    b = book_screening(store, "Night Shift", "Odeon 2", "21:00")
+    assert a.screening_id == "SC1" and b.screening_id == "SC2"
+    assert store.get("SC1") is a and store.get("SC2") is b
+    c = book_screening(store, "Low Tide", "Odeon 1", "11:00")
+    assert store.get("SC1") is a and store.get("SC2") is b
+    assert store.get("SC3") is c
+
+
 def test_films_module_unchanged(tmp_path):
     store = FilmStore(tmp_path / "films.log")
     register_film(store, "Slow River", "A. Okafor")
+    register_film(store, "Night Shift", "L. Berg")
+    # the other film keeps a NON-DEFAULT running time across the update
+    set_runtime(store, "Night Shift", 112)
     assert set_runtime(store, "Slow River", 96).minutes == 96
+    kept = store.get("Night Shift")
+    assert kept is not None and kept.minutes == 112
+    assert kept.title == "Night Shift" and kept.director == "L. Berg"
+    assert store.get("Slow River").minutes == 96
     with pytest.raises(ValueError):
         set_runtime(store, "Slow River", 0)
+    assert store.get("Slow River").minutes == 96
+    assert store.get("Night Shift").minutes == 112
 """
 }
 

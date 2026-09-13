@@ -125,6 +125,19 @@ def test_book_unknown_room_raises_keyerror():
     d = _desk()
     with pytest.raises(KeyError):
         _book(d)("R9", "2026-09-15", 10, "mira")
+
+
+def test_book_keeps_the_other_rooms_booking():
+    d = _desk()
+    keep = _book(d)("R2", "2026-09-15", 10, "tom")
+    out = _book(d)("R1", "2026-09-15", 10, "mira")
+    assert out is not None
+    assert d.list_bookings("R2") == [keep], "booking dropped another room's"
+    assert d.list_bookings("R1") == [out]
+    total = len(d.list_bookings("R1")) + len(d.list_bookings("R2"))
+    assert total == 2, "booking changed the number of bookings stored"
+    assert d.find_room("R1") is not None
+    assert d.find_room("R2") is not None
 """
 }
 
@@ -138,6 +151,12 @@ def test_add_find_list_unchanged():
     assert r.room_id == "R1" and r.capacity == 6
     assert d.find_room("R1") is r and d.find_room("R2") is None
     assert d.list_bookings("R1") == []
+    r2 = d.add_room("Birch", 12)
+    assert r2.room_id == "R2" and r2.capacity == 12
+    assert r2.name == "Birch"
+    assert d.find_room("R2") is r2
+    assert d.find_room("R1") is r, "adding a room dropped the first one"
+    assert d.list_bookings("R2") == []
 """
 }
 
@@ -293,6 +312,22 @@ def test_move_unknown_booking_raises_keyerror():
     d = _desk()
     with pytest.raises(KeyError):
         _move(d)("B9", "2026-09-15", 10)
+
+
+def test_move_keeps_the_other_bookings_and_the_total():
+    d = _desk()
+    keep = _book(d)("R2", "2026-09-15", 10, "tom")
+    same_room = _book(d)("R1", "2026-09-15", 9, "ana")
+    b = _book(d)("R1", "2026-09-15", 11, "mira")
+    out = _move(d)(b.booking_id, "2026-09-16", 14)
+    assert out is not None
+    assert (out.day, out.hour, out.who) == ("2026-09-16", 14, "mira")
+    assert d.list_bookings("R2") == [keep], "moving dropped another room's"
+    assert d.list_bookings("R1") == [same_room, out]
+    total = len(d.list_bookings("R1")) + len(d.list_bookings("R2"))
+    assert total == 3, "moving changed the number of bookings stored"
+    assert d.find_room("R1") is not None
+    assert d.find_room("R2") is not None
 """
 }
 
@@ -311,6 +346,13 @@ def test_add_find_book_unchanged():
     b = _book(d)("R1", "2026-09-15", 10, "mira")
     assert b.booking_id == "B1" and d.list_bookings("R1") == [b]
     assert _book(d)("R1", "2026-09-15", 10, "tom") is None
+    r2 = d.add_room("Birch", 12)
+    assert d.find_room("R2") is r2 and r2.capacity == 12
+    assert d.find_room("R1") is r, "adding a room dropped the first one"
+    c = _book(d)("R2", "2026-09-15", 10, "tom")
+    assert c.booking_id == "B2" and c.who == "tom"
+    assert d.list_bookings("R2") == [c]
+    assert d.list_bookings("R1") == [b], "booking dropped another room's"
 """
 }
 

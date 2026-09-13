@@ -31,9 +31,7 @@ def defaulted_fields(files: dict[str, str]) -> list[tuple[str, str]]:
     for src in files.values():
         if "@dataclass" not in src:
             continue
-        for m in re.finditer(
-            r"\n    (\w+): [^\n=]+ = ([^\n]+)", src
-        ):
+        for m in re.finditer(r"\n    (\w+): [^\n=]+ = ([^\n]+)", src):
             out.append((m.group(1), m.group(2).strip()))
     return out
 
@@ -69,6 +67,22 @@ def mutants(src: str, defaults: list[tuple[str, str]]) -> Iterator[tuple[str, st
             yield (
                 f"reset {fname} to {default} @{m.start()}",
                 src[: m.end()] + f"{fname}={default}, " + src[m.end() :],
+            )
+    # A target that updates through a record helper (``rec.with_status(...)``) has no
+    # ``replace(var, `` call site, so the loop above generates nothing for it.  Wrap the
+    # helper's result instead: same visible update, one unrelated attribute reset.  An
+    # explicit import is prepended so the mutant always compiles and a failure means the
+    # suites caught the reset, not a NameError (group-8 agent report, round 3).
+    for m in re.finditer(r"(\w+)\.with_\w+\([^()]*\)", src):
+        for fname, default in defaults:
+            if f"{fname}=" in m.group(0):
+                continue
+            yield (
+                f"helper reset {fname} to {default} @{m.start()}",
+                "import dataclasses as _audit_dc\n"
+                + src[: m.start()]
+                + f"_audit_dc.replace({m.group(0)}, {fname}={default})"
+                + src[m.end() :],
             )
 
 

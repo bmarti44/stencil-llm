@@ -93,6 +93,20 @@ def test_extend_rejects_non_positive_days():
     with pytest.raises(ValueError):
         extend(reg, loan.loan_id, -5)
     assert reg.get(loan.loan_id).days == 30
+
+
+def test_extend_keeps_the_other_loan_in_the_register():
+    reg = LoanRegister()
+    keep = lend(reg, "Harbour at Dusk", "Rijksmuseum", 90)
+    loan = lend(reg, "Nocturne in Grey", "Kunsthalle Bremen", 30)
+    out = extend(reg, loan.loan_id, 14)
+    assert out.days == 44 and reg.get(loan.loan_id).days == 44
+    kept = reg.get(keep.loan_id)
+    assert kept is not None, "extending one loan dropped the other"
+    assert kept == keep
+    assert kept.days == 90 and kept.artwork == "Harbour at Dusk"
+    assert kept.borrower == "Rijksmuseum"
+    assert kept.status == "out" and kept.condition == ""
 """
 }
 
@@ -108,6 +122,11 @@ def test_lend_get_unchanged():
     assert loan.loan_id == "L1" and loan.status == "out"
     assert reg.get("L1") is loan
     assert reg.get("L9") is None
+    second = lend(reg, "Study of Hands", "Ateneum", 60)
+    assert second.loan_id == "L2" and second.status == "out"
+    assert reg.get("L2") is second
+    assert reg.get("L1") is loan, "lending again dropped the first loan"
+    assert reg.get("L1").days == 90 and reg.get("L1").condition == ""
 
 
 def test_lend_rejects_non_positive_days():
@@ -262,7 +281,7 @@ _REQ1 = Request(
 _C2_FUNCTIONAL = {
     "test_take_back_functional.py": """import pytest
 
-from gallerylend.loans import LoanRegister, lend, take_back
+from gallerylend.loans import LoanRegister, extend, lend, take_back
 
 
 def test_take_back_marks_returned_with_condition():
@@ -286,6 +305,37 @@ def test_take_back_rejects_unknown_condition():
     with pytest.raises(ValueError):
         take_back(reg, loan.loan_id, "lost")
     assert reg.get(loan.loan_id).status == "out"
+
+
+def test_take_back_keeps_the_other_loan_in_the_register():
+    reg = LoanRegister()
+    keep = lend(reg, "Harbour at Dusk", "Rijksmuseum", 90)
+    loan = lend(reg, "Nocturne in Grey", "Kunsthalle Bremen", 30)
+    out = take_back(reg, loan.loan_id, "good")
+    assert out.status == "returned" and out.condition == "good"
+    assert reg.get(loan.loan_id).condition == "good"
+    kept = reg.get(keep.loan_id)
+    assert kept is not None, "taking one loan back dropped the other"
+    assert kept == keep
+    assert kept.status == "out" and kept.condition == ""
+    assert kept.days == 90 and kept.borrower == "Rijksmuseum"
+
+
+def test_a_returned_loan_keeps_its_status_when_extended():
+    reg = LoanRegister()
+    keep = lend(reg, "Harbour at Dusk", "Rijksmuseum", 90)
+    loan = lend(reg, "Study of Hands", "Ateneum", 60)
+    take_back(reg, loan.loan_id, "damaged")
+    out = extend(reg, loan.loan_id, 7)
+    assert out.days == 67
+    assert out.status == "returned", "extending reset the loan's status"
+    assert out.condition == "damaged", "extending reset the condition"
+    stored = reg.get(loan.loan_id)
+    assert stored.status == "returned" and stored.condition == "damaged"
+    assert stored.days == 67 and stored.borrower == "Ateneum"
+    kept = reg.get(keep.loan_id)
+    assert kept is not None, "extending one loan dropped the other"
+    assert kept == keep and kept.status == "out"
 """
 }
 
@@ -304,6 +354,14 @@ def test_lend_extend_get_unchanged():
         extend(reg, "L1", 0)
     with pytest.raises(ValueError):
         lend(reg, "x", "y", -1)
+    second = lend(reg, "Study of Hands", "Ateneum", 60)
+    assert second.loan_id == "L2" and reg.get("L2") is second
+    assert extend(reg, "L2", 5).days == 65
+    assert reg.get("L2").days == 65
+    kept = reg.get("L1")
+    assert kept is not None, "extending one loan dropped the other"
+    assert kept.days == 100 and kept.status == "out"
+    assert kept.artwork == "Harbour at Dusk" and kept.condition == ""
 """
 }
 

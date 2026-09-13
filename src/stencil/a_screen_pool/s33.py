@@ -69,18 +69,44 @@ _C1_FUNCTIONAL = {
 def test_record_mark_appends_and_stores():
     book = MarkBook()
     row = book.enrol("Priya Nair", "HIST2041")
+    other = book.enrol("Tomasz Wolak", "HIST2041")
     out = book.record_mark(row.enrolment_id, 68)
     assert out.marks == (68,)
     assert book.find(row.enrolment_id).marks == (68,)
     assert out.enrolment_id == row.enrolment_id and out.student == "Priya Nair"
+    assert book.count() == 2
+    assert book.find(other.enrolment_id) == other
+    assert book.find(other.enrolment_id).marks == ()
 
 
 def test_record_mark_keeps_order_of_marks():
     book = MarkBook()
     row = book.enrol("Tomasz Wolak", "HIST2041")
+    neighbour = book.enrol("Priya Nair", "HIST2041")
+    book.record_mark(neighbour.enrolment_id, 91)  # a non-default neighbour
     book.record_mark(row.enrolment_id, 55)
     out = book.record_mark(row.enrolment_id, 72)
     assert out.marks == (55, 72) and out.status == "active"
+    assert book.count() == 2
+    assert book.find(neighbour.enrolment_id).marks == (91,)
+    assert book.find(neighbour.enrolment_id).student == "Priya Nair"
+
+
+def test_record_mark_leaves_other_rows_untouched():
+    book = MarkBook()
+    first = book.enrol("Priya Nair", "HIST2041")
+    second = book.enrol("Tomasz Wolak", "HIST2041")
+    third = book.enrol("Ida Berg", "HIST2041")
+    book.record_mark(first.enrolment_id, 64)
+    book.record_mark(second.enrolment_id, 58)
+    before = book.count()
+    out = book.record_mark(third.enrolment_id, 71)
+    assert out.marks == (71,) and out.enrolment_id == third.enrolment_id
+    assert book.count() == before
+    assert book.find(first.enrolment_id).marks == (64,)
+    assert book.find(first.enrolment_id).student == "Priya Nair"
+    assert book.find(second.enrolment_id).marks == (58,)
+    assert book.find(second.enrolment_id).course == "HIST2041"
 """
 }
 
@@ -97,6 +123,10 @@ def test_enrol_find_count_unchanged():
     assert book.find("E7") is None
     assert book.count() == 1
     assert mean(()) is None and mean((60, 70)) == 65.0
+    second = book.enrol("Tomasz Wolak", "HIST2041")
+    assert second.enrolment_id == "E2" and second.marks == ()
+    assert second.status == "active" and book.find("E2") is second
+    assert book.find("E1") is row and book.count() == 2
 """
 }
 
@@ -193,9 +223,14 @@ _C2_FUNCTIONAL = {
 def test_withdraw_sets_status_and_stores():
     book = MarkBook()
     row = book.enrol("Priya Nair", "HIST2041")
+    other = book.enrol("Tomasz Wolak", "HIST2041")
+    book.record_mark(other.enrolment_id, 82)  # a non-default neighbour
     out = book.withdraw(row.enrolment_id)
     assert out.status == "withdrawn"
     assert book.find(row.enrolment_id).status == "withdrawn"
+    assert book.count() == 2
+    assert book.find(other.enrolment_id).marks == (82,)
+    assert book.find(other.enrolment_id).status == "active"
 
 
 def test_withdraw_keeps_marks_and_student():
@@ -205,6 +240,23 @@ def test_withdraw_keeps_marks_and_student():
     out = book.withdraw(row.enrolment_id)
     assert out.marks == (58,) and out.student == "Tomasz Wolak"
     assert out.enrolment_id == row.enrolment_id
+
+
+def test_withdraw_leaves_other_rows_untouched():
+    book = MarkBook()
+    first = book.enrol("Priya Nair", "HIST2041")
+    second = book.enrol("Tomasz Wolak", "HIST2041")
+    book.record_mark(first.enrolment_id, 64)
+    book.record_mark(second.enrolment_id, 58)
+    book.withdraw(first.enrolment_id)  # a neighbour with a non-default status
+    before = book.count()
+    out = book.withdraw(second.enrolment_id)
+    assert out.status == "withdrawn" and out.marks == (58,)
+    assert book.count() == before
+    assert book.find(first.enrolment_id).status == "withdrawn"
+    assert book.find(first.enrolment_id).marks == (64,)
+    assert book.find(first.enrolment_id).student == "Priya Nair"
+    assert book.find(second.enrolment_id) == out
 """
 }
 
@@ -218,6 +270,27 @@ def test_enrol_find_record_mark_unchanged():
     assert book.find("E1") is row and book.count() == 1
     assert book.record_mark("E1", 70).marks == (70,)
     assert book.find("E7") is None
+    second = book.enrol("Tomasz Wolak", "HIST2041")
+    assert second.enrolment_id == "E2" and book.find("E2") is second
+    assert book.count() == 2
+    assert book.record_mark("E2", 55).marks == (55,)
+    assert book.find("E1").marks == (70,) and book.count() == 2
+
+
+def test_record_mark_keeps_status_and_other_rows():
+    book = MarkBook()
+    first = book.enrol("Priya Nair", "HIST2041")
+    second = book.enrol("Tomasz Wolak", "HIST2041")
+    book.record_mark(second.enrolment_id, 61)
+    book.withdraw(first.enrolment_id)
+    before = book.count()
+    out = book.record_mark(first.enrolment_id, 70)
+    assert out.marks == (70,) and out.status == "withdrawn"
+    assert book.find(first.enrolment_id).status == "withdrawn"
+    assert book.find(first.enrolment_id).marks == (70,)
+    assert book.count() == before
+    assert book.find(second.enrolment_id).marks == (61,)
+    assert book.find(second.enrolment_id).status == "active"
 """
 }
 

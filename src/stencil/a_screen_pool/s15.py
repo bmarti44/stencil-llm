@@ -102,6 +102,37 @@ def test_start_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown job")
+
+
+def test_start_keeps_the_other_job_and_the_count():
+    w = Workshop()
+    other = w.open_job("blue Surly", "true rear wheel")
+    kept = _start(w)(other.job_id, "tom")
+    target = w.open_job("red Brompton", "brake cable frayed")
+    out = _start(w)(target.job_id, "priya")
+    assert out.status == "in_progress" and out.mechanic == "priya"
+    assert w.count() == 2
+    back = w.find(other.job_id)
+    assert back is not None, "starting one job dropped the other"
+    assert back == kept and back.status == "in_progress"
+    assert back.mechanic == "tom" and back.bike == "blue Surly"
+    assert back.description == "true rear wheel"
+
+
+def test_start_noop_keeps_the_other_job_and_every_field():
+    w = Workshop()
+    other = w.open_job("blue Surly", "true rear wheel")
+    target = w.open_job("red Brompton", "brake cable frayed")
+    first = _start(w)(target.job_id, "priya")
+    out = _start(w)(target.job_id, "tom")
+    assert out == first and out.mechanic == "priya"
+    stored = w.find(target.job_id)
+    assert stored == first and stored.status == "in_progress"
+    assert stored.bike == "red Brompton"
+    assert w.count() == 2
+    back = w.find(other.job_id)
+    assert back is not None and back == other
+    assert back.status == "queued" and back.mechanic is None
 """
 }
 
@@ -116,6 +147,15 @@ def test_open_find_count_unchanged():
     assert w.find("J1") is j
     assert w.find("J2") is None
     assert w.count() == 1
+
+
+def test_open_keeps_every_earlier_job():
+    w = Workshop()
+    first = w.open_job("blue Surly", "true rear wheel")
+    second = w.open_job("red Brompton", "brake cable frayed")
+    assert w.count() == 2
+    assert w.find(first.job_id) == first
+    assert w.find(second.job_id) == second
 """
 }
 
@@ -228,6 +268,41 @@ def test_list_unknown_bike_is_empty_list():
     out = _for_bike(w)("green Bianchi")
     assert out == [] and isinstance(out, list)
     assert w.count() == 1
+
+
+def _start(shop):
+    fn = getattr(shop, "start_job", None) or getattr(shop, "job_start", None)
+    assert fn is not None, "no start method found"
+    return fn
+
+
+def test_list_after_starting_one_job_still_sees_the_others():
+    w = Workshop()
+    a = w.open_job("red Brompton", "brake cable frayed")
+    b = w.open_job("blue Surly", "true rear wheel")
+    started = _start(w)(b.job_id, "priya")
+    assert started.status == "in_progress" and started.mechanic == "priya"
+    assert _for_bike(w)("blue Surly") == [started]
+    assert _for_bike(w)("red Brompton") == [a]
+    assert w.count() == 2
+    back = w.find(a.job_id)
+    assert back is not None, "starting one job dropped the other"
+    assert back == a and back.status == "queued" and back.mechanic is None
+
+
+def test_list_changes_nothing_in_the_store():
+    w = Workshop()
+    a = w.open_job("red Brompton", "brake cable frayed")
+    b = w.open_job("blue Surly", "true rear wheel")
+    kept = _start(w)(b.job_id, "tom")
+    assert _for_bike(w)("red Brompton") == [a]
+    assert _for_bike(w)("blue Surly") == [kept]
+    assert w.count() == 2
+    assert w.find(a.job_id) == a
+    back = w.find(b.job_id)
+    assert back is not None and back == kept
+    assert back.status == "in_progress" and back.mechanic == "tom"
+    assert back.bike == "blue Surly"
 """
 }
 
@@ -246,6 +321,20 @@ def test_open_find_count_start_unchanged():
     out = _start(w)(j.job_id, "priya")
     assert out.status == "in_progress" and out.mechanic == "priya"
     assert _start(w)(j.job_id, "tom") == out
+
+
+def test_start_keeps_the_other_job():
+    w = Workshop()
+    other = w.open_job("blue Surly", "true rear wheel")
+    kept = _start(w)(other.job_id, "tom")
+    target = w.open_job("red Brompton", "brake cable frayed")
+    out = _start(w)(target.job_id, "priya")
+    assert out.status == "in_progress" and out.mechanic == "priya"
+    assert w.count() == 2
+    back = w.find(other.job_id)
+    assert back is not None, "starting one job dropped the other"
+    assert back == kept and back.status == "in_progress"
+    assert back.mechanic == "tom" and back.bike == "blue Surly"
 """
 }
 

@@ -170,16 +170,28 @@ def _setup(path=None):
 
 def test_receive_stock_adds_quantity_and_returns_bin():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 7)
     out = receive_stock(t, b.bin_id, 30)
     assert out.quantity == 30 and out.bin_id == b.bin_id and out.capacity == 100
     assert t.get_bin(b.bin_id).quantity == 30
+    kept = t.get_bin(other.bin_id)
+    assert kept.quantity == 7 and kept.aisle == "A2" and kept.capacity == 50
+    assert t.get_bin(b.bin_id).aisle == "A1"
+    assert t.next_id() == "B3"
 
 
 def test_receive_stock_accumulates():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 7)
     receive_stock(t, b.bin_id, 30)
     out = receive_stock(t, b.bin_id, 12)
     assert out.quantity == 42
+    assert t.get_bin(b.bin_id).quantity == 42
+    kept = t.get_bin(other.bin_id)
+    assert kept.quantity == 7 and kept.capacity == 50
+    assert t.next_id() == "B3"
 
 
 def test_receive_stock_records_movement(tmp_path):
@@ -187,26 +199,48 @@ def test_receive_stock_records_movement(tmp_path):
     receive_stock(t, b.bin_id, 5)
     lines = (tmp_path / "moves.log").read_text().splitlines()
     assert lines == [f"new {b.bin_id}", f"in {b.bin_id} 5"]
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 9)
+    later = (tmp_path / "moves.log").read_text().splitlines()
+    assert later[-2:] == [f"new {other.bin_id}", f"in {other.bin_id} 9"]
+    assert t.get_bin(b.bin_id).quantity == 5
+    assert t.get_bin(other.bin_id).quantity == 9
+    assert t.next_id() == "B3"
 
 
 def test_receive_unknown_bin_raises_keyerror():
-    t, _ = _setup()
+    t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 7)
     with pytest.raises(KeyError):
         receive_stock(t, "B99", 5)
+    assert t.get_bin(other.bin_id).quantity == 7
+    assert t.get_bin(b.bin_id).quantity == 0
+    assert t.next_id() == "B3"
 
 
 def test_receive_nonpositive_qty_raises_and_changes_nothing():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 7)
     for bad in (0, -3):
         with pytest.raises(ValueError):
             receive_stock(t, b.bin_id, bad)
     assert t.get_bin(b.bin_id).quantity == 0
+    kept = t.get_bin(other.bin_id)
+    assert kept.quantity == 7 and kept.capacity == 50
+    assert t.next_id() == "B3"
 
 
 def test_table_has_add_stock():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    t.add_stock(other.bin_id, 9)
     out = t.add_stock(b.bin_id, 7)
     assert out.quantity == 7 and t.get_bin(b.bin_id).quantity == 7
+    kept = t.get_bin(other.bin_id)
+    assert kept.quantity == 9 and kept.capacity == 50
+    assert t.next_id() == "B3"
 """
 }
 
@@ -221,6 +255,10 @@ def test_add_bin_unchanged(tmp_path):
     b = add_bin(t, "A1", 100)
     assert b.bin_id == "B1" and b.quantity == 0 and t.get_bin("B1") is b
     assert (tmp_path / "moves.log").read_text() == "new B1\\n"
+    second = add_bin(t, "A2", 50)
+    assert second.bin_id == "B2" and t.get_bin("B2") is second
+    assert t.get_bin("B1") is b and t.next_id() == "B3"
+    assert (tmp_path / "moves.log").read_text() == "new B1\\nnew B2\\n"
     with pytest.raises(ValueError):
         add_bin(t, "A2", 0)
     with pytest.raises(KeyError):
@@ -339,41 +377,71 @@ def _setup(path=None):
 
 def test_pick_stock_reduces_quantity_and_returns_bin():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 12)
     out = pick_stock(t, b.bin_id, 15)
     assert out.quantity == 25 and out.bin_id == b.bin_id
     assert t.get_bin(b.bin_id).quantity == 25
+    kept = t.get_bin(other.bin_id)
+    assert kept.quantity == 12 and kept.aisle == "A2" and kept.capacity == 50
+    assert t.get_bin(b.bin_id).capacity == 100
+    assert t.next_id() == "B3"
 
 
 def test_pick_whole_bin_leaves_zero():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 12)
     assert pick_stock(t, b.bin_id, 40).quantity == 0
+    assert t.get_bin(b.bin_id).quantity == 0
+    assert t.get_bin(other.bin_id).quantity == 12
+    assert t.next_id() == "B3"
 
 
 def test_pick_stock_records_movement(tmp_path):
     t, b = _setup(str(tmp_path / "moves.log"))
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 12)
     pick_stock(t, b.bin_id, 3)
     lines = (tmp_path / "moves.log").read_text().splitlines()
     assert lines[-1] == f"out {b.bin_id} 3"
+    assert t.get_bin(other.bin_id).quantity == 12
+    assert t.next_id() == "B3"
 
 
 def test_pick_unknown_bin_raises_keyerror():
-    t, _ = _setup()
+    t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 12)
     with pytest.raises(KeyError):
         pick_stock(t, "B99", 1)
+    assert t.get_bin(other.bin_id).quantity == 12
+    assert t.get_bin(b.bin_id).quantity == 40
+    assert t.next_id() == "B3"
 
 
 def test_pick_invalid_qty_raises_and_changes_nothing():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 12)
     for bad in (0, -1, 41):
         with pytest.raises(ValueError):
             pick_stock(t, b.bin_id, bad)
     assert t.get_bin(b.bin_id).quantity == 40
+    kept = t.get_bin(other.bin_id)
+    assert kept.quantity == 12 and kept.capacity == 50
+    assert t.next_id() == "B3"
 
 
 def test_table_has_remove_stock():
     t, b = _setup()
+    other = add_bin(t, "A2", 50)
+    receive_stock(t, other.bin_id, 12)
     out = t.remove_stock(b.bin_id, 10)
     assert out.quantity == 30 and t.get_bin(b.bin_id).quantity == 30
+    kept = t.get_bin(other.bin_id)
+    assert kept.quantity == 12 and kept.capacity == 50
+    assert t.next_id() == "B3"
 """
 }
 
@@ -388,6 +456,11 @@ def test_bins_and_receiving_unchanged(tmp_path):
     b = add_bin(t, "A1", 100)
     assert receive_stock(t, b.bin_id, 20).quantity == 20
     assert (tmp_path / "moves.log").read_text().splitlines() == ["new B1", "in B1 20"]
+    second = add_bin(t, "A2", 50)
+    assert receive_stock(t, second.bin_id, 9).quantity == 9
+    kept = t.get_bin(b.bin_id)
+    assert kept.quantity == 20 and kept.capacity == 100 and kept.aisle == "A1"
+    assert t.get_bin(second.bin_id).quantity == 9 and t.next_id() == "B3"
     with pytest.raises(ValueError):
         receive_stock(t, b.bin_id, 0)
     with pytest.raises(ValueError):

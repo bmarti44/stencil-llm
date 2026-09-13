@@ -151,25 +151,46 @@ def test_update_email_replaces_and_returns_member():
     assert isinstance(out, Member)
     assert out.email == "ines.k@example.org" and out.name == "Ines"
     assert roll.get("Ines").email == "ines.k@example.org"
+    kept = roll.get("Marcus")
+    assert kept is not None and kept.email == "marcus@example.org"
+    assert kept.name == "Marcus"
+    out2 = update_email(roll, "Marcus", "m.k@example.org")
+    assert out2.name == "Marcus" and out2.email == "m.k@example.org"
+    still = roll.get("Ines")
+    assert still is not None and still.email == "ines.k@example.org"
+    assert still.name == "Ines"
+    assert roll.get("Marcus").email == "m.k@example.org"
 
 
 def test_update_email_same_address_is_fine():
     roll = _roll()
     out = update_email(roll, "Marcus", "marcus@example.org")
     assert out.email == "marcus@example.org"
+    assert roll.get("Marcus").email == "marcus@example.org"
+    kept = roll.get("Ines")
+    assert kept is not None and kept.email == "ines@example.org"
+    assert kept.name == "Ines"
 
 
 def test_update_email_rejects_address_without_at():
     roll = _roll()
+    update_email(roll, "Marcus", "m.k@example.org")
     with pytest.raises(ValueError):
         update_email(roll, "Ines", "ines.example.org")
     assert roll.get("Ines").email == "ines@example.org"
+    kept = roll.get("Marcus")
+    assert kept is not None and kept.email == "m.k@example.org"
 
 
 def test_update_email_unknown_name_raises_keyerror():
     roll = _roll()
+    update_email(roll, "Ines", "ines.k@example.org")
     with pytest.raises(KeyError):
         update_email(roll, "Nobody", "x@example.org")
+    assert roll.get("Ines").email == "ines.k@example.org"
+    kept = roll.get("Marcus")
+    assert kept is not None and kept.email == "marcus@example.org"
+    assert roll.get("Nobody") is None
 """
 }
 
@@ -184,6 +205,9 @@ def test_join_and_get_unchanged():
     m = join_club(roll, "Ines", "ines@example.org")
     assert roll.get("Ines") is m and m.email == "ines@example.org"
     assert roll.get("Nobody") is None
+    second = join_club(roll, "Marcus", "marcus@example.org")
+    assert roll.get("Marcus") is second and roll.get("Ines") is m
+    assert second.email == "marcus@example.org"
 
 
 def test_add_still_validates_in_store():
@@ -192,6 +216,12 @@ def test_add_still_validates_in_store():
         roll.add("", "x@example.org")
     with pytest.raises(ValueError):
         join_club(roll, "Ines", "not-an-email")
+    assert roll.get("Ines") is None
+    marcus = join_club(roll, "Marcus", "marcus@example.org")
+    dana = join_club(roll, "Dana", "dana@example.org")
+    with pytest.raises(ValueError):
+        join_club(roll, "Ines", "still-not-an-email")
+    assert roll.get("Marcus") is marcus and roll.get("Dana") is dana
     assert roll.get("Ines") is None
 """
 }
@@ -339,25 +369,45 @@ def test_cast_vote_appends_and_returns_pick():
     assert picks.get("P1").votes == ("Marcus",)
     out2 = cast_vote(picks, "P1", "Dana")
     assert out2.votes == ("Marcus", "Dana")
+    kept = picks.get("P2")
+    assert kept is not None and kept.votes == ()
+    assert kept.title == "Piranesi" and kept.proposer == "Marcus"
+    cast_vote(picks, "P2", "Ines")
+    still = picks.get("P1")
+    assert still is not None and still.votes == ("Marcus", "Dana")
+    assert still.title == "The Overstory" and still.proposer == "Ines"
+    assert picks.get("P2").votes == ("Ines",)
 
 
 def test_proposer_voting_for_own_pick_is_counted():
     picks = _picks()
+    cast_vote(picks, "P1", "Ines")
     out = cast_vote(picks, "P2", "Marcus")
     assert out.votes == ("Marcus",) and out.proposer == "Marcus"
+    kept = picks.get("P1")
+    assert kept is not None and kept.votes == ("Ines",)
+    assert kept.title == "The Overstory" and kept.proposer == "Ines"
 
 
 def test_cast_vote_rejects_blank_member():
     picks = _picks()
+    cast_vote(picks, "P2", "Ines")
     with pytest.raises(ValueError):
         cast_vote(picks, "P1", " ")
     assert picks.get("P1").votes == ()
+    kept = picks.get("P2")
+    assert kept is not None and kept.votes == ("Ines",)
 
 
 def test_cast_vote_unknown_pick_raises_keyerror():
     picks = _picks()
+    cast_vote(picks, "P1", "Marcus")
     with pytest.raises(KeyError):
         cast_vote(picks, "P9", "Ines")
+    assert picks.get("P1").votes == ("Marcus",)
+    kept = picks.get("P2")
+    assert kept is not None and kept.votes == ()
+    assert picks.get("P9") is None
 """
 }
 
@@ -373,10 +423,14 @@ def test_nominate_and_get_unchanged():
     p = nominate(picks, "The Overstory", "Ines")
     assert p.pick_id == "P1" and picks.get("P1") is p and p.votes == ()
     assert picks.get("P9") is None
+    q = nominate(picks, "Piranesi", "Marcus")
+    assert q.pick_id == "P2" and picks.get("P2") is q
+    assert picks.get("P1") is p
     with pytest.raises(ValueError):
         picks.add("", "Ines")
     with pytest.raises(ValueError):
         nominate(picks, " ", "Ines")
+    assert picks.get("P1") is p and picks.get("P2") is q
 
 
 def test_members_module_unchanged():
@@ -385,6 +439,12 @@ def test_members_module_unchanged():
     assert update_email(roll, "Ines", "ines.k@example.org").email == "ines.k@example.org"
     with pytest.raises(ValueError):
         roll.put_email("Ines", "bad")
+    join_club(roll, "Marcus", "marcus@example.org")
+    assert update_email(roll, "Marcus", "m.k@example.org").email == "m.k@example.org"
+    kept = roll.get("Ines")
+    assert kept is not None and kept.email == "ines.k@example.org"
+    assert kept.name == "Ines"
+    assert roll.get("Marcus").email == "m.k@example.org"
 """
 }
 

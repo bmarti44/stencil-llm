@@ -136,3 +136,48 @@ Do not edit any file other than your own `sNN.py` modules. Do not commit.
 | S46 | missing_record | logging | replacement | carpool |
 | S47 | missing_record | logging | scope | tool library |
 | S48 | missing_record | logging | reinstatement | farm-share boxes |
+
+## AMENDMENT 2 (2026-09-13, after Astra re-review rounds 2 and 3): fixtures must be adversarial
+
+`scripts/a_screen_mutate.py` is the standing gate for every slot, and it must report
+`UNDETECTED: 0`. It breaks the checkpoint-2 gold in five ways a plausible model reply can produce
+and requires some suite to catch each one:
+
+1. a dictionary lookup that starts raising (`.get(id)` → `[id]`);
+2. a store write-back that is gone (the operation returns a correct record that is never persisted);
+3. a write-back that REPLACES the whole mapping (`self._x[k] = v` → `self._x = {k: v}`), deleting
+   every unrelated record;
+4. an update that additionally resets an unrelated defaulted attribute (`replace(rec, …)` call
+   sites);
+5. the same reset through a record helper (`rec.with_status(…)`).
+
+The first audit found 82 undetected mutations in 38 of the 48 slots, all for the same reason: the
+fixtures stored ONE record with DEFAULT attribute values, so nothing could observe a deleted
+neighbour or a reset field. Therefore, for every `functional_tests` and `regression_tests` suite of
+BOTH requests:
+
+- the fixture stores **at least two records**, and the tests operate on one of them;
+- the operated record carries **non-default values** for its dataclass's defaulted attributes
+  (where no public writer exists yet at checkpoint 1, put the non-default value on the neighbour, or
+  pin the preservation in the request-2 suite where the mutation is actually scored);
+- after the operation, assert **through the store's own public reader** that the other record is
+  still present and unchanged, that the count is unchanged, and that every attribute the operation
+  must not touch still holds its non-default value.  Use the store's public counter where one
+  exists; where it has none, pin the count by reading every record back through the public reader
+  **and** asserting `get(<a key never stored>) is None`, so a replaced mapping cannot hide;
+- precede every "the other record survives" assertion with an explicit non-`None` check, so the
+  assertion cannot pass vacuously on a failed read-back (AGENTS.md: an exact-zero or identity
+  assertion must fail loudly when vacuous).
+
+Never weaken an existing assertion to make a mutation detectable, and never change the project
+source, the request text, the gold, the contract statements, the prefix turns, `contract_tests` or
+`support_tests` to satisfy the audit. If a mutation is genuinely uncatchable without one of those
+changes, record it in the registration instead of hiding it.
+
+Where a test's exact assertion pins a single record (`count() == 1`, an exact audit-log body), leave
+that test verbatim and add a two-record sibling beside it rather than editing it.
+
+`scripts/a_screen_containment.py` enforces the paragraph above mechanically: it rebuilds every
+changed slot from git and refuses any difference outside the two fixture fields, and it also reports
+a slot whose file changed without any fixture body changing. Run it, and the audit, before
+committing fixture work.

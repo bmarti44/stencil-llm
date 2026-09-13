@@ -132,6 +132,33 @@ def test_admit_does_not_touch_other_tickets(tmp_path):
     _admit(d)(a.ticket_id)
     assert d.lookup(b.ticket_id).status == "issued"
     assert d.count() == 2
+    assert d.lookup(b.ticket_id) == b
+    assert d.lookup(b.ticket_id).holder == "bo"
+    assert d.lookup(b.ticket_id).exhibition == "maps"
+
+
+def test_admit_keeps_a_voided_neighbour_and_the_count(tmp_path):
+    # the neighbour carries a NON-DEFAULT status ("void" rather than the
+    # "issued" default), so an update that rewrites or drops unrelated
+    # records is visible through the desk's own reader
+    d, path = _desk(tmp_path)
+    a = d.issue("ana", "bronze age")
+    b = d.issue("bo", "maps")
+    d.void(b.ticket_id)
+    out = _admit(d)(a.ticket_id)
+    assert out.status == "admitted"
+    kept = d.lookup(b.ticket_id)
+    assert kept is not None and kept.status == "void"
+    assert kept.holder == "bo" and kept.exhibition == "maps"
+    assert d.lookup(a.ticket_id).status == "admitted"
+    assert d.lookup(a.ticket_id).holder == "ana"
+    assert d.count() == 2
+    assert path.read_text().splitlines() == [
+        "issue M1 bronze age",
+        "issue M2 maps",
+        "void M2",
+        "admit M1",
+    ]
 """
 }
 
@@ -150,6 +177,28 @@ def test_issue_lookup_void_count_unchanged(tmp_path):
     assert d.lookup("M1").status == "void"
     assert d.count() == 1
     assert path.read_text().splitlines() == ["issue M1 bronze age", "void M1"]
+
+
+def test_void_keeps_the_other_tickets_and_the_count(tmp_path):
+    # two tickets; the one left alone carries a NON-DEFAULT status
+    path = tmp_path / "two.log"
+    d = TicketDesk(str(path))
+    a = d.issue("ana", "bronze age")
+    b = d.issue("bo", "maps")
+    assert d.void(a.ticket_id).status == "void"
+    assert d.void(b.ticket_id).status == "void"
+    kept = d.lookup(a.ticket_id)
+    assert kept is not None and kept.status == "void"
+    assert kept.holder == "ana" and kept.exhibition == "bronze age"
+    assert d.lookup(b.ticket_id).status == "void"
+    assert d.lookup(b.ticket_id).holder == "bo"
+    assert d.count() == 2
+    assert path.read_text().splitlines() == [
+        "issue M1 bronze age",
+        "issue M2 maps",
+        "void M1",
+        "void M2",
+    ]
 """
 }
 
@@ -302,6 +351,33 @@ def test_refund_leaves_other_tickets_alone(tmp_path):
     _refund(d)(b.ticket_id)
     assert d.lookup(a.ticket_id).status == "issued"
     assert d.count() == 2
+    assert d.lookup(a.ticket_id) == a
+    assert d.lookup(a.ticket_id).holder == "ana"
+    assert d.lookup(a.ticket_id).exhibition == "bronze age"
+
+
+def test_refund_keeps_an_admitted_neighbour_and_the_count(tmp_path):
+    # the neighbour carries a NON-DEFAULT status ("admitted" rather than
+    # the "issued" default), so an update that rewrites or drops unrelated
+    # records is visible through the desk's own reader
+    d, path = _desk(tmp_path)
+    a = d.issue("ana", "bronze age")
+    b = d.issue("bo", "maps")
+    d.admit(a.ticket_id)
+    out = _refund(d)(b.ticket_id)
+    assert out.status == "refunded"
+    kept = d.lookup(a.ticket_id)
+    assert kept is not None and kept.status == "admitted"
+    assert kept.holder == "ana" and kept.exhibition == "bronze age"
+    assert d.lookup(b.ticket_id).status == "refunded"
+    assert d.lookup(b.ticket_id).holder == "bo"
+    assert d.count() == 2
+    assert path.read_text().splitlines() == [
+        "issue M1 bronze age",
+        "issue M2 maps",
+        "admit M1",
+        "refund M2",
+    ]
 """
 }
 
@@ -321,6 +397,28 @@ def test_issue_lookup_void_admit_unchanged(tmp_path):
     assert d.lookup("M1").status == "void"
     assert d.count() == 1
     assert path.read_text().splitlines() == ["issue M1 bronze age", "admit M1", "void M1"]
+
+
+def test_void_and_admit_keep_the_other_tickets(tmp_path):
+    # two tickets; the one left alone carries a NON-DEFAULT status
+    path = tmp_path / "two.log"
+    d = TicketDesk(str(path))
+    a = d.issue("ana", "bronze age")
+    b = d.issue("bo", "maps")
+    assert d.admit(a.ticket_id).status == "admitted"
+    assert d.void(b.ticket_id).status == "void"
+    kept = d.lookup(a.ticket_id)
+    assert kept is not None and kept.status == "admitted"
+    assert kept.holder == "ana" and kept.exhibition == "bronze age"
+    assert d.lookup(b.ticket_id).status == "void"
+    assert d.lookup(b.ticket_id).holder == "bo"
+    assert d.count() == 2
+    assert path.read_text().splitlines() == [
+        "issue M1 bronze age",
+        "issue M2 maps",
+        "admit M1",
+        "void M2",
+    ]
 """
 }
 

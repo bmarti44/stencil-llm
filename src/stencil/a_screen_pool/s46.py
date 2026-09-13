@@ -104,6 +104,54 @@ def test_join_twice_does_not_duplicate():
     out = _join(s)(r.ride_id, "omar")
     assert out.riders == ("omar",)
     assert s.find(r.ride_id).riders == ("omar",)
+
+
+def _two_rides(store):
+    other = store.offer_ride("tariq", 2)
+    _join(store)(other.ride_id, "mina")
+    store.cancel_ride(other.ride_id)
+    target = store.offer_ride("nadia", 3)
+    _join(store)(target.ride_id, "omar")
+    store.cancel_ride(target.ride_id)
+    return store.find(other.ride_id), store.find(target.ride_id)
+
+
+def test_join_keeps_the_other_ride_and_the_count():
+    s = RideStore()
+    other, target = _two_rides(s)
+    out = _join(s)(target.ride_id, "lea")
+    assert out.riders == ("omar", "lea")
+    assert s.count() == 2
+    back = s.find(other.ride_id)
+    assert back is not None, "joining one ride dropped the other"
+    assert back == other and back.riders == ("mina",)
+    assert back.status == "cancelled" and back.driver == "tariq"
+    assert back.seats == 2
+
+
+def test_join_does_not_reset_a_non_default_status():
+    s = RideStore()
+    other, target = _two_rides(s)
+    assert target.status == "cancelled" and target.riders == ("omar",)
+    out = _join(s)(target.ride_id, "lea")
+    assert out.status == "cancelled" and out.riders == ("omar", "lea")
+    stored = s.find(target.ride_id)
+    assert stored.status == "cancelled" and stored.riders == ("omar", "lea")
+    assert stored.driver == "nadia" and stored.seats == 3
+    assert s.count() == 2
+    assert s.find(other.ride_id) == other
+
+
+def test_join_of_a_present_rider_keeps_the_other_ride():
+    s = RideStore()
+    other, target = _two_rides(s)
+    out = _join(s)(target.ride_id, "omar")
+    assert out == target and out.status == "cancelled"
+    assert s.find(target.ride_id) == target
+    assert s.count() == 2
+    back = s.find(other.ride_id)
+    assert back is not None and back == other
+    assert back.riders == ("mina",) and back.status == "cancelled"
 """
 }
 
@@ -120,6 +168,38 @@ def test_offer_find_count_cancel_unchanged():
     assert s.cancel_ride("R1").status == "cancelled"
     assert s.find("R1").status == "cancelled"
     assert s.cancel_ride("R9") is None
+
+
+def _join(store):
+    fn = getattr(store, "join_ride", None)
+    assert fn is not None, "no join_ride method found"
+    return fn
+
+
+def test_cancel_keeps_the_other_ride_and_its_riders():
+    s = RideStore()
+    other = s.offer_ride("tariq", 2)
+    _join(s)(other.ride_id, "mina")
+    kept = s.cancel_ride(other.ride_id)
+    target = s.offer_ride("nadia", 3)
+    _join(s)(target.ride_id, "omar")
+    out = s.cancel_ride(target.ride_id)
+    assert out.status == "cancelled" and out.riders == ("omar",)
+    assert out.driver == "nadia" and out.seats == 3
+    assert s.count() == 2
+    back = s.find(other.ride_id)
+    assert back is not None, "cancelling one ride dropped the other"
+    assert back == kept and back.riders == ("mina",)
+    assert back.status == "cancelled" and back.driver == "tariq"
+    assert back.seats == 2
+
+
+def test_offer_keeps_every_earlier_ride():
+    s = RideStore()
+    first = s.offer_ride("tariq", 2)
+    second = s.offer_ride("nadia", 3)
+    assert s.count() == 2
+    assert s.find(first.ride_id) == first and s.find(second.ride_id) == second
 """
 }
 
@@ -262,6 +342,55 @@ def test_leave_rider_not_on_ride_leaves_riders_unchanged():
     s.join_ride(r.ride_id, "lea")
     out = _leave(s)(r.ride_id, "omar")
     assert out.riders == ("lea",) and s.find(r.ride_id).riders == ("lea",)
+
+
+def _two_rides(store):
+    other = store.offer_ride("tariq", 2)
+    store.join_ride(other.ride_id, "mina")
+    store.cancel_ride(other.ride_id)
+    target = store.offer_ride("nadia", 3)
+    store.join_ride(target.ride_id, "omar")
+    store.join_ride(target.ride_id, "lea")
+    store.cancel_ride(target.ride_id)
+    return store.find(other.ride_id), store.find(target.ride_id)
+
+
+def test_leave_keeps_the_other_ride_and_the_count():
+    s = RideStore()
+    other, target = _two_rides(s)
+    out = _leave(s)(target.ride_id, "omar")
+    assert out.riders == ("lea",)
+    assert s.count() == 2
+    back = s.find(other.ride_id)
+    assert back is not None, "leaving one ride dropped the other"
+    assert back == other and back.riders == ("mina",)
+    assert back.status == "cancelled" and back.driver == "tariq"
+    assert back.seats == 2
+
+
+def test_leave_does_not_reset_a_non_default_status():
+    s = RideStore()
+    other, target = _two_rides(s)
+    assert target.status == "cancelled" and target.riders == ("omar", "lea")
+    out = _leave(s)(target.ride_id, "omar")
+    assert out.status == "cancelled" and out.riders == ("lea",)
+    stored = s.find(target.ride_id)
+    assert stored.status == "cancelled" and stored.riders == ("lea",)
+    assert stored.driver == "nadia" and stored.seats == 3
+    assert s.count() == 2
+    assert s.find(other.ride_id) == other
+
+
+def test_leave_of_an_absent_rider_keeps_the_other_ride():
+    s = RideStore()
+    other, target = _two_rides(s)
+    out = _leave(s)(target.ride_id, "zoe")
+    assert out == target and out.status == "cancelled"
+    assert s.find(target.ride_id) == target
+    assert s.count() == 2
+    back = s.find(other.ride_id)
+    assert back is not None and back == other
+    assert back.riders == ("mina",) and back.status == "cancelled"
 """
 }
 
@@ -277,6 +406,26 @@ def test_offer_find_cancel_join_unchanged():
     assert s.cancel_ride("R1").status == "cancelled"
     assert s.find("R1").status == "cancelled"
     assert s.cancel_ride("R9") is None
+
+
+def test_cancel_and_join_keep_the_other_ride():
+    s = RideStore()
+    other = s.offer_ride("tariq", 2)
+    s.join_ride(other.ride_id, "mina")
+    kept = s.cancel_ride(other.ride_id)
+    target = s.offer_ride("nadia", 3)
+    out = s.join_ride(target.ride_id, "omar")
+    assert out.riders == ("omar",) and out.status == "open"
+    assert s.cancel_ride(target.ride_id).status == "cancelled"
+    joined = s.join_ride(target.ride_id, "lea")
+    assert joined.status == "cancelled" and joined.riders == ("omar", "lea")
+    assert s.find(target.ride_id).riders == ("omar", "lea")
+    assert s.count() == 2
+    back = s.find(other.ride_id)
+    assert back is not None, "the store dropped an untouched ride"
+    assert back == kept and back.riders == ("mina",)
+    assert back.status == "cancelled" and back.driver == "tariq"
+    assert back.seats == 2
 """
 }
 

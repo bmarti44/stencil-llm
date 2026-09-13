@@ -142,6 +142,19 @@ def test_set_priority_unknown_id_raises_keyerror():
     book = _book()
     with pytest.raises(KeyError):
         set_priority(book, "W9", "low")
+
+
+def test_set_priority_keeps_other_orders_and_fields():
+    book = _book()
+    set_priority(book, "W2", "urgent")
+    out = set_priority(book, "W1", "low")
+    assert out.priority == "low" and out.unit == "4B"
+    kept = book.get("W2")
+    assert kept is not None, "the other order was dropped from the book"
+    assert kept.priority == "urgent" and kept.unit == "2A"
+    assert kept.description == "hallway light out" and kept.contractor == ""
+    assert book.get("W1").priority == "low"
+    assert len(book.for_unit("4B")) == 1 and len(book.for_unit("2A")) == 1
 """
 }
 
@@ -168,6 +181,16 @@ def test_open_still_validates_in_store():
     with pytest.raises(ValueError):
         open_order(book, " ", "tap")
     assert book.for_unit("4B") == []
+
+
+def test_two_units_coexist_with_defaults():
+    book = OrderBook()
+    a = open_order(book, "4B", "kitchen tap drips")
+    b = open_order(book, "2A", "hallway light out")
+    assert book.get(a.order_id) is a and book.get(b.order_id) is b
+    assert a.order_id != b.order_id
+    assert book.for_unit("4B") == [a] and book.for_unit("2A") == [b]
+    assert b.priority == "normal" and b.contractor == ""
 """
 }
 
@@ -344,13 +367,33 @@ def test_assign_contractor_unknown_id_raises_keyerror():
     book = _book()
     with pytest.raises(KeyError):
         assign_contractor(book, "W9", "Reyes Plumbing")
+
+
+def _busy_book():
+    book = _book()
+    set_priority(book, "W2", "urgent")
+    assign_contractor(book, "W2", "Sparks Electrical")
+    return book
+
+
+def test_assign_contractor_keeps_other_orders_and_fields():
+    book = _busy_book()
+    out = assign_contractor(book, "W1", "Reyes Plumbing")
+    assert out.contractor == "Reyes Plumbing" and out.priority == "low"
+    assert out.unit == "4B" and out.description == "kitchen tap drips"
+    kept = book.get("W2")
+    assert kept is not None, "the other order was dropped from the book"
+    assert kept.contractor == "Sparks Electrical" and kept.priority == "urgent"
+    assert kept.unit == "2A" and kept.description == "hallway light out"
+    assert book.get("W1").contractor == "Reyes Plumbing"
+    assert len(book.for_unit("4B")) == 1 and len(book.for_unit("2A")) == 1
 """
 }
 
 _C2_REGRESSION = {
     "test_contractor_regression.py": """import pytest
 
-from fixlist.book import OrderBook, open_order, set_priority
+from fixlist.book import OrderBook, assign_contractor, open_order, set_priority
 
 
 def test_open_get_priority_unchanged():
@@ -362,6 +405,24 @@ def test_open_get_priority_unchanged():
         book.put_priority("W1", "asap")
     with pytest.raises(ValueError):
         book.open("", "tap")
+
+
+def test_priority_change_keeps_contractor_and_other_orders():
+    book = OrderBook()
+    open_order(book, "4B", "kitchen tap drips")
+    open_order(book, "2A", "hallway light out")
+    assign_contractor(book, "W1", "Reyes Plumbing")
+    assign_contractor(book, "W2", "Sparks Electrical")
+    set_priority(book, "W2", "urgent")
+    out = set_priority(book, "W1", "low")
+    assert out.priority == "low" and out.contractor == "Reyes Plumbing"
+    assert out.unit == "4B" and out.description == "kitchen tap drips"
+    kept = book.get("W2")
+    assert kept is not None, "the other order was dropped from the book"
+    assert kept.contractor == "Sparks Electrical" and kept.priority == "urgent"
+    assert kept.unit == "2A"
+    assert book.get("W1").contractor == "Reyes Plumbing"
+    assert len(book.for_unit("4B")) == 1 and len(book.for_unit("2A")) == 1
 """
 }
 

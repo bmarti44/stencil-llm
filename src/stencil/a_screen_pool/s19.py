@@ -77,11 +77,25 @@ _C1_FUNCTIONAL = {
 
 from meepleshelf.shelf import Shelf, add_game, rate_game
 
+# The shelf always holds a SECOND game, "G1", already rated 5 -- so its
+# rating is NOT the dataclass default.  Any operation that drops unrelated
+# records, or resets an unrelated defaulted attribute, is then visible.
+OTHER = "G1"
+
 
 def _shelf():
     s = Shelf()
+    other = add_game(s, "Azul", 4)
+    rate_game(s, other.game_id, 5)
     g = add_game(s, "Carcassonne", 2)
     return s, g
+
+
+def _assert_other_intact(s):
+    kept = s.get_game(OTHER)
+    assert kept is not None, "an unrelated game was dropped from the shelf"
+    assert kept.game_id == OTHER and kept.title == "Azul"
+    assert kept.min_players == 4 and kept.rating == 5
 
 
 def test_rate_game_stores_and_returns_rated_game():
@@ -90,6 +104,7 @@ def test_rate_game_stores_and_returns_rated_game():
     assert out.rating == 4 and out.game_id == g.game_id
     assert out.title == "Carcassonne" and out.min_players == 2
     assert s.get_game(g.game_id) == out
+    _assert_other_intact(s)
 
 
 def test_rate_game_overwrites_previous_rating():
@@ -97,6 +112,7 @@ def test_rate_game_overwrites_previous_rating():
     rate_game(s, g.game_id, 2)
     assert rate_game(s, g.game_id, 5).rating == 5
     assert s.get_game(g.game_id).rating == 5
+    _assert_other_intact(s)
 
 
 @pytest.mark.parametrize("bad", [0, 6, -1, 42])
@@ -105,18 +121,24 @@ def test_rate_game_rejects_out_of_range(bad):
     with pytest.raises(ValueError):
         rate_game(s, g.game_id, bad)
     assert s.get_game(g.game_id).rating is None
+    _assert_other_intact(s)
 
 
 @pytest.mark.parametrize("edge", [1, 5])
 def test_rate_game_accepts_bounds(edge):
     s, g = _shelf()
     assert rate_game(s, g.game_id, edge).rating == edge
+    assert s.get_game(g.game_id).rating == edge
+    _assert_other_intact(s)
 
 
 def test_rate_game_unknown_raises_keyerror():
-    s, _ = _shelf()
+    s, g = _shelf()
     with pytest.raises(KeyError):
         rate_game(s, "G99", 3)
+    _assert_other_intact(s)
+    assert s.get_game(g.game_id) is not None
+    assert s.get_game(g.game_id).rating is None
 """
 }
 
@@ -136,16 +158,28 @@ def test_add_game_validates_and_stores():
     with pytest.raises(ValueError):
         add_game(s, "Solo", 0)
     assert s.get_game("G2") is None
+    h = add_game(s, "Hive", 2)
+    assert h.game_id == "G2" and h.title == "Hive" and h.rating is None
+    assert s.get_game("G2") is h
+    assert s.get_game("G1") is g and s.get_game("G1").rating is None
 
 
 def test_put_game_stores_without_checking():
     s = Shelf()
+    first = s.put_game("Azul", 4)
     g = s.put_game("", 0)
     assert g.title == "" and g.min_players == 0 and s.get_game(g.game_id) is g
+    kept = s.get_game(first.game_id)
+    assert kept is not None, "an unrelated game was dropped from the shelf"
+    assert kept is first and kept.title == "Azul" and kept.min_players == 4
 
 
 def test_get_loan_missing_returns_none():
     assert Shelf().get_loan("G1") is None
+    s = Shelf()
+    add_game(s, "Azul", 4)
+    add_game(s, "Hive", 2)
+    assert s.get_loan("G1") is None and s.get_loan("G2") is None
 """
 }
 
@@ -282,13 +316,32 @@ _REQ1 = Request(
 _C2_FUNCTIONAL = {
     "test_lend_functional.py": """import pytest
 
-from meepleshelf.shelf import Shelf, add_game, lend_game
+from meepleshelf.shelf import Shelf, add_game, lend_game, rate_game
+
+# The shelf always holds a SECOND game, "G1", already rated 5 and already
+# out on loan -- so neither its rating (a defaulted attribute) nor its loan
+# is the default.  Any operation that drops unrelated records, or resets an
+# unrelated defaulted attribute, is then visible.
+OTHER = "G1"
 
 
 def _shelf():
     s = Shelf()
+    other = add_game(s, "Azul", 4)
+    rate_game(s, other.game_id, 5)
+    lend_game(s, other.game_id, "Pia", 21)
     g = add_game(s, "Carcassonne", 2)
     return s, g
+
+
+def _assert_other_intact(s):
+    kept = s.get_game(OTHER)
+    assert kept is not None, "an unrelated game was dropped from the shelf"
+    assert kept.game_id == OTHER and kept.title == "Azul"
+    assert kept.min_players == 4 and kept.rating == 5
+    loan = s.get_loan(OTHER)
+    assert loan is not None, "an unrelated loan was dropped from the shelf"
+    assert loan.game_id == OTHER and loan.borrower == "Pia" and loan.days == 21
 
 
 def test_lend_game_stores_and_returns_loan():
@@ -296,6 +349,7 @@ def test_lend_game_stores_and_returns_loan():
     out = lend_game(s, g.game_id, "Noor", 14)
     assert out.game_id == g.game_id and out.borrower == "Noor" and out.days == 14
     assert s.get_loan(g.game_id) == out
+    _assert_other_intact(s)
 
 
 def test_lend_game_replaces_existing_loan():
@@ -303,6 +357,7 @@ def test_lend_game_replaces_existing_loan():
     lend_game(s, g.game_id, "Noor", 7)
     out = lend_game(s, g.game_id, "Sam", 21)
     assert s.get_loan(g.game_id) == out and out.borrower == "Sam"
+    _assert_other_intact(s)
 
 
 @pytest.mark.parametrize("bad", [0, -3, 29, 365])
@@ -311,18 +366,23 @@ def test_lend_game_rejects_out_of_range_days(bad):
     with pytest.raises(ValueError):
         lend_game(s, g.game_id, "Noor", bad)
     assert s.get_loan(g.game_id) is None
+    _assert_other_intact(s)
 
 
 @pytest.mark.parametrize("edge", [1, 28])
 def test_lend_game_accepts_bounds(edge):
     s, g = _shelf()
     assert lend_game(s, g.game_id, "Noor", edge).days == edge
+    assert s.get_loan(g.game_id).days == edge
+    _assert_other_intact(s)
 
 
 def test_lend_game_unknown_raises_keyerror():
-    s, _ = _shelf()
+    s, g = _shelf()
     with pytest.raises(KeyError):
         lend_game(s, "G99", "Noor", 7)
+    _assert_other_intact(s)
+    assert s.get_game(g.game_id) is not None and s.get_loan(g.game_id) is None
 """
 }
 
@@ -335,14 +395,25 @@ from meepleshelf.shelf import Shelf, add_game, rate_game
 def test_add_and_rate_unchanged():
     s = Shelf()
     g = add_game(s, "Azul", 2)
+    other = add_game(s, "Hive", 2)
+    assert rate_game(s, other.game_id, 4).rating == 4
     with pytest.raises(ValueError):
         add_game(s, "Solo", 0)
     assert rate_game(s, g.game_id, 3).rating == 3
     with pytest.raises(ValueError):
         rate_game(s, g.game_id, 7)
     assert s.get_game(g.game_id).rating == 3
+    kept = s.get_game(other.game_id)
+    assert kept is not None, "rating one game dropped another from the shelf"
+    assert kept.title == "Hive" and kept.min_players == 2 and kept.rating == 4
     assert s.put_rating(g.game_id, 7).rating == 7
+    kept = s.get_game(other.game_id)
+    assert kept is not None and kept.rating == 4 and kept.title == "Hive"
+    assert s.get_game(g.game_id).rating == 7
     assert s.put_game("", 0).title == ""
+    assert s.get_game(g.game_id) is not None
+    assert s.get_game(other.game_id) is not None
+    assert s.get_game(other.game_id).rating == 4
 """
 }
 

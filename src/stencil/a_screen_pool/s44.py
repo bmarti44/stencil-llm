@@ -108,6 +108,42 @@ def test_reclaim_overwrites_claimant():
     _claim(s)(it.item_id, "ana")
     out = _claim(s)(it.item_id, "ben")
     assert out.claimant == "ben" and s.find(it.item_id).claimant == "ben"
+
+
+def test_claim_keeps_the_other_item_and_the_count():
+    s = ItemStore()
+    other = s.register_item("hat", "pool")
+    moved_other = s.relocate_item(other.item_id, "office")
+    it = s.register_item("blue umbrella", "front desk")
+    _claim(s)(it.item_id, "ana")
+    out = _claim(s)(it.item_id, "priya")
+    assert out.claimant == "priya" and out.status == "claimed"
+    assert s.find(it.item_id).claimant == "priya"
+    assert s.count() == 2, "claiming one item changed the stored count"
+    kept = s.find(other.item_id)
+    assert kept is not None, "claiming one item dropped the other"
+    assert kept == moved_other
+    assert kept.description == "hat" and kept.location == "office"
+    assert kept.status == "held" and kept.claimant is None
+
+
+def test_a_claim_survives_a_later_relocate():
+    s = ItemStore()
+    other = s.register_item("hat", "pool")
+    it = s.register_item("scarf", "library")
+    _claim(s)(it.item_id, "ana")
+    moved = s.relocate_item(it.item_id, "store room")
+    assert moved.location == "store room"
+    assert moved.status == "claimed", "relocating reset the status"
+    assert moved.claimant == "ana", "relocating reset the claimant"
+    stored = s.find(it.item_id)
+    assert stored.status == "claimed" and stored.claimant == "ana"
+    assert stored.location == "store room"
+    assert s.count() == 2, "relocating changed the stored count"
+    kept = s.find(other.item_id)
+    assert kept is not None, "relocating one item dropped the other"
+    assert kept == other and kept.location == "pool"
+    assert kept.status == "held" and kept.claimant is None
 """
 }
 
@@ -124,6 +160,18 @@ def test_register_find_count_relocate_unchanged():
     assert s.relocate_item("LF1", "office").location == "office"
     assert s.find("LF1").location == "office"
     assert s.relocate_item("LF9", "office") is None
+    second = s.register_item("b", "gym")
+    assert second.item_id == "LF2" and s.count() == 2
+    assert s.find("LF1") is not None, "registering dropped the first item"
+    assert s.find("LF1").location == "office"
+    moved = s.relocate_item("LF2", "lobby")
+    assert moved.location == "lobby" and moved.status == "held"
+    assert moved.claimant is None and moved.description == "b"
+    assert s.count() == 2, "relocating changed the stored count"
+    kept = s.find("LF1")
+    assert kept is not None, "relocating one item dropped the other"
+    assert kept.location == "office" and kept.description == "a"
+    assert s.find("LF2").location == "lobby"
 """
 }
 
@@ -253,6 +301,25 @@ def test_dispose_claimed_item_still_disposes():
     s.claim_item(it.item_id, "ana")
     out = _dispose(s)(it.item_id)
     assert out.status == "disposed" and out.claimant == "ana"
+
+
+def test_dispose_keeps_the_other_item_and_the_count():
+    s = ItemStore()
+    other = s.register_item("hat", "pool")
+    s.claim_item(other.item_id, "ana")
+    it = s.register_item("single glove", "bus stop")
+    s.claim_item(it.item_id, "priya")
+    out = _dispose(s)(it.item_id)
+    assert out.status == "disposed" and out.claimant == "priya"
+    assert out.location == "bus stop"
+    stored = s.find(it.item_id)
+    assert stored.status == "disposed" and stored.claimant == "priya"
+    assert s.count() == 2, "disposing one item changed the stored count"
+    kept = s.find(other.item_id)
+    assert kept is not None, "disposing one item dropped the other"
+    assert kept.status == "claimed", "the other item's status changed"
+    assert kept.claimant == "ana"
+    assert kept.description == "hat" and kept.location == "pool"
 """
 }
 
@@ -268,6 +335,25 @@ def test_register_find_relocate_claim_unchanged():
     assert s.find("LF1").location == "office"
     assert s.relocate_item("LF9", "office") is None
     assert s.claim_item("LF1", "priya").claimant == "priya"
+    second = s.register_item("b", "gym")
+    assert second.item_id == "LF2" and s.count() == 2
+    assert s.find("LF1") is not None, "registering dropped the first item"
+    moved = s.relocate_item("LF1", "store room")
+    assert moved.location == "store room"
+    assert moved.status == "claimed", "relocating reset the status"
+    assert moved.claimant == "priya", "relocating reset the claimant"
+    stored = s.find("LF1")
+    assert stored.status == "claimed" and stored.claimant == "priya"
+    assert stored.location == "store room"
+    assert s.count() == 2, "relocating changed the stored count"
+    kept = s.find("LF2")
+    assert kept is not None, "relocating one item dropped the other"
+    assert kept.location == "gym" and kept.status == "held"
+    assert kept.claimant is None and kept.description == "b"
+    assert s.claim_item("LF2", "tom").claimant == "tom"
+    assert s.find("LF1") is not None, "claiming one item dropped the other"
+    assert s.find("LF1").claimant == "priya"
+    assert s.count() == 2, "claiming changed the stored count"
 """
 }
 

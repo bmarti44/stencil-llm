@@ -139,6 +139,22 @@ def test_refresh_bad_document_leaves_feed_untouched():
     with pytest.raises(Exception):
         _refresh(s)(f.feed_id, "episode: Pilot\\ntitle: oops\\n")
     assert s.find(f.feed_id).episodes == ("Pilot",)
+
+
+def test_refresh_keeps_other_feeds_and_count():
+    s = FeedStore()
+    other = s.add_feed("Daily", "v")
+    f = s.add_feed("Weekly", "u")
+    _refresh(s)(other.feed_id, "episode: Kept One\\nepisode: Kept Two\\n")
+    assert s.find(other.feed_id).episodes == ("Kept One", "Kept Two")
+    out = _refresh(s)(f.feed_id, DOC)
+    assert out.episodes == ("Pilot", "The Second One", "Listener Mail")
+    kept = s.find(other.feed_id)
+    assert kept is not None, "the other feed was dropped from the store"
+    assert kept.episodes == ("Kept One", "Kept Two")
+    assert kept.title == "Daily" and kept.url == "v"
+    assert s.count() == 2
+    assert s.find(f.feed_id).episodes == out.episodes
 """
 }
 
@@ -161,6 +177,15 @@ def test_parse_document_unchanged():
     assert parse_document("# c\\nepisode: A\\n\\nepisode: B\\n") == ["A", "B"]
     with pytest.raises(ValueError):
         parse_document("episode:\\n")
+
+
+def test_two_feeds_coexist_with_default_episodes():
+    s = FeedStore()
+    a = s.add_feed("Weekly", "u")
+    b = s.add_feed("Daily", "v")
+    assert s.find(a.feed_id) is a and s.find(b.feed_id) is b
+    assert a.feed_id != b.feed_id and s.count() == 2
+    assert a.episodes == () and b.episodes == ()
 """
 }
 
@@ -294,6 +319,26 @@ def test_load_missing_file_leaves_feed_untouched(tmp_path):
     with pytest.raises(Exception):
         _load(s)(f.feed_id, str(tmp_path / "absent.txt"))
     assert s.find(f.feed_id).episodes == ()
+
+
+def test_load_keeps_other_feeds_and_count(tmp_path):
+    weekly = tmp_path / "weekly.txt"
+    weekly.write_text(DOC, encoding="utf-8")
+    daily = tmp_path / "daily.txt"
+    daily.write_text("episode: Kept One\\nepisode: Kept Two\\n", encoding="utf-8")
+    s = FeedStore()
+    other = s.add_feed("Daily", "v")
+    f = s.add_feed("Weekly", "u")
+    _load(s)(other.feed_id, str(daily))
+    assert s.find(other.feed_id).episodes == ("Kept One", "Kept Two")
+    out = _load(s)(f.feed_id, str(weekly))
+    assert out.episodes == ("Pilot", "The Second One", "Listener Mail")
+    kept = s.find(other.feed_id)
+    assert kept is not None, "the other feed was dropped from the store"
+    assert kept.episodes == ("Kept One", "Kept Two")
+    assert kept.title == "Daily" and kept.url == "v"
+    assert s.count() == 2
+    assert s.find(f.feed_id).episodes == out.episodes
 """
 }
 
@@ -310,6 +355,20 @@ def test_add_find_refresh_unchanged():
     f = s.add_feed("Weekly", "u")
     assert s.find("F1") is f and s.count() == 1
     assert _refresh(s)("F1", "episode: Pilot\\n").episodes == ("Pilot",)
+
+
+def test_refresh_keeps_other_feeds_and_count():
+    s = FeedStore()
+    other = s.add_feed("Daily", "v")
+    f = s.add_feed("Weekly", "u")
+    _refresh(s)(other.feed_id, "episode: Kept One\\nepisode: Kept Two\\n")
+    _refresh(s)(f.feed_id, "episode: Pilot\\n")
+    kept = s.find(other.feed_id)
+    assert kept is not None, "the other feed was dropped from the store"
+    assert kept.episodes == ("Kept One", "Kept Two")
+    assert kept.title == "Daily" and kept.url == "v"
+    assert s.count() == 2
+    assert s.find(f.feed_id).episodes == ("Pilot",)
 """
 }
 

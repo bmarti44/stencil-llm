@@ -104,17 +104,24 @@ _C1_FUNCTIONAL = {
 def test_return_sets_status_returned():
     d = LoanDesk()
     loan = d.checkout_book("ana", "Dune", 30)
+    other = d.checkout_book("ben", "Emma", 12)
     out = _return(d)(loan.loan_id)
     assert out.status == "returned"
     assert d.find(loan.loan_id).status == "returned"
+    assert d.count() == 2
+    assert d.find(other.loan_id) == other
+    assert d.find(other.loan_id).status == "out"
 
 
 def test_return_keeps_patron_title_due():
     d = LoanDesk()
     loan = d.checkout_book("ben", "Emma", 12)
+    kept = d.checkout_book("cal", "Ada", 7)
     out = _return(d)(loan.loan_id)
     assert out.loan_id == loan.loan_id
     assert out.patron == "ben" and out.title == "Emma" and out.due_day == 12
+    assert d.find(kept.loan_id) == kept and d.count() == 2
+    assert d.find(kept.loan_id).title == "Ada" and d.find(kept.loan_id).due_day == 7
 
 
 def test_return_unknown_raises_keyerror():
@@ -124,6 +131,23 @@ def test_return_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown loan")
+
+
+def test_return_leaves_other_loans_untouched():
+    d = LoanDesk()
+    first = d.checkout_book("ana", "Dune", 30)
+    second = d.checkout_book("ben", "Emma", 12)
+    third = d.checkout_book("cal", "Ada", 7)
+    _return(d)(second.loan_id)  # a neighbour carrying a non-default status
+    before = d.count()
+    out = _return(d)(third.loan_id)
+    assert out.loan_id == third.loan_id and out.status == "returned"
+    assert d.count() == before
+    assert d.find(first.loan_id) == first and d.find(first.loan_id).status == "out"
+    assert d.find(second.loan_id).status == "returned"
+    assert d.find(second.loan_id).patron == "ben"
+    assert d.find(second.loan_id).title == "Emma"
+    assert d.find(third.loan_id) == out
 """
 }
 
@@ -139,12 +163,20 @@ def test_checkout_and_find_unchanged():
     assert d.find("L1") is loan
     assert d.find("nope") is None
     assert d.count() == 1
+    second = d.checkout_book("ben", "Emma", 12)
+    assert second.loan_id == "L2" and second.status == "out"
+    assert d.find("L2") is second
+    assert d.find("L1") is loan and d.count() == 2
 
 
 def test_fines_untouched():
     f = FineLedger()
     fine = f.record_fine("ana", 250)
     assert fine.fine_id == "F1" and f.owed("ana") == 250
+    second = f.record_fine("ben", 125)
+    assert second.fine_id == "F2" and second.status == "owed"
+    assert f.find("F1") is fine and f.find("F2") is second
+    assert f.owed("ana") == 250 and f.owed("ben") == 125
 """
 }
 
@@ -230,9 +262,13 @@ _C2_FUNCTIONAL = {
 def test_waive_sets_status_waived():
     f = FineLedger()
     fine = f.record_fine("ana", 250)
+    other = f.record_fine("ben", 75)
     out = _waive(f)(fine.fine_id)
     assert out.status == "waived"
     assert f.find(fine.fine_id).status == "waived"
+    assert f.find(other.fine_id) == other
+    assert f.find(other.fine_id).status == "owed"
+    assert f.owed("ben") == 75
 
 
 def test_waive_removes_from_owed_total():
@@ -251,6 +287,21 @@ def test_waive_unknown_raises_keyerror():
     except KeyError:
         return
     raise AssertionError("expected KeyError for an unknown fine")
+
+
+def test_waive_leaves_other_fines_untouched():
+    f = FineLedger()
+    first = f.record_fine("ana", 250)
+    second = f.record_fine("ben", 75)
+    third = f.record_fine("cal", 40)
+    _waive(f)(first.fine_id)  # a neighbour carrying a non-default status
+    out = _waive(f)(second.fine_id)
+    assert out.fine_id == second.fine_id and out.status == "waived"
+    assert f.find(first.fine_id).status == "waived"
+    assert f.find(first.fine_id).cents == 250 and f.find(first.fine_id).patron == "ana"
+    assert f.find(third.fine_id) == third
+    assert f.find(third.fine_id).status == "owed"
+    assert f.owed("ana") == 0 and f.owed("ben") == 0 and f.owed("cal") == 40
 """
 }
 
@@ -268,6 +319,12 @@ def test_desk_and_return_unchanged():
     loan = d.checkout_book("ana", "Dune", 30)
     assert d.find("L1") is loan and d.count() == 1
     assert _return(d)(loan.loan_id).status == "returned"
+    other = d.checkout_book("ben", "Emma", 12)
+    assert d.count() == 2 and d.find("L2") is other
+    assert _return(d)(other.loan_id).status == "returned"
+    assert d.count() == 2
+    assert d.find("L1").status == "returned" and d.find("L1").patron == "ana"
+    assert d.find("L1").title == "Dune" and d.find("L1").due_day == 30
 
 
 def test_record_find_owed_unchanged():
@@ -276,6 +333,10 @@ def test_record_find_owed_unchanged():
     assert fine.fine_id == "F1" and fine.status == "owed"
     assert f.find("F1") is fine and f.find("F9") is None
     assert f.owed("ben") == 75 and f.owed("ana") == 0
+    other = f.record_fine("ana", 300)
+    assert other.fine_id == "F2" and other.status == "owed"
+    assert f.find("F2") is other and f.find("F1") is fine
+    assert f.owed("ana") == 300 and f.owed("ben") == 75
 """
 }
 

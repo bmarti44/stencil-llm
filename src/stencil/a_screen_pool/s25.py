@@ -181,9 +181,14 @@ from cratelist.model import Playlist
 
 def test_create_playlist_stores_and_returns_playlist():
     t = TrackTable()
+    kept = Playlist("L7", "Warm-up", ("T1", "T2"))
+    t.insert_playlist(kept)
     p = create_playlist(t, "Sunday set")
     assert p.name == "Sunday set" and p.track_ids == ()
     assert p.playlist_id.startswith("L") and t.get_playlist(p.playlist_id) is p
+    assert t.get_playlist("L7") == kept
+    assert t.get_playlist("L7").track_ids == ("T1", "T2")
+    assert t.next_id("L") == "L3"
 
 
 def test_playlist_and_track_ids_do_not_collide():
@@ -212,6 +217,11 @@ def test_table_has_insert_playlist():
     t = TrackTable()
     t.insert_playlist(Playlist("L7", "Warm-up"))
     assert t.get_playlist("L7").name == "Warm-up"
+    t.insert_playlist(Playlist("L8", "Encore", ("T1", "T2")))
+    assert t.get_playlist("L8").track_ids == ("T1", "T2")
+    assert t.get_playlist("L7").name == "Warm-up"
+    assert t.get_playlist("L7").track_ids == ()
+    assert t.next_id("L") == "L3"
 """
 }
 
@@ -230,6 +240,9 @@ def test_add_track_unchanged(tmp_path):
         add_track(t, "x", "y", 0)
     with pytest.raises(KeyError):
         t.get_track("T9")
+    second = add_track(t, "So What", "Davis", 562)
+    assert second.track_id == "T2" and t.get_track("T2") is second
+    assert t.get_track("T1") is tr and t.next_id("T") == "T3"
     t.m3u_path = str(tmp_path)
     with pytest.raises(OSError):
         add_track(t, "a", "b", 10)
@@ -335,34 +348,39 @@ def _setup(path=None):
     a = add_track(t, "Blue Train", "Coltrane", 643)
     b = add_track(t, "So What", "Davis", 562)
     p = create_playlist(t, "Late")
-    return t, a, b, p
+    q = create_playlist(t, "Early")
+    return t, a, b, p, q
 
 
 def test_queue_track_appends_and_returns_playlist():
-    t, a, b, p = _setup()
+    t, a, b, p, q = _setup()
     out = queue_track(t, p.playlist_id, a.track_id, 0)
     assert out.track_ids == (a.track_id,) and out.name == "Late"
     out = queue_track(t, p.playlist_id, b.track_id, 1)
     assert out.track_ids == (a.track_id, b.track_id)
     assert t.get_playlist(p.playlist_id).track_ids == (a.track_id, b.track_id)
+    assert t.get_playlist(q.playlist_id) == q and q.track_ids == ()
+    assert t.next_id("L") == "L5"
 
 
 def test_queue_track_inserts_at_front():
-    t, a, b, p = _setup()
+    t, a, b, p, q = _setup()
     queue_track(t, p.playlist_id, a.track_id, 0)
     out = queue_track(t, p.playlist_id, b.track_id, 0)
     assert out.track_ids == (b.track_id, a.track_id)
+    assert t.get_playlist(q.playlist_id).track_ids == ()
+    assert t.next_id("L") == "L5"
 
 
 def test_queue_track_exports_the_line(tmp_path):
-    t, a, _, p = _setup(str(tmp_path / "set.m3u"))
+    t, a, _, p, q = _setup(str(tmp_path / "set.m3u"))
     queue_track(t, p.playlist_id, a.track_id, 0)
     lines = (tmp_path / "set.m3u").read_text().splitlines()
     assert lines[-1] == f"#QUEUE:{p.playlist_id}:{a.track_id}"
 
 
 def test_queue_unknown_track_or_playlist_raises_keyerror():
-    t, a, _, p = _setup()
+    t, a, _, p, q = _setup()
     with pytest.raises(KeyError):
         queue_track(t, p.playlist_id, "T99", 0)
     with pytest.raises(KeyError):
@@ -370,17 +388,34 @@ def test_queue_unknown_track_or_playlist_raises_keyerror():
 
 
 def test_position_out_of_range_raises_and_changes_nothing():
-    t, a, _, p = _setup()
+    t, a, _, p, q = _setup()
     for bad in (-1, 1, 5):
         with pytest.raises(ValueError):
             queue_track(t, p.playlist_id, a.track_id, bad)
     assert t.get_playlist(p.playlist_id).track_ids == ()
+    assert t.get_playlist(q.playlist_id).track_ids == ()
+    assert t.next_id("L") == "L5"
 
 
 def test_table_has_insert_at():
-    t, a, _, p = _setup()
+    t, a, _, p, q = _setup()
     out = t.insert_at(p.playlist_id, 0, a.track_id)
     assert out.track_ids == (a.track_id,)
+    assert t.get_playlist(q.playlist_id) == q
+    assert t.next_id("L") == "L5"
+
+
+def test_queue_track_leaves_other_playlists_and_tracks_alone():
+    t, a, b, p, q = _setup()
+    kept = queue_track(t, q.playlist_id, b.track_id, 0)
+    before = t.next_id("L")
+    out = queue_track(t, p.playlist_id, a.track_id, 0)
+    assert out.track_ids == (a.track_id,) and out.name == "Late"
+    assert t.next_id("L") == before
+    assert t.get_playlist(q.playlist_id) == kept
+    assert t.get_playlist(q.playlist_id).track_ids == (b.track_id,)
+    assert t.get_playlist(q.playlist_id).name == "Early"
+    assert t.get_track(a.track_id) is a and t.get_track(b.track_id) is b
 """
 }
 
@@ -397,6 +432,13 @@ def test_tracks_and_playlists_unchanged(tmp_path):
     assert t.get_track(tr.track_id) is tr and t.get_playlist(p.playlist_id) is p
     lines = (tmp_path / "set.m3u").read_text().splitlines()
     assert lines == ["#EXTINF:643,Coltrane - Blue Train", "#PLAYLIST:Late"]
+    second = add_track(t, "So What", "Davis", 562)
+    early = create_playlist(t, "Early")
+    assert t.get_track(second.track_id) is second
+    assert t.get_playlist(early.playlist_id) is early
+    assert t.get_track(tr.track_id) is tr and t.get_playlist(p.playlist_id) is p
+    assert t.get_playlist(p.playlist_id).name == "Late"
+    assert t.next_id("L") == "L5"
     with pytest.raises(ValueError):
         create_playlist(t, "  ")
     with pytest.raises(ValueError):

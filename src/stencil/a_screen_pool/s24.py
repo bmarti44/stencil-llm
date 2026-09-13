@@ -182,7 +182,7 @@ def _gold2(state: str) -> str:
 _C1_FUNCTIONAL = {
     "test_watering_functional.py": """import pytest
 
-from allotments.model import Watering
+from allotments.model import Plot, Watering
 from allotments.plots import PlotTable, register_plot, schedule_watering
 
 
@@ -231,6 +231,24 @@ def test_table_has_insert_watering():
     t, p = _setup()
     t.insert_watering(Watering(p.plot_id, "mon", 15))
     assert [w.litres for w in t.waterings_for(p.plot_id)] == [15]
+
+
+def test_schedule_watering_keeps_both_plots_and_their_fields():
+    t = PlotTable()
+    held = Plot("7", 40, tenant="hal", months=9)
+    t.insert_plot(held)
+    let = Plot("9a", 50, tenant="ida", months=4)
+    t.insert_plot(let)
+    w = schedule_watering(t, "9a", "tue", 40)
+    assert t.waterings_for("9a") == [w]
+    assert t.waterings_for("7") == [], "the watering landed on the wrong plot"
+    kept = t.get_plot("7")
+    assert kept == held, "scheduling a watering dropped the other plot"
+    assert kept.tenant == "hal" and kept.months == 9 and kept.area_m2 == 40
+    stored = t.get_plot("9a")
+    assert stored == let, "scheduling a watering changed its plot"
+    assert stored.tenant == "ida" and stored.months == 4
+    assert stored.area_m2 == 50
 """
 }
 
@@ -238,7 +256,23 @@ _C1_REGRESSION = {
     "test_watering_regression.py": """import pytest
 
 from allotments import AllotmentError
+from allotments.model import Plot
 from allotments.plots import PlotTable, register_plot
+
+
+def test_a_second_plot_does_not_replace_the_first(tmp_path):
+    t = PlotTable(log_path=str(tmp_path / "site.log"))
+    held = Plot("7", 40, tenant="hal", months=9)
+    t.insert_plot(held)
+    p = register_plot(t, "12b", 60)
+    kept = t.get_plot("7")
+    assert kept == held, "inserting a plot dropped the first one"
+    assert kept.tenant == "hal" and kept.months == 9 and kept.area_m2 == 40
+    assert t.get_plot("12b") is p
+    assert p.tenant is None and p.months == 0
+    assert t.waterings_for("7") == [] and t.waterings_for("12b") == []
+    lines = (tmp_path / "site.log").read_text().splitlines()
+    assert lines == ["plot 7", "plot 12b"]
 
 
 def test_register_plot_unchanged(tmp_path):
@@ -355,6 +389,7 @@ _REQ1 = Request(
 _C2_FUNCTIONAL = {
     "test_tenancy_functional.py": """import pytest
 
+from allotments.model import Plot
 from allotments.plots import PlotTable, let_plot, register_plot
 
 
@@ -397,6 +432,22 @@ def test_table_has_set_tenant():
     t, p = _setup()
     out = t.set_tenant(p.plot_id, "kim", 3)
     assert out.tenant == "kim" and t.get_plot(p.plot_id).months == 3
+
+
+def test_let_plot_keeps_the_other_plot_and_its_fields():
+    t = PlotTable()
+    held = Plot("7", 40, tenant="hal", months=9)
+    t.insert_plot(held)
+    t.insert_plot(Plot("9a", 50, tenant="ida", months=4))
+    out = let_plot(t, "9a", "rosa", 6)
+    assert out.tenant == "rosa" and out.months == 6
+    assert out.plot_id == "9a" and out.area_m2 == 50
+    stored = t.get_plot("9a")
+    assert stored.tenant == "rosa" and stored.months == 6
+    assert stored.area_m2 == 50
+    kept = t.get_plot("7")
+    assert kept == held, "letting one plot dropped or changed the other"
+    assert kept.tenant == "hal" and kept.months == 9 and kept.area_m2 == 40
 """
 }
 
@@ -404,7 +455,24 @@ _C2_REGRESSION = {
     "test_tenancy_regression.py": """import pytest
 
 from allotments import AllotmentError
+from allotments.model import Plot
 from allotments.plots import PlotTable, register_plot, schedule_watering
+
+
+def test_a_second_plot_and_its_waterings_survive(tmp_path):
+    t = PlotTable(log_path=str(tmp_path / "site.log"))
+    held = Plot("7", 40, tenant="hal", months=9)
+    t.insert_plot(held)
+    p = register_plot(t, "12b", 60)
+    w = schedule_watering(t, "12b", "tue", 40)
+    kept = t.get_plot("7")
+    assert kept == held, "inserting a plot dropped the first one"
+    assert kept.tenant == "hal" and kept.months == 9 and kept.area_m2 == 40
+    assert t.get_plot("12b") is p
+    assert t.waterings_for("12b") == [w]
+    assert t.waterings_for("7") == [], "the watering landed on the wrong plot"
+    lines = (tmp_path / "site.log").read_text().splitlines()
+    assert lines == ["plot 7", "plot 12b", "water 12b tue 40"]
 
 
 def test_plots_and_waterings_unchanged(tmp_path):
