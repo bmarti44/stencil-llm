@@ -65,6 +65,28 @@ def need(d, key, bad, where):
     return d[key]
 
 
+def safetensors_problems(path: Path) -> list[str]:
+    """Existence is not loadability.  Parse the safetensors header rather than
+    trusting the file name: a truncated or empty save has the right path."""
+    try:
+        raw = path.read_bytes()
+    except OSError as e:
+        return [f"adapter_model.safetensors is unreadable ({e})"]
+    if len(raw) < 8:
+        return [f"adapter_model.safetensors is {len(raw)} bytes; not a checkpoint"]
+    n = int.from_bytes(raw[:8], "little")
+    if n <= 0 or 8 + n > len(raw):
+        return ["adapter_model.safetensors has an impossible header length"]
+    try:
+        header = json.loads(raw[8 : 8 + n])
+    except json.JSONDecodeError as e:
+        return [f"adapter_model.safetensors header is not JSON ({e})"]
+    tensors = [k for k in header if k != "__metadata__"]
+    if not tensors:
+        return ["adapter_model.safetensors declares no tensors"]
+    return []
+
+
 def check(adapter: str, arm: str, require_steps: int = 0, hub: str = "") -> list[str]:
     """Problems with one adapter.  Empty list means eligible."""
     bad: list[str] = []
@@ -99,8 +121,7 @@ def check(adapter: str, arm: str, require_steps: int = 0, hub: str = "") -> list
         bad.append(f"budget_seconds={log.get('budget_seconds')}")
     if ident.get("limit"):
         bad.append(f"limit={ident['limit']}")
-    if need(log, "examples", bad, "log") == 0:
-        bad.append("examples=0")
+    examples = need(log, "examples", bad, "log")
 
     for k, want in REGISTERED.items():
         if need(log, k, bad, "log") not in (None, want):
@@ -126,15 +147,59 @@ def check(adapter: str, arm: str, require_steps: int = 0, hub: str = "") -> list
             bad.append("hub_sha256 differs from the trunk on disk")
 
     pool = need(ident, "train_pool_sha256", bad, "identity")
-    frozen = json.loads(
-        (ROOT / "results/a-screen/train-pool.json").read_text()
-    )["pool_sha256"]
-    if pool is not None and pool != frozen:
-        bad.append(f"TRAIN pool {pool} != frozen {frozen}")
+    descriptor = json.loads((ROOT / "results/a-screen/train-pool.json").read_text())
+    if pool is not None and pool != descriptor["pool_sha256"]:
+        bad.append(f"TRAIN pool {pool} != frozen {descriptor['pool_sha256']}")
+
+    # Astra's four narrower escapes (2026-09-13), each reproduced before fixing.
+    # 1. `examples` was only compared against 0, so -1 passed.  Bind it to the frozen
+    #    descriptor: pairs_from_session yields exactly two examples per TRAIN session.
+    want_examples = 2 * descriptor["n"]
+    if examples is not None and examples != want_examples:
+        bad.append(
+            f"examples={examples} != {want_examples} "
+            f"(2 x {descriptor['n']} frozen TRAIN sessions)"
+        )
+    # 2. `limit` was read with .get(), so an ABSENT limit skipped the check entirely.
+    if "limit" not in ident:
+        bad.append("identity: limit is missing")
+    elif ident["limit"]:
+        bad.append(f"limit={ident['limit']}")
+    # 3. nothing bounded elapsed time from ABOVE, so a run far over its
+    #    allocation passed.
+    seconds = need(log, "seconds", bad, "log")
+    budget = log.get("budget_seconds")
+    if seconds is not None and budget and seconds > budget * 1.02:
+        bad.append(f"ran {seconds:.0f}s of a {budget:.0f}s allocation")
+    # 4. the exposure accounting could be deleted wholesale and the adapter
+    #    still passed.
+    micro = need(log, "micro_steps", bad, "log")
+    discarded = need(log, "discarded_micro_steps", bad, "log")
+    accum = log.get("accum")
+    if None not in (micro, discarded, steps, accum) and isinstance(accum, int):
+        if micro != steps * accum + discarded:
+            bad.append(
+                f"micro_steps={micro} != steps*accum+discarded "
+                f"({steps}*{accum}+{discarded})"
+            )
+        if discarded != micro % accum:
+            bad.append(f"discarded_micro_steps={discarded} != micro_steps % accum")
+    for field in ("completion_tokens_seen", "chosen_tokens_seen"):
+        v = need(log, field, bad, "log")
+        if v is not None and v <= 0:
+            bad.append(f"{field}={v}: no tokens were trained on")
+    rejected = need(log, "rejected_tokens_seen", bad, "log")
+    if rejected is not None:
+        if arm == "cf" and rejected <= 0:
+            bad.append("rejected_tokens_seen=0: cf saw no rejected side")
+        if arm == "sft" and rejected:
+            bad.append(f"rejected_tokens_seen={rejected} on an sft run")
 
     weights = Path(adapter) / "adapter_model.safetensors"
     if not weights.exists():
         bad.append("adapter_model.safetensors is missing")
+    else:
+        bad += safetensors_problems(weights)
     return bad
 
 

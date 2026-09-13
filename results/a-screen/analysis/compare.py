@@ -1,60 +1,77 @@
-"""Cross-arm comparison on the primary population, paired by session id.
+"""Cross-arm contract-state comparison, validated by the REGISTERED consumer.
 
-Validation comes before any statistic.  Astra's back-on-track review (2026-09-13)
-found three high defects in the first version, all of them "it would have
-computed a number anyway":
+Rewritten 2026-09-13 (second time) after Astra mutated the real baseline and got
+this file's own `validate()` to return clean on seven invalid comparisons:
 
-  * nothing required the arms to share the frozen 48-session set, so two runs
-    over different sessions would have been paired on whatever they happened to
-    have in common and the denominator would have shrunk silently;
-  * nothing required distinct arm labels or unique (session, request) records,
-    so a file compared with itself, or a run appended twice, would have printed
-    a tidy zero-difference table;
-  * nothing checked the run identity or the replay, so arms built from
-    different pools, prompt budgets or scoring code would have been compared
-    as if they differed only in the adapter.
+  * a session removed from BOTH arms and from both declared session lists
+    (completeness was checked against each file's own declaration, not the
+    frozen manifest);
+  * `hub_sha256` removed from BOTH arms (the identity loop compared the UNION of
+    supplied keys, so a field absent on both sides was never compared -- the
+    same `None == None` defect I had just fixed in preflight.py and left here);
+  * every `repo_after` hash corrupted (only `repo_before` was verified);
+  * all suite scores deleted (`.get()` then `bool()` turned each missing score
+    into a silent False, and all 36 preservation outcomes became failures);
+  * `pilot_adapter=true`, a timing-only adapter, accepted as an arm;
+  * a trained arm with `adapter_steps` absent compared against one with 134,
+    because "trained" was selected by truthiness;
+  * an arbitrary runner hash admitted by ANY non-empty --runner-exception string.
 
-So `validate()` refuses to report unless: each file's records are unique and
-complete over its own declared session set; the declared session sets are
-identical; and every identity field that is not the adapter is identical across
-arms.  `runner_sha256` is the one field that may differ, and only with
---runner-exception plus the recorded reason, because the baseline `off` run was
-produced on the pre-fix runner whose only difference lies inside `if a.adapter`
--- a branch an adapterless run never enters (see RUNNER-EXCEPTION.md).
+The remedy Astra named is the one taken here: **one trustworthy comparison path,
+not a third validation framework.**  `scripts/a_screen_summary.py` is the
+registered consumer and already enforces every one of the above -- it binds each
+record to the frozen manifest, refuses a pilot adapter, requires the identity's
+session list to BE the manifest, requires each shared identity field to be
+PRESENT rather than merely equal, and recomputes J and function_only from the
+individual suites, refusing when a stored aggregate disagrees.  This file now
+delegates per-file validation to it and adds only what it does not do:
 
-Reported outcomes (Astra 7: a correctly-named but useless implementation passes
-the contract measure, and J erases a contract improvement on one unrelated
-competence failure, so neither alone is the answer):
+  1. the repository replay, checking `repo_before` AND `repo_after`;
+  2. the cross-arm identity comparison with the runner exception BOUND to the
+     exact inspected hash pair rather than to any non-empty string;
+  3. `adapter_steps` presence for every arm carrying an adapter, and equality
+     across arms that do;
+  4. the contract-state classification (in-force / alt / both / neither /
+     output-failure) that the registered summary does not compute.
+
+Reported outcomes, each with the exact McNemar p on discordant pairs and the
+registered conservative paired interval (separate 97.5% Clopper-Pearson bounds
+on b/N and c/N combined by the union bound):
 
     contract IN FORCE            the convention question on its own
-    IN FORCE *and* functional    the reply a user would actually accept
+    IN FORCE *and* functional    narrow: the new suite only
     followed the SUPERSEDED rule the error this work exists to remove
-    function_only                the runner's own functional-suite flag
-    J (all six suites)           the screen's registered success measure
+    function_only                recomputed from functional+regression+protected
+    all six suites at request 2  the registered success measure at this request
 
-Each gets the exact McNemar p on the discordant pairs and the conservative
-paired interval the program registered: separate 97.5% Clopper-Pearson bounds
-on b/N and c/N combined by the union bound.
+READ THE SCREEN'S LIMITATION FIRST (results/a-screen/RESULTS-BASELINE.md): the
+48-session screen can be passed by "obey the most recent rule statement and copy
+the existing code", so a difference reported here is a difference in following
+the latest instruction, not evidence of instruction retention.
 
 The unchanged-convention population is printed beside the changed one as a
-DESCRIPTIVE control.  No causal reading is attached to the gap: with 12
-unchanged sessions the difference of two differences has no useful precision,
-and the two populations differ in project, request text and lifecycle as well
-as in whether the convention changed.
+DESCRIPTIVE control, with no causal reading: 12 sessions cannot resolve a
+difference of differences, and the populations differ in project, lifecycle and
+request text as well as in whether the convention changed.
 """
 
 import argparse
 import json
 import os
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from itertools import combinations
 from math import comb
+from pathlib import Path
 
 from scipy.stats import beta
 
+ROOT = "/home/bmarti44/stencil-llm"
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, "/home/bmarti44/stencil-llm/src")
+sys.path.insert(0, f"{ROOT}/src")
+sys.path.insert(0, f"{ROOT}/scripts")
+from a_screen_summary import SHARED_IDENTITY  # noqa: E402
+from a_screen_summary import load as registered_load  # noqa: E402
 from stale2 import (  # noqa: E402
     CATS,
     alt_was_in_force,
@@ -67,12 +84,14 @@ from stale2 import (  # noqa: E402
 from stencil import a_screen as A  # noqa: E402
 from stencil.a_screen_pool import load  # noqa: E402
 
-# identity fields that MUST agree across arms; the adapter fields are what vary
-ADAPTER_FIELDS = {
-    "adapter", "adapter_sha256", "adapter_steps", "adapter_config_sha256",
-    "pilot_adapter",
-}
 RUNNER_FIELD = "runner_sha256"
+# The ONLY runner difference this file will admit, and only with the flag.  Astra:
+# "an arbitrary runner hash with any nonempty exception string" was accepted.  The
+# exception is a statement about ONE inspected pair, established by
+# analysis/runner_equivalence.py and recorded in RUNNER-EXCEPTION.md; it is not a
+# licence to compare across runner versions in general.
+RUNNER_EXCEPTION_PAIR = frozenset({"4acdb8f044c25a48", "f27bc5bc0690a918"})
+MANIFEST = f"{ROOT}/results/a-screen/manifest.json"
 
 
 def mcnemar_exact(b: int, c: int) -> float:
@@ -102,84 +121,126 @@ def paired_interval(b, c, n):
     return (blo - chi, bhi - clo)
 
 
-def load_arm(path, problems):
-    """Records for one arm, with every within-file check."""
-    recs, ident, arm = {}, None, None
-    for i, line in enumerate(open(path), 1):
-        try:
-            d = json.loads(line)
-        except json.JSONDecodeError as e:
-            problems.append(f"{path}:{i}: unparsable ({e})")
-            continue
-        key = (d["session"], d["request"])
-        if key in recs:
-            problems.append(f"{path}: duplicate record for {key[0]} request {key[1]}")
-        recs[key] = d
-        if arm is None:
-            arm = d["arm"]
-        elif d["arm"] != arm:
-            problems.append(f"{path}: mixes arms {arm!r} and {d['arm']!r}")
-        if ident is None:
-            ident = d["identity"]
-        elif d["identity"] != ident:
-            problems.append(f"{path}:{i}: identity differs from the first record")
-    if ident is None:
-        problems.append(f"{path}: no records")
-        return None, {}, {}
-    want = {(s, k) for s in ident["sessions"] for k in (1, 2)}
-    missing = want - set(recs)
-    if missing:
-        problems.append(
-            f"{path}: INCOMPLETE, {len(missing)} of {len(want)} records missing "
-            f"(e.g. {sorted(missing)[:3]})"
-        )
-    extra = set(recs) - want
-    if extra:
-        problems.append(
-            f"{path}: {len(extra)} records outside the declared session set")
-    return arm, recs, ident
+def expected_sessions():
+    """The frozen manifest, not any run file's own claim about itself."""
+    return sorted(r["session"] for r in json.load(open(MANIFEST))["sessions"])
 
 
-def by_session(recs):
-    by = defaultdict(dict)
-    for (sid, k), d in recs.items():
-        by[sid][k] = d
-    return by
+def load_arm(path, arm, expected, problems):
+    """Per-file validation, delegated in full to the registered consumer.
+
+    a_screen_summary.load() raises SystemExit on the first defect; this converts
+    that into a problem entry so every arm is reported rather than only the first.
+    Nothing is re-implemented here -- that duplication is what produced the seven
+    escapes Astra found.
+    """
+    try:
+        return registered_load(Path(path), arm, set(expected))
+    except SystemExit as e:
+        problems.append(f"{path}: {e}")
+    except Exception as e:  # a malformed file the registered loader did not expect
+        problems.append(f"{path}: {type(e).__name__}: {e}")
+    return {}
 
 
 def verify_replay(recs, problems, path):
-    """Cheap check -- no test execution -- that each record's repo_before is the
-    repository the runner would have handed that request.  Runs inside validate()
-    so a broken chain is refused before any pytest subprocess starts."""
-    for sid, rr in by_session(recs).items():
+    """The repository chain, which the registered consumer does not check.
+
+    Both hashes: `repo_before` is what the runner handed the request and
+    `repo_after` is what it recorded keeping.  Astra corrupted every `repo_after`
+    and this file reported a clean comparison.
+    """
+    for sid, rec in recs.items():
         try:
             session = load(sid)
-        except Exception as e:  # a session id the frozen pool does not contain
+        except Exception as e:
             problems.append(f"{path}: {sid} is not a pool session ({type(e).__name__})")
             continue
-        entering = replay(session, rr)
-        for k, rec in rr.items():
-            if rec.get("repo_before") != repo_hash(entering.get(k, {})):
-                problems.append(
-                    f"{path}: {sid} request {k} replay disagrees with the record")
+        rr = {q["request"]: q for q in rec["requests"]}
+        files = dict(session.files)
+        for k in sorted(rr):
+            q = rr[k]
+            if q.get("repo_before") != repo_hash(files):
+                problems.append(f"{path}: {sid} request {k} repo_before disagrees")
+            nxt = None
+            if q["terminal_reason"] == "applied":
+                nxt, _ = A.apply_reply(files, session.requests[k - 1], q["output"])
+            files = nxt if nxt is not None else files  # the runner retains on failure
+            if q.get("repo_after") != repo_hash(files):
+                problems.append(f"{path}: {sid} request {k} repo_after disagrees")
+
+
+def check_identity(idents, runner_exception, problems):
+    """Cross-arm identity: presence first, then equality, with the runner
+    exception bound to the ONE inspected hash pair."""
+    for arm, ident in idents.items():
+        absent = [k for k in SHARED_IDENTITY if k not in ident]
+        if absent:
+            problems.append(f"{arm}: identity is missing {absent}")
+    for x, y in combinations(sorted(idents), 2):
+        ix, iy = idents[x], idents[y]
+        for f in SHARED_IDENTITY:
+            if f not in ix or f not in iy:
+                continue  # already reported as absent; never silently equal
+            if ix[f] == iy[f]:
+                continue
+            if f == RUNNER_FIELD:
+                pair = frozenset({ix[f], iy[f]})
+                if not runner_exception:
+                    problems.append(
+                        f"{x} and {y} differ on identity.{f} and no "
+                        f"--runner-exception was given"
+                    )
+                elif pair != RUNNER_EXCEPTION_PAIR:
+                    problems.append(
+                        f"{x}/{y} differ on identity.{f} ({sorted(pair)}); that is "
+                        f"NOT the inspected pair {sorted(RUNNER_EXCEPTION_PAIR)} "
+                        f"RUNNER-EXCEPTION.md establishes"
+                    )
+                else:
+                    print(f"  runner exception in force for the inspected pair "
+                          f"{sorted(pair)} -- {runner_exception}")
+                continue
+            problems.append(
+                f"{x} and {y} differ on identity.{f}: {ix[f]!r} vs {iy[f]!r}"
+            )
+
+
+def check_adapters(idents, problems):
+    """Every arm carrying an adapter must declare its step count, and arms that
+    carry one must agree.  Astra compared a 120-step arm against one whose
+    `adapter_steps` was absent, because 'trained' was selected by truthiness."""
+    steps = {}
+    for arm, ident in idents.items():
+        adapter = ident.get("adapter", "none")
+        if adapter in (None, "", "none"):
+            continue
+        if ident.get("adapter_steps") in (None, 0):
+            problems.append(
+                f"{arm}: carries adapter {adapter!r} but declares "
+                f"adapter_steps={ident.get('adapter_steps')!r}"
+            )
+            continue
+        steps[arm] = ident["adapter_steps"]
+    if len(set(steps.values())) > 1:
+        problems.append(f"trained arms are not step-matched: {steps}")
 
 
 def score_arm(recs):
-    """Categories, functional and J per session.  Runs the contract suites, so it
-    is only called once validate() has passed."""
+    """Contract-state categories plus the outcomes the registered consumer
+    RECOMPUTED from individual suites (never the stored aggregate flags)."""
     changed, unchanged = {}, {}
-    for sid, rr in by_session(recs).items():
+    for sid, rec in recs.items():
         s = load(sid)
+        rr = {q["request"]: q for q in rec["requests"]}
         entering = replay(s, rr)
-        if 2 not in rr:
-            continue
         cat = classify(s, rr[2], entering.get(2))
         sc = rr[2]["scores"]
         row = {
             "cat": cat,
-            "functional": bool(sc.get("functional")),
-            "function_only": bool(sc.get("function_only")),
-            "j": all(sc.get(x) for x in A.SUITES),
+            "functional": bool(sc["functional"]),
+            "function_only": bool(rec["function_only"]),
+            "j": bool(rec["J"]),
         }
         (changed if alt_was_in_force(s, 2) else unchanged)[sid] = row
     return changed, unchanged
@@ -187,38 +248,35 @@ def score_arm(recs):
 
 def validate(paths, runner_exception):
     problems, arms, data, idents = [], [], {}, {}
+    expected = expected_sessions()
     for p in paths:
-        arm, recs, ident = load_arm(p, problems)
-        if arm is None:
+        try:
+            arm = json.loads(open(p).readline())["arm"]
+        except Exception as e:
+            problems.append(f"{p}: unreadable first record ({e})")
             continue
         if arm in data:
             problems.append(
                 f"arm label {arm!r} appears in two files; labels must be unique")
+            continue
+        recs = load_arm(p, arm, expected, problems)
+        if not recs:
+            continue
+        missing = set(expected) - set(recs)
+        if missing:
+            problems.append(
+                f"{p}: INCOMPLETE, {len(missing)} of {len(expected)} manifest "
+                f"sessions absent (e.g. {sorted(missing)[:3]})"
+            )
         verify_replay(recs, problems, p)
         arms.append(arm)
         data[arm] = (p, recs)
-        idents[arm] = ident
+        idents[arm] = recs[next(iter(recs))]["identity"]
     if len(arms) < 2:
         problems.append("at least two arms are required")
-    for x, y in combinations(arms, 2):
-        ix, iy = idents[x], idents[y]
-        if ix["sessions"] != iy["sessions"]:
-            problems.append(f"{x} and {y} declare different session sets")
-        for f in sorted(set(ix) | set(iy)):
-            if f in ADAPTER_FIELDS or f == "sessions":
-                continue
-            if ix.get(f) != iy.get(f):
-                if f == RUNNER_FIELD and runner_exception:
-                    print(f"  runner exception in force: {x} {ix.get(f)} vs "
-                          f"{y} {iy.get(f)} -- {runner_exception}")
-                    continue
-                problems.append(f"{x} and {y} differ on identity.{f}: "
-                                f"{ix.get(f)!r} vs {iy.get(f)!r}")
-    trained = [a for a in arms if idents[a].get("adapter_steps")]
-    if len(trained) > 1:
-        steps = {a: idents[a]["adapter_steps"] for a in trained}
-        if len(set(steps.values())) > 1:
-            problems.append(f"trained arms are not step-matched: {steps}")
+        return arms, data, idents, problems
+    check_identity(idents, runner_exception, problems)
+    check_adapters(idents, problems)
     return arms, data, idents, problems
 
 

@@ -44,11 +44,23 @@ def _base_log():
     return log
 
 
-def _adapter(tmp_path, arm, log):
+def _safetensors(n_tensors=1):
+    """A minimal VALID safetensors file: existence is not loadability, so the
+    fixture has to be parseable or every test refuses for the wrong reason."""
+    header = json.dumps(
+        {f"lora_{i}.weight": {"dtype": "F32", "shape": [1], "data_offsets": [0, 4]}
+         for i in range(n_tensors)}
+    ).encode()
+    return len(header).to_bytes(8, "little") + header + b"\x00\x00\x00\x00"
+
+
+def _adapter(tmp_path, arm, log, weights=None):
     d = tmp_path / arm
     d.mkdir(exist_ok=True)
     (d / "train-log.json").write_text(json.dumps(log))
-    (d / "adapter_model.safetensors").write_bytes(b"fixture")
+    (d / "adapter_model.safetensors").write_bytes(
+        _safetensors() if weights is None else weights
+    )
     return str(d)
 
 
@@ -188,9 +200,19 @@ def test_an_unparsable_log_is_refused(tmp_path):
 # ----------------------------------------------------------------- compare
 
 
+def _as_sft(log):
+    """The cf log reshaped into a VALID sft log.  Only the cf arm was ever
+    trained, so the sft side of every pair is synthetic -- and it has to obey
+    the same conventions the real trainer writes, or the clean-pair test fails
+    for a fixture reason and stops testing --compare at all (it did: the sft
+    side carried the cf run's rejected-side accounting)."""
+    log["objective"] = "sft"
+    log["rejected_tokens_seen"] = 0  # an sft run never sees a rejected side
+    return log
+
+
 def _pair(tmp_path, mutate_sft=None, mutate_cf=None):
-    sft, cf = _base_log(), _base_log()
-    sft["objective"] = "sft"
+    sft, cf = _as_sft(_base_log()), _base_log()
     for log, mut in ((sft, mutate_sft), (cf, mutate_cf)):
         if mut:
             mut(log)
@@ -202,6 +224,14 @@ def _pair(tmp_path, mutate_sft=None, mutate_cf=None):
 def test_a_clean_pair_is_comparable(tmp_path):
     a, b = _pair(tmp_path)
     assert _preflight().compare(a, b, ("sft", "cf")) == []
+
+
+def test_each_side_of_the_clean_pair_passes_its_own_arm_check(tmp_path):
+    """--compare delegating to check() is only a guard if the fixture's two
+    sides really are valid runs of their own arms."""
+    a, b = _pair(tmp_path)
+    assert _preflight().check(a, "sft") == []
+    assert _preflight().check(b, "cf") == []
 
 
 def test_two_logs_missing_the_same_field_are_not_agreement(tmp_path):
@@ -261,3 +291,92 @@ def test_cli_check_returns_one_on_a_mutation(tmp_path, capsys):
     d = _adapter(tmp_path, "cf", log)
     assert _preflight().main(["check", d, "--arm", "cf"]) == 1
     assert "REFUSE" in capsys.readouterr().out
+
+
+# ------------------------------------- Astra's four narrower escapes, closed
+
+
+def test_a_negative_example_count_is_refused(tmp_path):
+    """`examples` was only compared against 0, so -1 passed."""
+    log = _base_log()
+    log["examples"] = -1
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any("examples=-1" in p for p in bad), bad
+
+
+def test_the_example_count_is_bound_to_the_frozen_pool(tmp_path):
+    log = _base_log()
+    log["examples"] = log["examples"] - 2
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any("frozen TRAIN sessions" in p for p in bad), bad
+
+
+def test_an_absent_limit_is_refused(tmp_path):
+    """`limit` was read with .get(), so an ABSENT limit skipped the check."""
+    log = _base_log()
+    log["identity"].pop("limit")
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any("limit is missing" in p for p in bad), bad
+
+
+def test_a_run_over_its_allocation_is_refused(tmp_path):
+    """Nothing bounded elapsed time from ABOVE."""
+    log = _base_log()
+    log["seconds"] = log["budget_seconds"] * 3
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any("allocation" in p for p in bad), bad
+
+
+@pytest.mark.parametrize("field", ["micro_steps", "discarded_micro_steps",
+                                   "completion_tokens_seen", "chosen_tokens_seen",
+                                   "rejected_tokens_seen"])
+def test_deleted_exposure_accounting_is_refused(tmp_path, field):
+    """The whole exposure record could be deleted and the adapter still passed."""
+    log = _base_log()
+    log.pop(field)
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any(f"{field} is missing" in p for p in bad), (field, bad)
+
+
+def test_inconsistent_microstep_accounting_is_refused(tmp_path):
+    log = _base_log()
+    log["micro_steps"] = log["micro_steps"] + 3
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any("micro_steps" in p for p in bad), bad
+
+
+def test_zero_training_tokens_are_refused(tmp_path):
+    log = _base_log()
+    log["completion_tokens_seen"] = 0
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any("no tokens were trained on" in p for p in bad), bad
+
+
+def test_a_cf_run_with_no_rejected_side_is_refused(tmp_path):
+    log = _base_log()
+    log["rejected_tokens_seen"] = 0
+    bad = _preflight().check(_adapter(tmp_path, "cf", log), "cf")
+    assert any("rejected side" in p for p in bad), bad
+
+
+@pytest.mark.parametrize("blob,why", [
+    (b"", "empty"),
+    (b"abc", "too short for a header length"),
+    ((10**9).to_bytes(8, "little") + b"{}", "impossible header length"),
+    ((2).to_bytes(8, "little") + b"xx", "header is not JSON"),
+    ((2).to_bytes(8, "little") + b"{}", "declares no tensors"),
+])
+def test_an_unloadable_weight_file_is_refused(tmp_path, blob, why):
+    """Existence is not loadability: a truncated save has the right path."""
+    d = _adapter(tmp_path, "cf", _base_log(), weights=blob)
+    bad = _preflight().check(d, "cf")
+    assert any("safetensors" in p for p in bad), (why, bad)
+
+
+def test_the_real_adapter_still_passes_every_new_check():
+    """The guard must not have become one that refuses everything."""
+    real = REAL.parent
+    log = json.loads(REAL.read_text())
+    if not log.get("final"):
+        pytest.skip("training has not finished")
+    assert _preflight().check(str(real), "cf") == []
