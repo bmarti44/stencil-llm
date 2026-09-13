@@ -119,7 +119,12 @@ def main() -> None:
     budget_s = a.minutes * 60 if a.minutes else a.hours * 3600
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    t_start = time.time()
+    # Round 10, high: every duration below is monotonic.  The trainer's admission
+    # guard, its save decisions and its final eligibility were all time.time()
+    # arithmetic, so a 600 s backward step let a 14,930 s run record 14,330 s and
+    # read `complete` against the registered 14,400 s allocation, and a forward step
+    # refused a 14,030 s run.  Nothing here is a calendar stamp.
+    t_start = time.monotonic()
 
     import torch
     import torch.nn.functional as F
@@ -159,17 +164,17 @@ def main() -> None:
         return lp[-n:].sum(), n
 
     # ---- reference log-probs (cf only), adapter absent, counted in the allocation
-    prep_seconds = time.time() - t_start
+    prep_seconds = time.monotonic() - t_start
     ref: dict[int, tuple[float, float]] = {}
     ref_tokens = 0
-    t_ref = time.time()
+    t_ref = time.monotonic()
     if a.objective == "cf":
         model.eval()
         with torch.no_grad():
             for i, e in enumerate(examples):
                 # Astra F13: reference scoring lives inside the allocation and must not
                 # consume all of it; a run that cannot fit it is cost-ineligible.
-                if time.time() - t_start >= budget_s:
+                if time.monotonic() - t_start >= budget_s:
                     # re-review F13: §8's reading for an exhausted allocation is INCOMPLETE.
                     # No adapter exists yet, so the marker is the train log the harness
                     # reads: status "incomplete" and final false both refuse evaluation.
@@ -205,9 +210,9 @@ def main() -> None:
                     + len(e["rejected_ids"])
                 )
                 if i % 100 == 0:
-                    print(f"ref {i}/{len(examples)} {time.time() - t_start:.0f}s")
-        print(f"reference scoring done in {time.time() - t_ref:.0f}s")
-    reference_seconds = time.time() - t_ref
+                    print(f"ref {i}/{len(examples)} {time.monotonic() - t_start:.0f}s")
+        print(f"reference scoring done in {time.monotonic() - t_ref:.0f}s")
+    reference_seconds = time.monotonic() - t_ref
 
     cfg = LoraConfig(
         r=a.rank,
@@ -277,10 +282,10 @@ def main() -> None:
     save_times: list[float] = []
 
     def save(final: bool) -> None:
-        t_save = time.time()
+        t_save = time.monotonic()
         model.save_pretrained(str(out))
-        save_times.append(time.time() - t_save)
-        log["seconds"] = time.time() - t_start
+        save_times.append(time.monotonic() - t_save)
+        log["seconds"] = time.monotonic() - t_start
         log["save_seconds"] = log.get("save_seconds", 0.0) + save_times[-1]
         log["final"] = final
         # re-review round 3 F13: an allocation that produced no completed optimizer step is
@@ -305,18 +310,18 @@ def main() -> None:
     rng = random.Random(a.seed)
     order = list(range(len(examples)))
     micro = 0
-    last_save = time.time()
+    last_save = time.monotonic()
     window: list[float] = []
     update: list[float] = []
     micro_times: list[float] = []
     step_times: list[float] = []
     stop = False
-    t_train = time.time()
+    t_train = time.monotonic()
     while not stop:
         rng.shuffle(order)
         for i in order:
             # Astra F13: stop BEFORE a micro-step that would cross the allocation
-            elapsed = time.time() - t_start
+            elapsed = time.monotonic() - t_start
             # re-review round 3 F13: the estimate covers a micro-step AND the optimizer step
             # that may follow it; the reserve covers the final save.
             est = max(micro_times[-20:], default=0.0) + max(
@@ -326,7 +331,7 @@ def main() -> None:
             if elapsed + est + reserve >= budget_s:
                 stop = True
                 break
-            t_micro = time.time()
+            t_micro = time.monotonic()
             e = examples[i]
             with torch.autocast("cuda", dtype=torch.bfloat16):
                 lp_c, n_c = seq_logprobs(model, e["prompt_ids"], e["chosen_ids"])
@@ -342,7 +347,7 @@ def main() -> None:
             # timestamp left that synchronisation outside the measured micro-step and made
             # the stop estimate optimistic.  Read it first, then close the measurement.
             loss_value = loss.item()
-            micro_times.append(time.time() - t_micro)
+            micro_times.append(time.monotonic() - t_micro)
             log["micro_steps"] = micro
             log["completion_tokens_seen"] += n_c
             log["chosen_tokens_seen"] += len(e["prompt_ids"]) + n_c
@@ -356,11 +361,11 @@ def main() -> None:
             window.append(loss_value)
             update.append(loss_value)
             if micro % a.accum == 0:
-                t_step = time.time()
+                t_step = time.monotonic()
                 torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
                 opt.zero_grad(set_to_none=True)
-                step_times.append(time.time() - t_step)
+                step_times.append(time.monotonic() - t_step)
                 log["steps"] += 1
                 # re-review F6: the mean over THIS update's micro-steps.  ``window`` is the
                 # ten-update print window and clears only every tenth update, so reusing it
@@ -372,22 +377,22 @@ def main() -> None:
                     log["loss_history"].append([log["steps"], avg])
                     print(
                         f"step {log['steps']} loss {avg:.4f} micro {micro} "
-                        f"{time.time() - t_start:.0f}s/{budget_s:.0f}s"
+                        f"{time.monotonic() - t_start:.0f}s/{budget_s:.0f}s"
                     )
                     window = []
                 # re-review round 3 F13: a periodic save must not consume the allowance
                 # reserved for the final one, so it only runs with room for BOTH.
-                room = budget_s - (time.time() - t_start)
-                if time.time() - last_save > a.save_every_min * 60 and room > 2 * (
+                room = budget_s - (time.monotonic() - t_start)
+                if time.monotonic() - last_save > a.save_every_min * 60 and room > 2 * (
                     max(save_times) if save_times else 60.0
                 ):
                     save(final=False)
-                    last_save = time.time()
+                    last_save = time.monotonic()
         else:
             log["epochs_completed"] += 1
     # discard any partial accumulation: the FINAL COMPLETED update is the adapter
     log["discarded_micro_steps"] = micro % a.accum
-    log["train_seconds"] = time.time() - t_train
+    log["train_seconds"] = time.monotonic() - t_train
     opt.zero_grad(set_to_none=True)
     save(final=True)
     print(

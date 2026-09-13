@@ -75,26 +75,60 @@ def test_an_unfinished_launch_is_measured_on_the_monotonic_clock(tmp_path):
     assert A.ledger_charges(p, "B", T0 + 5000.0, T0 + 900.0)[0][DEAD] == 900.0
 
 
-def test_a_reading_from_another_boot_falls_back_to_realtime(tmp_path):
-    """A monotonic origin means nothing across a reboot, so it is used only while the
-    recorded boot id matches.  The realtime span then also covers the downtime, which
-    over-charges -- the conservative direction."""
+def test_an_unfinished_launch_from_another_boot_is_unbounded(tmp_path):
+    """Round 10: the realtime fallback was ASSUMED to over-charge, and it does not.
+    A launch run to 900 s across a reboot, with 10 s of downtime and a 600 s
+    backward step, spans 310 s by realtime and charges the 600 s mark; beside
+    2,400 s of completed work the arm then reads 50 minutes charged against 55
+    spent.  Downtime establishes no direction, so the launch is UNBOUNDED."""
+    for name, boot in (("other.jsonl", "0000-not-this-boot"), ("legacy.jsonl", "")):
+        p = tmp_path / name
+        _write(p, DEAD, [("start", 0.0), ("tick", 600.0)], boot=boot)
+        charges, malformed, unbounded = A.ledger_charges(p, "B", T0 + 310.0, T0 + 900.0)
+        assert malformed == 0
+        assert unbounded == [DEAD]
+        assert charges[DEAD] == 600.0  # the best-effort number, not a trusted one
+        spent, refusals = A.ledger_spent_min(p, {DEAD}, T0 + 310.0, T0 + 900.0)
+        assert len(refusals) == 1 and "not bounded in either direction" in refusals[0]
+
+
+def test_an_unobservable_launch_is_not_sealed(tmp_path):
+    """The observation is the other half: sealing a realtime subtraction as
+    verified spend would fix the wrong number permanently, so a launch with no
+    monotonic origin from this boot is not observed at all."""
     p = tmp_path / "other.jsonl"
-    _write(p, DEAD, [("start", 0.0)], boot="0000-not-this-boot")
-    assert A.ledger_charges(p, "B", T0 + 5000.0, T0 + 900.0)[0][DEAD] == 5000.0
-    legacy = tmp_path / "legacy.jsonl"  # a ledger written before this amendment
-    _write(legacy, DEAD, [("start", 0.0)], boot="")
-    assert A.ledger_charges(legacy, "B", T0 + 5000.0, T0 + 900.0)[0][DEAD] == 5000.0
+    _write(p, DEAD, [("start", 0.0), ("tick", 600.0)], boot="0000-not-this-boot")
+    assert A.ledger_observe(p, clock=lambda: T0 + 900.0, wall=lambda: T0 + 310.0) == []
+    assert "observed_dead" not in p.read_text()
+    _, _, unbounded = A.ledger_charges(p, "B", T0 + 310.0, T0 + 900.0)
+    assert unbounded == [DEAD]
+
+
+def test_a_finished_launch_from_another_boot_is_still_charged(tmp_path):
+    """The refusal is for launches with no BOUND, not for every cross-boot record: one
+    that wrote ``end`` carries its own measured elapsed and is charged it."""
+    p = tmp_path / "other.jsonl"
+    _write(p, DEAD, [("start", 0.0), ("end", 1500.0)], boot="0000-not-this-boot")
+    charges, malformed, unbounded = A.ledger_charges(p, "B", T0 + 310.0, T0 + 900.0)
+    assert (malformed, unbounded) == (0, [])
+    assert charges[DEAD] == 1500.0
+    assert A.ledger_spent_min(p, {DEAD}, T0 + 310.0, T0 + 900.0) == (25.0, [])
 
 
 def test_no_duration_is_measured_on_the_wall_clock():
     """The mechanical form of round 9's fix: nothing in the screen subtracts wall-clock
     readings.  ``time.time()`` survives only as a calendar stamp and as the documented
-    fallback for a launch with no comparable monotonic origin."""
+    fallback for a launch with no comparable monotonic origin.
+
+    Round 10, high: the TRAINER was not in this list, and it was still timing its
+    admission guard, its saves and its final eligibility on the wall clock -- a 600 s
+    backward step let a 14,930-second run record 14,330 and read ``complete`` against
+    the registered 14,400-second allocation."""
     for name in (
         "src/stencil/a_screen.py",
         "scripts/a_screen_run.py",
         "scripts/a_screen_summary.py",
+        "scripts/a_screen_train.py",
     ):
         src = (ROOT / name).read_text()
         bad = []
@@ -111,7 +145,7 @@ def test_an_interrupted_launch_is_charged_through_now(tmp_path):
     # round 5: last checkpoint at 600 s, death at 1,200 s was charged 900 s
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0), ("model_loaded", 80.0), ("record", 600.0)])
-    charges, malformed = _charges(p, "B", T0 + 1300.0)
+    charges, malformed, _unbounded = _charges(p, "B", T0 + 1300.0)
     assert malformed == 0
     assert charges[DEAD] == 1300.0
 
@@ -200,7 +234,7 @@ def test_the_pilots_suite_cost_gap_is_inside_the_charge(tmp_path):
 def test_a_finished_launch_is_charged_its_elapsed_time(tmp_path):
     p = tmp_path / "spend.jsonl"
     _write(p, "A", [("start", 0.0), ("record", 600.0), ("end", 900.0)])
-    charges, _ = _charges(p, "B", T0 + 5000.0)
+    charges, _, _u = _charges(p, "B", T0 + 5000.0)
     assert charges["A"] == 900.0
 
 
@@ -213,7 +247,7 @@ def test_a_torn_tail_is_repaired_so_the_next_launch_is_visible(tmp_path):
     assert torn is not None and torn.startswith('{"launch": "A"')
     # launch B's own marks, in the same synthetic epoch as A's
     _write(p, "B", [("start", 0.0), ("record", 60.0)], t0=T0 + 1200.0)
-    charges, malformed = _charges(p, "C", T0 + 1300.0)
+    charges, malformed, _unbounded = _charges(p, "C", T0 + 1300.0)
     assert malformed == 0
     assert "B" in charges and charges["B"] > 0.0  # B was erased before the repair
     assert A.ledger_repair(p) is None  # a clean tail is left alone
@@ -224,7 +258,7 @@ def test_a_malformed_line_is_reported_not_skipped(tmp_path):
     _write(p, "A", [("start", 0.0)])
     with p.open("a") as fh:
         fh.write("not json at all\n")
-    _, malformed = _charges(p, "B", T0 + 10.0)
+    _, malformed, _u = _charges(p, "B", T0 + 10.0)
     assert malformed == 1
 
 
@@ -514,5 +548,5 @@ def test_a_backwards_clock_cannot_zero_a_charge(tmp_path):
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0), ("record", 900.0)])
     A.ledger_observe(p, clock=lambda: T0 - 500.0)  # "now" is BEFORE the launch started
-    charges, _ = _charges(p, "B", T0 + 1000.0)
+    charges, _, _u = _charges(p, "B", T0 + 1000.0)
     assert charges[DEAD] == 900.0

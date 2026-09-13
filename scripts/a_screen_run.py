@@ -269,9 +269,18 @@ def main() -> None:
         print("observed terminated launch(es): " + ",".join(dead))
 
     def prior_launch_minutes() -> float:
-        charges, malformed = A.ledger_charges(
+        charges, malformed, unbounded = A.ledger_charges(
             spend_path, launch_id, time.time(), time.monotonic()
         )
+        if unbounded:
+            # Round 10, high: an unfinished launch from another boot has no trustworthy
+            # duration in either direction, and a realtime subtraction can UNDER-charge it
+            # (a reboot's downtime plus a backward step read 310 s for a 900-second launch).
+            ap.error(
+                f"{spend_path} has unfinished launch(es) {', '.join(unbounded)} with no "
+                "monotonic origin from this boot: their spend cannot be accounted, so this "
+                "arm cannot start.  Start the arm on a fresh ledger."
+            )
         if malformed:
             ap.error(
                 f"{spend_path} has {malformed} malformed line(s): a launch's spend cannot "

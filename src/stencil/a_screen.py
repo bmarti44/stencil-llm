@@ -62,9 +62,10 @@ SUITES = (
 SUITE_TIMEOUT_S = 90.0  # passed to run_tests so one hung suite cannot stall a session
 TICK_S = 60.0  # spend-ledger progress mark interval; bounds nothing (round 7 F13)
 # Registered per-arm evaluation ceiling, derived in ``arm_budget_min`` below (§19.3).
-GEN_ESTIMATE_S = (
-    15.0 * 1.5
-)  # §15.5's registered per-generation estimate with its factor
+# 2026-09-13: §15.5's registered 15 s estimate was ~2x low.  MEASURED on the first real
+# generations (S04 and S34, both checkpoints, with the peer's 29 GB training co-resident):
+# 36, 47, 27, 33 s, mean 35.75.  Kept with the registered 1.5x contention factor.
+GEN_ESTIMATE_S = 35.75 * 1.5
 SUITE_COST_S = 0.189  # §16.7's MEASURED seconds per suite invocation
 LOAD_ALLOWANCE_S = 300.0  # allowance for import, tokenizer and weight load
 START_MARGIN_MIN = 5  # plan section E: stop STARTING work with this much budget left
@@ -666,8 +667,12 @@ def ledger_observe(
     the probe establishes is termination by the PROBE's time, so that is the time written.
 
     Round 9, high: the observation's ELAPSED is monotonic, by the same rule as
-    :func:`ledger_charges` -- ``clock`` is ``time.monotonic`` and the realtime span is used
-    only for a launch that carries no comparable monotonic origin."""
+    :func:`ledger_charges`.
+
+    Round 10, high: a launch with no monotonic origin from this boot is NOT observed at
+    all.  Sealing a realtime subtraction as verified spend was the remaining way to
+    under-charge: Astra ran a launch to 900 s across a reboot with 10 s of downtime and a
+    600 s backward step, and the sealed observation read 600 s."""
     if not path.exists():
         return []
     now_t = wall()
@@ -697,8 +702,14 @@ def ledger_observe(
         pid = ledger_pid(launch)
         if i["done"] or pid is None or Path(f"/proc/{pid}").exists():
             continue
+        if i["m"] is None:
+            # Round 10, high: a launch with no monotonic origin from THIS boot has no
+            # trustworthy span -- a realtime subtraction across a reboot can under-charge
+            # as easily as over-charge -- so nothing is sealed.  It stays unfinished, and
+            # ``ledger_spent_min`` refuses the arm instead of charging a guess.
+            continue
         now = clock()  # the probe has just succeeded; THIS is the time it bounds
-        span = now - i["m"] if i["m"] is not None else wall() - i["first"]
+        span = now - i["m"]
         rec = {
             "launch": launch,
             "event": "observed_dead",
@@ -723,9 +734,9 @@ def ledger_charges(
     exclude: str,
     now: float,
     now_m: float | None = None,
-) -> tuple[dict[str, float], int]:
-    """``({launch: seconds charged}, malformed line count)`` for every launch but
-    ``exclude``.
+) -> tuple[dict[str, float], int, list[str]]:
+    """``({launch: seconds charged}, malformed lines, UNBOUNDED launches)`` for every
+    launch but ``exclude``.
 
     Three cases, and only the first two are bounded by evidence (round 7 F13):
     a launch that wrote ``end`` is charged its real elapsed time; one whose termination was
@@ -737,9 +748,17 @@ def ledger_charges(
     already monotonic in every line the current runner writes, so the first two cases never
     touch a wall clock at all; the third compares ``now_m`` with the launch's earliest
     monotonic reading, which is meaningful only within one boot -- hence ``boot`` on every
-    line.  ``now`` (realtime) is the fallback for a launch that carries no comparable
-    monotonic origin: a ledger written before this amendment, or one from an earlier boot,
-    where the realtime span also covers the downtime and therefore over-charges."""
+    line.
+
+    Round 10, high: the realtime fallback for the third case was ASSUMED to over-charge,
+    and it does not.  Astra's scenario: a launch ticks to 600 s, its ticker stops, the
+    process lives to 900 s, the machine reboots, and after 10 s of downtime realtime steps
+    back 600 s -- the span reads 310 s, the charge falls back to the 600 s mark, and beside
+    2,400 s of completed work the arm reads 50 minutes charged against 55 spent.  Downtime
+    does not establish a direction.  An unfinished launch with no comparable monotonic
+    origin is therefore UNBOUNDED: its best-effort number is still returned, so a caller
+    can print it, but it is named in the third element and ``ledger_spent_min`` turns it
+    into a refusal rather than a charge."""
     if not path.exists():
         return {}, 0
     now_m = time.monotonic() if now_m is None else now_m
@@ -771,6 +790,7 @@ def ledger_charges(
         if r.get("event") in ("end", "observed_dead"):
             cur["fixed"] = max(cur["fixed"] or 0.0, float(r.get("elapsed_s", 0.0)))
     out = {}
+    unbounded = []
     for lid, i in by.items():
         # never below a mark the launch wrote, whichever case applies: a clock that went
         # backwards must not erase a launch, and an ``end`` cannot predate its own marks
@@ -780,7 +800,8 @@ def ledger_charges(
             out[lid] = max(i["max"], now_m - i["m"])
         else:
             out[lid] = max(i["max"], now - i["first"])
-    return out, malformed
+            unbounded.append(lid)
+    return out, malformed, sorted(unbounded)
 
 
 def ledger_tick(
@@ -817,7 +838,7 @@ def arm_budget_min(
     return (before_last + margin_min * 60.0) / 60.0
 
 
-ARM_BUDGET_MIN = 50.0  # >= arm_budget_min() = 47.27; §19.3 records the derivation
+ARM_BUDGET_MIN = 100.0  # >= arm_budget_min() = 97.14 on the MEASURED generation time
 
 
 def write_status(path: Path, **fields: object) -> None:
@@ -871,7 +892,12 @@ def ledger_spent_min(
     sidecar turned an over-budget arm into ``GATE PASSED``.  Absent evidence is not evidence
     of nothing: the ledger must exist, be non-empty, parse completely, and account for every
     launch the RECORDS say produced them (``launches``).  Anything else is a refusal, not a
-    zero."""
+    zero.
+
+    Round 10, high: an UNFINISHED launch with no comparable monotonic origin -- one that
+    spans a reboot, or a ledger written before round 9 -- has no trustworthy duration
+    bound in either direction, so it is a refusal too rather than a realtime subtraction
+    sealed as verified spend."""
     refusals: list[str] = []
     if not path.exists():
         return 0.0, [
@@ -881,12 +907,18 @@ def ledger_spent_min(
         return 0.0, [
             f"{path.name} is empty: the arm's resident time cannot be accounted"
         ]
-    charges, malformed = ledger_charges(
+    charges, malformed, unbounded = ledger_charges(
         path,
         exclude="",
         now=time.time() if now is None else now,
         now_m=now_m,
     )
+    if unbounded:
+        refusals.append(
+            f"{path.name}: launch(es) {', '.join(unbounded)} never finished and carry no "
+            "monotonic origin from this boot, so their resident time is not bounded in "
+            "either direction"
+        )
     if malformed:
         refusals.append(
             f"{path.name} has {malformed} malformed line(s), so the arm's resident time "

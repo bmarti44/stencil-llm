@@ -595,35 +595,81 @@ def mutants(
                 mutated,
             )
 
-    # Class 7 (round 4): reset the id allocator at the top of a method that is not
-    # itself the allocator.  Nothing already stored changes, so only a fixture that
-    # CREATES a record after the update can see the new record reuse a live id.
+    # Class 7 (round 4): reset the id allocator inside a method that is not itself the
+    # allocator.  Nothing already stored changes, so only a fixture that CREATES a
+    # record
+    # after the call can see the new record reuse a live id.
     #
     # Round 9: the restriction to methods that already WRITE state is GONE.  It was a
     # plausibility narrowing -- "a reply would not do this inside a pure reader" -- and
-    # it was too narrow in rounds 4, 8 and 9 running.  Measured rather than argued this
-    # time: with the restriction removed the pool yields 340 allocator mutations instead
-    # of 255, and all 85 of the extra ones escaped every suite, so the narrowing was
-    # buying nothing but the appearance of coverage.  Every slot whose target owns an
-    # allocator now carries the generic regression fixture
-    # ``test_no_public_call_disturbs_the_id_allocator`` (AUTHORING amendment 7), which
-    # exercises every public callable of the package and then creates one more record.
+    # it was too narrow in rounds 4, 8 and 9 running.  Measured rather than argued: with
+    # the restriction removed the pool yields 340 allocator mutations instead of 255,
+    # and
+    # all 85 of the extra ones escaped every suite.
+    #
+    # Round 10, high: the reset was inserted only at the method's ENTRY, and that is a
+    # placement assumption doing the same job the writer test used to do.  Astra put the
+    # reset one line lower, AFTER the lookup that raises for an unknown id, and thirteen
+    # mutations across S34, S36 and S37 passed every suite again -- because a fixture
+    # that
+    # calls an operation with an unknown id never reaches that line.  The reset is now
+    # inserted before EVERY reachable top-level statement of the body, and the coverage
+    # fixture calls each operation on a record that EXISTS (AUTHORING amendment 8).
     for counter in counters(src):
-        for m in re.finditer(r"\n    def (\w+)\(self[^\n]*\n", src):
-            name = m.group(1)
-            if name.startswith("_"):
-                continue
-            end = src.find("\n    def ", m.end())
-            body = src[m.end() : end if end != -1 else len(src)]
-            if f"self.{counter} += 1" in body or f"self.{counter} =" in body:
-                continue  # this IS the allocator, or already assigns it
-            yield (
-                f"reset allocator self.{counter} in {name} @{m.start()}",
-                src[: m.end()] + f"        self.{counter} = 0\n" + src[m.end() :],
-            )
+        for cls in (n for n in ast.parse(src).body if isinstance(n, ast.ClassDef)):
+            for fn in (n for n in cls.body if isinstance(n, ast.FunctionDef)):
+                if fn.name.startswith("_"):
+                    continue
+                body = ast.get_source_segment(src, fn) or ""
+                if f"self.{counter} += 1" in body or f"self.{counter} =" in body:
+                    continue  # this IS the allocator, or already assigns it
+                for at, indent, lineno in statement_points(fn, line_offsets(src)):
+                    yield (
+                        f"reset allocator self.{counter} in {fn.name} before line "
+                        f"{lineno}",
+                        src[:at] + f"{' ' * indent}self.{counter} = 0\n" + src[at:],
+                    )
 
 
 DEF = re.compile(r"\n([ ]*)def (\w+)\(([^)]*)\)[^\n]*:\n")
+
+
+TERMINAL = (ast.Return, ast.Raise, ast.Continue, ast.Break)
+
+
+def line_offsets(src: str) -> list[int]:
+    """Character offset of the start of each line."""
+    out, n = [], 0
+    for line in src.splitlines(keepends=True):
+        out.append(n)
+        n += len(line)
+    out.append(n)
+    return out
+
+
+def statement_points(
+    fn: ast.FunctionDef, offs: list[int]
+) -> list[tuple[int, int, int]]:
+    """``(offset, indent, lineno)`` before every REACHABLE top-level statement of
+    ``fn``.
+
+    Round 10, high: inserting the allocator reset only at the method's entry was a
+    placement assumption, and it hid thirteen escapes -- a reset one line lower, after
+    the
+    lookup, is never reached by a call with an unknown id.  Every top-level statement is
+    an insertion point now.  A statement that follows a ``return`` or ``raise`` at this
+    level is unreachable, and mutating there would report a FAKE escape, so the walk
+    stops
+    at the first terminal statement.
+    """
+    pts = []
+    for i, stmt in enumerate(fn.body):
+        if i and isinstance(fn.body[i - 1], TERMINAL):
+            break
+        pts.append((offs[stmt.lineno - 1], stmt.col_offset, stmt.lineno))
+    return pts
+
+
 RECEIVER = re.compile(r"(?<![.\w])((?:[A-Za-z_]\w*\.)*[A-Za-z_]\w*)\.(\w+)\s*\(")
 NOT_A_RECORD = re.compile(
     r"^((dict|list|set|tuple|frozenset|defaultdict|Counter|deque|str|int|float|bool"
@@ -730,21 +776,24 @@ def handle_allocator_mutants(
     attribute's own annotation or initialiser for ``self.<attr>``, else the unique
     project class whose methods cover every method called on the name (``book.find`` +
     ``book.save`` -> ``OrderBook``).  Anything else is reported in ``unresolved``.
+
+    Round 10, high: like class 7, the reset is inserted before every reachable top-level
+    statement of the function, not only at its entry.
     """
     classes = project_classes(files)
     owners = {n for n, info in classes.items() if info["counters"]}
     if not owners:
         return
     attrs = attribute_classes(src, set(classes))
-    for m in DEF.finditer(src):
-        indent, fname, params = m.group(1), m.group(2), m.group(3)
-        nxt = re.search(rf"\n{indent}\S", src[m.end() :])
-        body = src[m.end() : m.end() + nxt.start()] if nxt else src[m.end() :]
-        ann = {}
-        for part in params.split(","):
-            if ":" in part:
-                name, _, typ = part.partition(":")
-                ann[name.strip()] = typ.split("=")[0].strip().strip("\"'")
+    offs = line_offsets(src)
+    for fn in (n for n in ast.walk(ast.parse(src)) if isinstance(n, ast.FunctionDef)):
+        fname = fn.name
+        body = ast.get_source_segment(src, fn) or ""
+        ann = {
+            a.arg: ast.unparse(a.annotation).strip("\"'")
+            for a in fn.args.args
+            if a.annotation is not None
+        }
         called: dict[str, set[str]] = {}
         # a parameter annotated as a store is a handle even if the body only reads it
         called.update({n: set() for n, t in ann.items() if t in owners})
@@ -760,11 +809,13 @@ def handle_allocator_mutants(
             for counter in classes[cls]["counters"]:
                 if f"{name}.{counter}" in body:
                     continue  # already assigns or reads it: not a silent reset
-                reset = f"{indent}    {name}.{counter} = 0\n"
-                yield (
-                    f"reset allocator {name}.{counter} in {fname} @{m.start()}",
-                    src[: m.end()] + reset + src[m.end() :],
-                )
+                # round 10: every reachable statement, not only the entry (see class 7)
+                for at, indent, lineno in statement_points(fn, offs):
+                    yield (
+                        f"reset allocator {name}.{counter} in {fname} before line "
+                        f"{lineno}",
+                        src[:at] + f"{' ' * indent}{name}.{counter} = 0\n" + src[at:],
+                    )
 
 
 def main() -> None:
