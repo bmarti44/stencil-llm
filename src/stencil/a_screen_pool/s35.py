@@ -170,6 +170,23 @@ def test_ready_keeps_note_payment_and_the_other_order():
     assert refundable(back) is True
 
 
+def test_ready_keeps_the_order_id_and_files_it_under_that_id():
+    # the returned record AND the record read back through find keep every
+    # required field, and nothing is filed under a corrupted id
+    book = OrderBook()
+    order = book.place("Mrs Okafor", "sourdough", 2, 900)
+    other = book.place("Dev", "birthday cake", 1, 2400)
+    out = book.ready(order.order_id)
+    assert out.order_id == order.order_id and out.customer == "Mrs Okafor"
+    assert out.item == "sourdough" and out.qty == 2
+    back = book.find(order.order_id)
+    assert back is not None and back.order_id == order.order_id
+    assert back.status == "ready" and back.customer == "Mrs Okafor"
+    assert back.item == "sourdough" and back.qty == 2 and back.paid_p == 900
+    assert book.find("_audit") is None
+    assert book.find(other.order_id) == other
+
+
 def test_save_keeps_every_other_order():
     book = OrderBook()
     first = book.place("Dev", "birthday cake", 1, 2400)

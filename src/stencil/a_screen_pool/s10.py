@@ -369,6 +369,26 @@ def test_refresh_keeps_other_feeds_and_count():
     assert kept.title == "Daily" and kept.url == "v"
     assert s.count() == 2
     assert s.find(f.feed_id).episodes == ("Pilot",)
+
+
+def test_add_after_refresh_mints_a_fresh_id():
+    # an id allocator reset inside the refresh method changes nothing
+    # already stored: the damage lands on the NEXT add_feed, which reuses a
+    # live id and overwrites an earlier feed
+    s = FeedStore()
+    first = s.add_feed("Daily", "v")
+    second = s.add_feed("Weekly", "u")
+    assert _refresh(s)(second.feed_id, "episode: Pilot\\n").episodes == ("Pilot",)
+    third = s.add_feed("Monthly", "w")
+    assert third.feed_id not in (first.feed_id, second.feed_id)
+    assert s.count() == 3
+    kept = s.find(first.feed_id)
+    assert kept is not None and kept.feed_id == first.feed_id
+    assert kept.title == "Daily" and kept.url == "v" and kept.episodes == ()
+    done = s.find(second.feed_id)
+    assert done is not None and done.feed_id == second.feed_id
+    assert done.title == "Weekly" and done.episodes == ("Pilot",)
+    assert s.find(third.feed_id).title == "Monthly"
 """
 }
 

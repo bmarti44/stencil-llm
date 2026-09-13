@@ -247,17 +247,22 @@ def main() -> None:
             "arms were run under different implementation identities; "
             + json.dumps(shared, indent=1)
         )
-    # and that one identity must be the CURRENT freeze, not merely self-consistent
-    frozen = json.loads(
-        (
-            Path(__file__).resolve().parents[1] / "results/a-screen/screen-pool.json"
-        ).read_text()
-    )["pool_sha256"]
-    seen = next(iter(shared.values()))["pool_sha256"]
-    if seen != frozen:
-        raise SystemExit(
-            f"records were produced against SCREEN pool {seen}, frozen pool is {frozen}"
-        )
+    # and that one identity must be the CURRENT freeze, not merely self-consistent.
+    # Round 4: with no records at all there is no identity to read, and taking the first
+    # one raised StopIteration before the INCOMPLETE branch below could report it.
+    if shared:
+        frozen = json.loads(
+            (
+                Path(__file__).resolve().parents[1]
+                / "results/a-screen/screen-pool.json"
+            ).read_text()
+        )["pool_sha256"]
+        seen = next(iter(shared.values()))["pool_sha256"]
+        if seen != frozen:
+            raise SystemExit(
+                f"records were produced against SCREEN pool {seen}, "
+                f"frozen pool is {frozen}"
+            )
     if not ids:
         # re-review F12: no complete session must read INCOMPLETE, not crash on a mean
         text = (

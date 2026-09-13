@@ -256,6 +256,45 @@ def test_assign_keeps_a_closed_status_and_the_other_ticket():
     assert kept == other_closed
     assert kept.status == "closed" and kept.assignee is None
     assert kept.title == "badge reader"
+
+
+def test_assign_preserves_the_ticket_identity():
+    s = TicketStore()
+    other = s.open_ticket("badge reader")
+    t = s.open_ticket("printer jams")
+    out = _assign(s)(t.ticket_id, "dana")
+    assert out.ticket_id == t.ticket_id, "assigning replaced the ticket's own id"
+    assert out.title == "printer jams", "assigning replaced the title"
+    stored = s.find(t.ticket_id)
+    assert stored is not None, "the ticket is no longer stored under its own id"
+    assert stored.ticket_id == t.ticket_id, "the stored ticket's id was replaced"
+    assert stored.title == "printer jams", "the stored title was replaced"
+    assert stored.assignee == "dana"
+    assert s.find("_audit") is None, "a ticket was stored under a foreign id"
+    assert s.count() == 2, "assigning changed the stored count"
+    kept = s.find(other.ticket_id)
+    assert kept is not None and kept == other
+
+
+def test_opening_a_ticket_after_an_assign_gets_a_fresh_id():
+    s = TicketStore()
+    first = s.open_ticket("badge reader")
+    second = s.open_ticket("printer jams")
+    _assign(s)(second.ticket_id, "dana")
+    third = s.open_ticket("vpn down")
+    assert len({first.ticket_id, second.ticket_id, third.ticket_id}) == 3, (
+        "the id allocator was reset: a new ticket reused a live id"
+    )
+    assert s.count() == 3, "the new ticket overwrote an existing one"
+    kept = s.find(first.ticket_id)
+    assert kept is not None and kept == first
+    assert kept.title == "badge reader" and kept.assignee is None
+    assigned = s.find(second.ticket_id)
+    assert assigned is not None, "the new ticket overwrote the assigned one"
+    assert assigned.assignee == "dana" and assigned.title == "printer jams"
+    newest = s.find(third.ticket_id)
+    assert newest is not None and newest == third
+    assert newest.title == "vpn down"
 """
 }
 

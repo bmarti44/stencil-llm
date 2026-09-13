@@ -627,3 +627,173 @@ writes. The audit stays at five classes.
 `uv run pytest -q tests/test_a_screen.py` → **301 passed**.
 `uv run python scripts/a_screen_mutate.py` → **292 mutations, 0 undetected**.
 `uv run python scripts/a_screen_containment.py` → **0 violations**.
+
+## 16. Amendment 4 (2026-09-14, after the Astra re-review round 4, before any pilot, training or evaluation generation)
+
+Round 4 read **DO NOT LAUNCH**: "It accepts replies that corrupt record identity or future
+inserts, and interrupted work still escapes the budget." F1 and F3 were confirmed RESOLVED;
+F12, F13, F15 and the pool fixtures were PARTIAL. Every counterexample was reproduced before it
+was changed. **No arm, model, outcome unit, gate or ceiling changes.**
+
+### 16.1 Two more ways a wrong repository scored J = 1 (F7 class)
+
+Both were executed first, then mechanized into the audit so they cannot return.
+
+**Identity corruption.** `replace(recipe, recipe_id=tag, tags=recipe.tags + (tag,))` in S01
+scored **J = 1**: tags, servings, title and both neighbours survive, so all six suites passed
+while the record's own id had been replaced. The store then holds the record under its original
+key with a different id inside it, and `find(returned.recipe_id)` is `None`. §15.6's audit
+enumerated only **defaulted** fields, so required fields — the identity — were never mutated.
+
+**Allocator reset.** `self._counter = 0` inserted at the top of S05's `member_renew` scored
+**J = 1**, and the same in S45's `promote_lead`. Nothing already stored changes, so every
+existing-record assertion passes; the damage lands on the NEXT insertion, which reuses a live id
+and overwrites an earlier record. The public sequence is
+`enroll A -> M1, enroll B -> M2, renew M1, enroll C -> M1`, and C silently replaces A.
+
+Two audit classes were added, bringing it to seven:
+
+| # | mutation | what it means in a reply |
+|---|---|---|
+| 6 | an update additionally sets a REQUIRED field (`replace(...)` and the `with_X(...)` helper form) | the record keeps every other value but loses its identity |
+| 7 | `self._counter = 0` at the top of a state-writing method | the next insertion reuses a live id |
+
+Class 7 is restricted to methods that already write state: a reply might plausibly clobber a
+counter while editing an update operation, not inside a pure reader, and generating the reader
+cases would have inflated the count without adding coverage.
+
+At seven classes the audit found **65 undetected mutations across 34 of the 48 slots** (44
+allocator resets, 21 identity changes). All 34 were repaired by seven parallel agents against
+the audit as the gate, adding to AUTHORING.md's standard:
+
+5. after the operation, every REQUIRED field is asserted unchanged on both the returned record
+   and the record read back through the store's own public reader, and the store holds nothing
+   under the corrupted value;
+6. a **create-after-update** sequence using only the public API — create, create, update,
+   create — asserts the third record gets a fresh id, that both earlier records survive with
+   their own ids and values, and that the count is three.
+
+One honest detail is recorded because it would otherwise look like coverage: where a slot mints
+its id BEFORE incrementing (S15, S19), a reset yields an unused id such as `J0` or `G0`, which
+IS distinct from the live ones — so "distinct from both earlier ids" passes vacuously there, and
+those tests pin the exact next id instead. Two slots (S03, S31) and three others expose no
+public counter, so "the count is three" is expressed as three distinct ids each resolving
+through the public reader to its own record.
+
+### 16.2 A correct reply no longer scores J = 0 (new, medium)
+
+Round 4 showed that consistently renaming `self._members` to `self._records` — behaviour
+preserving, and nothing in the registered request names the target's private attributes — cost
+S05 its J = 1 at both checkpoints, because a fixture seeded state through that mapping. Astra's
+criticism of §15.6's own wording is accepted: calling private seeding "weaker evidence" did not
+disclose that it **rejects valid replies**.
+
+Grepping the fixtures is the wrong instrument — the access can sit inside a monkeypatch spy
+whose receiver is also spelled `self`, and a grep-based scan found 4 slots while the real number
+was 6. `scripts/a_screen_rename.py` therefore tests the property itself: for every slot, each
+private attribute the target assigns in `__init__` is renamed through the PROJECT SOURCE of both
+checkpoint golds, never in the suites, and the session must still score J = 1. It reports
+**108 renames, 0 rejected**; before the repair it rejected 11 across S26, S27, S28, S30, S31
+(contract spies) and S45, S47 (support seeds). S26 was found by this check alone.
+
+The five contract cases were one shape: a spy returning `self._mapping[key]` purely to have a
+return value, while the test asserts only on the recorded call. Each now returns through the
+class's own public reader; nothing else changed. The two support cases seeded a non-default
+record state that has no public writer at that checkpoint, so each now reaches a non-default
+state publicly — S47 via `retire_tool` instead of an unreachable `"needs-repair"`, S45 via a
+prior `retire` instead of `section_lead=True`. Neither operation under test branches on the
+substituted field, so the property each support test checks (the `silent` logging policy holds
+for a record in a non-default state) is preserved; the substitution is disclosed here rather
+than presented as identical coverage.
+
+These 13 edits touch `contract_tests` and `support_tests`, which §15.6's containment check
+forbids. They are authorised explicitly, not waived: `a_screen_containment.py` gained an
+`--allow SLOT:REQUEST:field` list, every entry must be named, an entry that matches no change is
+itself reported as stale, and an incomplete list still fails (verified: 12 entries pass, 1 entry
+leaves 11 violations). The authorised set is exactly:
+
+    S26:1, S26:2, S27:1, S27:2, S28:1, S28:2, S30:1, S30:2, S31:1, S31:2 (contract_tests)
+    S45:1, S47:1 (support_tests)
+
+### 16.3 The audit no longer counts mutants that prove nothing (F7, low)
+
+Astra found that S47's class-4 mutation added `borrower=None` to a `Hold`, which has no such
+field: it fails with "unexpected keyword argument", detecting a wrong keyword rather than an
+erased attribute. A first fix counted such mutants by matching that string in the suite message
+— and was **vacuous**, because `stencil.contracts.run_tests` returns pytest's short summary
+("1 failed in 0.02s"), so the string can never appear. It was replaced with static type
+association: each call site's record class is resolved first and only that class's fields are
+used. Verified non-vacuously — **529 mutants emitted, 0 naming a field their class does not
+have**, and Astra's `Hold.borrower` mutant is no longer generated. The count fell from 601 to
+529; the 72 dropped were foreign-field or unresolvable-type mutants that were never evidence.
+
+### 16.4 Interrupted work can no longer escape the ceiling (F13)
+
+`resident_s` accounts only for work that produced a record, so a launch that died after its last
+record, or before writing any, contributed GPU time nothing carried. Astra's case: last record
+at 600 s, process killed at 900 s, resume charged 600 s.
+
+`<out>.spend.jsonl` is now a launch-level ledger, independent of the record file, written at
+process start, after the model load, and after every record. A launch with no `end` line is
+charged its last checkpoint plus one request's grace, the longest it can have been working
+unrecorded. `atexit` writes that `end` line on any clean exit — including a refused guard — so
+only a killed process falls back to the grace. Executed: Astra's case now charges **900 s**; a
+clean exit charges its real 610 s; a launch killed during model load charges **300 s** instead
+of 0; two dead launches accumulate.
+
+Also in F13: the final save could finish past the allocation and still claim `complete` (a save
+starting at 14,390 s of 14,400 s and taking 30 s wrote `seconds=14420`), while the guard's
+runtime check is a lower bound only. `status` is now `over_budget` in that case and the harness
+refuses it by name. And `loss.item()` synchronises with the device, so reading it after the
+micro-step timestamp left that synchronisation outside the measured step and made the stop
+estimate optimistic; it is now read before the measurement closes.
+
+### 16.5 An adapter is now bound to the implementation that produced it (F15)
+
+The train log RECORDED `trainer_sha256`, `a_screen_sha256` and `a_train_pool_sha256` and the
+guard checked none of them, so a stale trainer, a stale packing policy or a stale pool builder
+were all accepted; and the trunk was bound by pathname only, so weights replaced at the same
+path between allocations were invisible even though evaluation hashes bytes correctly. The guard
+now validates all three against the current files and compares a byte-level `hub_sha256`
+recorded by the trainer. Verified against a fabricated registered-looking log: all four
+deviations are named in the refusal. `dir_sha`/`file_sha` moved into `src/stencil/a_screen.py`
+and the harness's duplicate copies were deleted — with both sides now comparing fingerprints,
+two implementations of that function would have been a latent guard failure.
+
+### 16.6 Empty runs report INCOMPLETE instead of crashing (F12)
+
+With no records in any arm there is no identity to read, and `next(iter(shared.values()))` raised
+`StopIteration` before the INCOMPLETE branch could report it. The identity and freeze check is
+now guarded by `if shared:`; three empty arm files print
+`INCOMPLETE (0/48 manifest sessions complete in all three arms)`. For complete records the five
+gates are unchanged, and Astra re-confirmed the statistics: zero discordances at N = 48 gives
+±0.087249, exact McNemar gives 0.0625 for 5-0 and 0.25 for 3-0.
+
+### 16.7 What round 4 accepted
+
+F1 **RESOLVED**: across 48 capped first replies the required messages plus every file reached
+2,380 tokens at worst (S08) and every packed prompt fit; Astra's S03 adversarial pair scores
+J = 1, and assigning `fine.status` in place correctly scores J = 0. F3 **RESOLVED**. The five
+gates remain §7's gates. §15.5's compute arithmetic is correct and giving up the re-run reserve
+first is the right order. The declined sixth mutation class is accepted as unnecessary — Astra
+executed 57 wrong-key writes across 35 slots and all were detected — but §15.6's categorical
+reasoning was too strong and is narrowed here: a wrong-key write is not generally
+indistinguishable from a deleted write-back, it is simply already covered.
+
+One compute condition is carried forward rather than closed: the pilot must exercise the
+scoring work being extrapolated. Parse and application failures skip suites, so their resident
+times cannot establish the cost of all 1,584 invocations. The registered pilot therefore charges
+the full scoring path and its planned reloads, and applies the §8 contention factor.
+
+### 16.8 Re-frozen pool and self-checks
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `9168d17a9fbf2939` | `4f5d59eb87bb99f8` |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | unchanged; no TRAIN file was touched |
+
+`uv run python scripts/a_screen_mutate.py` → **529 mutations, 0 undetected**.
+`uv run python scripts/a_screen_rename.py` → **108 renames, 0 rejected**.
+`uv run python scripts/a_screen_containment.py --allow <the 12 entries in §16.2>` → **0 violations**.
+`uv run pytest -q tests/test_a_screen.py` → **301 passed**.
+All four were run on a clean tree with no concurrent edits.

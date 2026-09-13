@@ -299,6 +299,41 @@ def test_reopen_leaves_other_reports_alone(tmp_path):
     b.close(a.report_id)
     _reopen(b)(a.report_id, "again")
     assert b.get(c.report_id).status == "open" and b.count() == 2
+
+
+def test_reopen_preserves_the_reports_own_identity(tmp_path):
+    # Round 4 class 6: reopen may change status, condition and crew and nothing else.
+    b, _ = _board(tmp_path)
+    r = b.file_report("ridge loop", "ines", "tree down at km 3")
+    b.close(r.report_id)
+    out = _reopen(b)(r.report_id, "tree back across the trail")
+    for rec in (out, b.get(r.report_id)):
+        assert rec is not None, "reopening the report dropped it from the board"
+        assert rec.report_id == r.report_id, "reopen changed the report id"
+        assert rec.trail == "ridge loop", "reopen changed the trail"
+        assert rec.reporter == "ines", "reopen changed the reporter"
+        assert rec.condition == "tree back across the trail"
+    assert b.get("_audit") is None, "the board holds a report under a changed field"
+    assert b.count() == 1
+
+
+def test_file_report_after_reopen_mints_a_fresh_id(tmp_path):
+    # Round 4 class 7: the reset allocator shows up only on the NEXT insertion.
+    b, _ = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    b.close(a.report_id)
+    _reopen(b)(a.report_id, "tree back")
+    third = b.file_report("summit spur", "pia", "loose rock")
+    assert third.report_id not in (a.report_id, c.report_id), "a live id was reused"
+    assert b.count() == 3, "the new report overwrote an earlier one"
+    kept = b.get(a.report_id)
+    assert kept is not None and kept.trail == "ridge loop"
+    assert kept.condition == "tree back" and kept.status == "open"
+    other = b.get(c.report_id)
+    assert other is not None and other.trail == "creek path"
+    assert other.reporter == "omar" and other.status == "open"
+    assert b.get(third.report_id).trail == "summit spur"
 """
 }
 
@@ -339,6 +374,78 @@ def test_close_keeps_the_crew_and_the_other_report(tmp_path):
     assert other.status == "assigned" and other.crew == "sunday crew"
     assert b.count() == 2, "closing a report changed the stored count"
     assert path.read_text().splitlines()[-1] == f"closed {a.report_id}"
+
+
+def _assign(board):
+    fn = getattr(board, "assign_crew", None) or getattr(board, "assign", None)
+    assert fn is not None, "no assign_crew method found"
+    return fn
+
+
+def test_close_preserves_the_reports_own_identity(tmp_path):
+    # Round 4 class 6: an update that keeps status/crew/neighbours but replaces a
+    # REQUIRED field, so the board stores a report that is no longer that report.
+    b, _ = _board(tmp_path)
+    r = b.file_report("ridge loop", "ines", "tree down at km 3")
+    out = b.close(r.report_id)
+    for rec in (out, b.get(r.report_id)):
+        assert rec is not None, "closing the report dropped it from the board"
+        assert rec.report_id == r.report_id, "close changed the report id"
+        assert rec.trail == "ridge loop", "close changed the trail"
+        assert rec.reporter == "ines", "close changed the reporter"
+        assert rec.condition == "tree down at km 3", "close changed the condition"
+    assert b.get("_audit") is None, "the board holds a report under a changed field"
+    assert b.count() == 1
+
+
+def test_assign_crew_preserves_the_reports_own_identity(tmp_path):
+    b, _ = _board(tmp_path)
+    r = b.file_report("ridge loop", "ines", "tree down at km 3")
+    out = _assign(b)(r.report_id, "saturday crew")
+    for rec in (out, b.get(r.report_id)):
+        assert rec is not None, "assigning a crew dropped the report"
+        assert rec.report_id == r.report_id, "assign_crew changed the report id"
+        assert rec.trail == "ridge loop", "assign_crew changed the trail"
+        assert rec.reporter == "ines", "assign_crew changed the reporter"
+        assert rec.condition == "tree down at km 3", "assign_crew changed it"
+    assert b.get("_audit") is None, "the board holds a report under a changed field"
+    assert b.count() == 1
+
+
+def test_file_report_after_close_mints_a_fresh_id(tmp_path):
+    # Round 4 class 7: a reset id allocator leaves every stored report intact and
+    # corrupts the NEXT insertion, which reuses a live id.
+    b, _ = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    b.close(a.report_id)
+    third = b.file_report("summit spur", "pia", "loose rock")
+    assert third.report_id not in (a.report_id, c.report_id), "a live id was reused"
+    assert b.count() == 3, "the new report overwrote an earlier one"
+    kept = b.get(a.report_id)
+    assert kept is not None and kept.trail == "ridge loop"
+    assert kept.reporter == "ines" and kept.status == "closed"
+    other = b.get(c.report_id)
+    assert other is not None and other.trail == "creek path"
+    assert other.reporter == "omar" and other.status == "open"
+    assert b.get(third.report_id).trail == "summit spur"
+
+
+def test_file_report_after_assign_crew_mints_a_fresh_id(tmp_path):
+    b, _ = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    _assign(b)(a.report_id, "saturday crew")
+    third = b.file_report("summit spur", "pia", "loose rock")
+    assert third.report_id not in (a.report_id, c.report_id), "a live id was reused"
+    assert b.count() == 3, "the new report overwrote an earlier one"
+    kept = b.get(a.report_id)
+    assert kept is not None and kept.crew == "saturday crew"
+    assert kept.trail == "ridge loop" and kept.status == "assigned"
+    other = b.get(c.report_id)
+    assert other is not None and other.trail == "creek path"
+    assert other.crew is None and other.status == "open"
+    assert b.get(third.report_id).trail == "summit spur"
 """
 }
 

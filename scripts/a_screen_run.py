@@ -26,9 +26,11 @@ Pilot: ``--longest 4`` (the registered maximum-context pilot, §8).
 from __future__ import annotations
 
 import argparse
+import atexit
 import functools
 import hashlib
 import json
+import os
 import sys
 import time
 from dataclasses import asdict
@@ -52,6 +54,9 @@ REGISTERED_TRAIN_CONFIG = {
 REGISTERED_DEADLINE_S = 300
 # plan section E: a run stops STARTING new work when its reservation has 5 minutes left
 START_MARGIN_MIN = 5
+# Round 4 F13: an interrupted launch is charged its last checkpoint plus this grace, the
+# longest it can have been working unrecorded (a checkpoint follows every request).
+GRACE_S = float(REGISTERED_DEADLINE_S)
 sys.path.insert(0, str(ROOT / "src"))
 
 import stencil.determinism  # noqa: E402, F401  (sets CUBLAS workspace before torch)
@@ -65,30 +70,6 @@ FREEZE = ROOT / "results/a-screen/screen-pool.json"
 
 def sha(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()[:16]
-
-
-def file_sha(path: Path) -> str:
-    """Streaming sha256 of a file's actual bytes (first 16 hex chars)."""
-    h = hashlib.sha256()
-    with path.open("rb") as fh:
-        for chunk in iter(lambda: fh.read(8 << 20), b""):
-            h.update(chunk)
-    return h.hexdigest()[:16]
-
-
-def dir_sha(d: Path) -> str:
-    """Re-review round 3 F15: hash every file's ACTUAL BYTES, not its size.  The first
-    version hashed JSON under 2 MB in full and everything else by size, so the 11 MB
-    tokenizer, the 2.7 MB vocabulary and all three weight shards were size-only: different
-    content of the same length produced an identical fingerprint.  Reading ~8 GB once per
-    launch costs seconds against a multi-hour run."""
-    return sha(
-        "\n".join(
-            f"{p.name}:{p.stat().st_size}:{file_sha(p)}"
-            for p in sorted(d.iterdir())
-            if p.is_file()
-        )
-    )
 
 
 def repo_hash(files: dict[str, str]) -> str:
@@ -201,6 +182,25 @@ def main() -> None:
             problems.append(
                 f"trained on trunk {ident.get('hub')!r}, evaluating on {str(a.hub)!r}"
             )
+        # Round 4 F15: the train log RECORDED these hashes and nothing checked them, so a
+        # stale trainer, a stale packing policy or a stale pool builder were all accepted.
+        # Validate each against the current file, and bind the trunk by BYTES, not pathname.
+        for field_name, current in (
+            (
+                "trainer_sha256",
+                sha(Path(__file__).parent.joinpath("a_screen_train.py").read_text()),
+            ),
+            ("a_screen_sha256", sha((ROOT / "src/stencil/a_screen.py").read_text())),
+            (
+                "a_train_pool_sha256",
+                sha((ROOT / "src/stencil/a_train_pool.py").read_text()),
+            ),
+            ("hub_sha256", A.dir_sha(Path(a.hub))),
+        ):
+            if ident.get(field_name) != current:
+                problems.append(
+                    f"{field_name}={ident.get(field_name)!r}, current {current!r}"
+                )
         # re-review round 3 F13/F15: the registered recipe, not merely a finished run
         for field, want in REGISTERED_TRAIN_CONFIG.items():
             if tlog.get(field) != want:
@@ -220,6 +220,57 @@ def main() -> None:
                 "PILOT ADAPTER (not the registered allocation): " + "; ".join(problems)
             )
     t_start = time.time()
+    out = Path(a.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    # Round 4 F13: `resident_s` only accounts for work that produced a record.  A launch
+    # that dies after its last record, or before writing any, contributed GPU time that no
+    # record carries.  This sidecar is a launch-level ledger: one line per checkpoint of
+    # this process, independent of the record file.  A launch with no "end" line is charged
+    # its last checkpoint PLUS one request's grace, because a checkpoint follows every
+    # request, so it can have been at most one request past its last mark.
+    spend_path = out.with_name(out.name + ".spend.jsonl")
+    launch_id = f"{int(t_start)}-{os.getpid()}"
+
+    def mark(event: str) -> None:
+        with spend_path.open("a") as fh:
+            fh.write(
+                json.dumps(
+                    {
+                        "launch": launch_id,
+                        "event": event,
+                        "t": time.time(),
+                        "elapsed_s": time.time() - t_start,
+                    }
+                )
+                + "\n"
+            )
+            fh.flush()
+
+    def prior_launch_minutes() -> float:
+        if not spend_path.exists():
+            return 0.0
+        by: dict[str, dict] = {}
+        for line in spend_path.read_text().splitlines():
+            if not line.strip():
+                continue
+            try:
+                r = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if r.get("launch") == launch_id:
+                continue
+            cur = by.setdefault(r["launch"], {"max": 0.0, "ended": False})
+            cur["max"] = max(cur["max"], float(r.get("elapsed_s", 0.0)))
+            cur["ended"] = cur["ended"] or r.get("event") == "end"
+        total = 0.0
+        for info in by.values():
+            total += info["max"] + (0.0 if info["ended"] else GRACE_S)
+        return total / 60
+
+    # atexit so ANY clean exit (including a refused guard or COST-INELIGIBLE) is
+    # charged its real elapsed time; only a killed process falls back to the grace.
+    atexit.register(mark, "end")
+    mark("start")
 
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
@@ -238,6 +289,7 @@ def main() -> None:
         weights = Path(a.adapter) / "adapter_model.safetensors"
         adapter_id = sha(weights.read_bytes().hex()) if weights.exists() else "missing"
     model.eval()
+    mark("model_loaded")
 
     # Astra F4: every terminal token the shipping package declares, not just config.eos
     gen_cfg = GenerationConfig.from_pretrained(a.hub)
@@ -259,7 +311,7 @@ def main() -> None:
         "contracts_sha256": sha((ROOT / "src/stencil/contracts.py").read_text()),
         "runner_sha256": sha(Path(__file__).read_text()),
         "hub": str(a.hub),
-        "hub_sha256": dir_sha(Path(a.hub)),
+        "hub_sha256": A.dir_sha(Path(a.hub)),
         "adapter": a.adapter or "none",
         "adapter_sha256": adapter_id,
         "adapter_steps": adapter_steps,
@@ -269,7 +321,7 @@ def main() -> None:
         "deadline_s": a.deadline,
         "prompt_budget": A.PROMPT_BUDGET,
         "adapter_config_sha256": (
-            file_sha(Path(a.adapter) / "adapter_config.json")
+            A.file_sha(Path(a.adapter) / "adapter_config.json")
             if a.adapter and (Path(a.adapter) / "adapter_config.json").exists()
             else "none"
         ),
@@ -297,8 +349,6 @@ def main() -> None:
         sessions = sorted(sessions, key=prompt_max, reverse=True)[: a.longest]
         print("pilot sessions " + ",".join(s.id for s in sessions))
 
-    out = Path(a.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
     # Astra F3 and its re-review: resume per request, only from records of THIS arm whose
     # COMPLETE identity matches (an `off` record still matches on adapter hash "none" even
     # when the pool or the runner changed), refuse duplicate keys, and never append after a
@@ -364,6 +414,14 @@ def main() -> None:
                 "(or point --out elsewhere) and relaunch."
             )
         print(f"resume: {len(done)} usable records, {prior_min:.1f} min already spent")
+    # Round 4 F13: charge interrupted launches too, whether or not they left records.
+    launch_min = prior_launch_minutes()
+    if launch_min > prior_min:
+        print(
+            f"prior launches charge {launch_min:.1f} min of resident time "
+            f"(records alone show {prior_min:.1f} min)"
+        )
+        prior_min = launch_min
 
     def generate(msgs: list[dict], checkpoint: int, session) -> dict:
         packed, kept = A.pack_session(session, msgs, checkpoint, count)
@@ -418,9 +476,11 @@ def main() -> None:
         # resident wall time including this launch's prior spend, so a resumed run's budget
         # continues from where the last one stopped (re-review round 3 F13)
         rec["resident_s"] = prior_min * 60 + (time.time() - t_start)
+        rec["launch"] = launch_id
         with out.open("a") as fh:
             fh.write(json.dumps(rec) + "\n")
             fh.flush()
+        mark("record")  # round 4 F13: a launch-level checkpoint per request
 
     n = n_j = n_f = 0
     incomplete = []

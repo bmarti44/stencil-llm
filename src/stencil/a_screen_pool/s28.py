@@ -230,7 +230,7 @@ def test_public_categorize_delegates_without_precheck(monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._receipts["R1"]
+        return self.get("R1")
 
     monkeypatch.setattr(ReceiptFolio, "put_category", spy)
     categorize(folio, "R1", "")
@@ -387,6 +387,23 @@ def test_adjust_amount_unknown_id_raises_keyerror():
         adjust_amount(folio, "R9", 100)
     _intact(folio, "R1", "Office Depot", 4599, "supplies", 4849)
     _intact(folio, "R2", "Metro Transit", 250, "travel", 4849)
+
+
+def test_adding_a_receipt_after_an_adjustment_gets_a_fresh_id():
+    folio = _folio()
+    categorize(folio, "R2", "travel")
+    adjust_amount(folio, "R1", 4499)
+    third = add_receipt(folio, "Rail Link", 900)
+    assert third.receipt_id not in ("R1", "R2"), (
+        "the id allocator was reset: a new receipt reused a live id"
+    )
+    assert folio.total_cents() == 5649, "the new receipt overwrote an existing one"
+    _intact(folio, "R1", "Office Depot", 4499, "supplies", 5649)
+    _intact(folio, "R2", "Metro Transit", 250, "travel", 5649)
+    newest = folio.get(third.receipt_id)
+    assert newest is not None, "the new receipt is not in the folio"
+    assert newest.receipt_id == third.receipt_id and newest.vendor == "Rail Link"
+    assert newest.amount_cents == 900 and newest.category == ""
 """
 }
 
@@ -453,7 +470,7 @@ def test_public_adjust_amount_delegates_without_precheck(monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._receipts["R1"]
+        return self.get("R1")
 
     monkeypatch.setattr(ReceiptFolio, "put_amount", spy)
     adjust_amount(folio, "R1", -5)

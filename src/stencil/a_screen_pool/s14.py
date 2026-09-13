@@ -297,6 +297,41 @@ def test_drink_keeps_non_default_rack_and_other_bottles():
     assert c.bottle_find(first.bottle_id) == kept
     assert c.bottle_find(first.bottle_id).rack == "F2"
     assert c.bottle_find(first.bottle_id).status == "stored"
+
+
+def test_drink_keeps_the_bottle_identity():
+    # an update that keeps label, vintage and rack but replaces a REQUIRED
+    # field -- typically the record's own id -- passes every other
+    # assertion in this file, so pin the identity explicitly
+    c = Cellar()
+    b = c.bottle_add("Ridge Zinfandel", 2018)
+    out = _drink(c)(b.bottle_id)
+    assert out.bottle_id == b.bottle_id
+    assert out.label == "Ridge Zinfandel" and out.vintage == 2018
+    stored = c.bottle_find(b.bottle_id)
+    assert stored is not None and stored.bottle_id == b.bottle_id
+    assert stored.label == "Ridge Zinfandel" and stored.vintage == 2018
+    assert c.bottle_find("_audit") is None
+    assert c.bottle_count() == 1
+
+
+def test_add_after_drink_mints_a_fresh_serial():
+    # an id allocator reset inside the drink method changes nothing already
+    # stored: the damage lands on the NEXT add, which reuses a live serial
+    c = Cellar()
+    first = c.bottle_add("Riesling", 2021)
+    second = c.bottle_add("Barolo", 2016)
+    assert _drink(c)(second.bottle_id).status == "drunk"
+    third = c.bottle_add("Sancerre", 2019)
+    assert third.bottle_id not in (first.bottle_id, second.bottle_id)
+    assert c.bottle_count() == 3
+    kept = c.bottle_find(first.bottle_id)
+    assert kept is not None and kept.bottle_id == first.bottle_id
+    assert kept.label == "Riesling" and kept.status == "stored"
+    gone = c.bottle_find(second.bottle_id)
+    assert gone is not None and gone.bottle_id == second.bottle_id
+    assert gone.label == "Barolo" and gone.status == "drunk"
+    assert c.bottle_find(third.bottle_id).label == "Sancerre"
 """
 }
 

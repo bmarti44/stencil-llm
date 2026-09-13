@@ -120,16 +120,13 @@ _C1_FUNCTIONAL = {
     "test_odometer_functional.py": _C1_SETUP
     + """
 
-from dataclasses import replace
-
-
-def _priced(fl, entry_id, price_cents):
-    # The operated record must carry a NON-DEFAULT price_cents, or a correction
-    # that silently resets an unrelated defaulted field goes unnoticed. No
-    # public price setter exists at this checkpoint, so the fixture writes into
-    # the store directly, as the contract suite's spy already does.
-    fl._entries[entry_id] = replace(fl._entries[entry_id], price_cents=price_cents)
-    return fl._entries[entry_id]
+# Round 4, medium: a consistent private rename (``self._entries`` ->
+# ``self._records``) is behaviour-preserving and must still score J = 1, so no
+# fixture may touch the store's private mapping. The pins that need a
+# NON-DEFAULT price_cents on the operated record therefore live in request 2's
+# suites, where the public writer ``set_price`` exists; at this checkpoint the
+# only public way to create an entry is ``record_fill``, which leaves the
+# default price in place.
 
 
 def _check_both_entries(fl):
@@ -151,38 +148,39 @@ def test_correct_odometer_updates_and_returns_entry():
     assert kept.odometer_km == 118400 and kept.litres == 42.5
 
 
-def test_correct_odometer_keeps_price_and_other_entries():
+def test_correct_odometer_keeps_the_price_and_the_other_entries():
+    # The non-default-price version of this pin is
+    # test_correction_keeps_a_price_recorded_earlier in request 2's regression
+    # suite, which can reach a price through the public set_price.
     fl = _log()
-    _priced(fl, "F1", 161)
-    _priced(fl, "F2", 173)
     out = correct_odometer(fl, "F2", 118950)
-    assert out.odometer_km == 118950 and out.price_cents == 173
+    assert out.odometer_km == 118950 and out.price_cents == 0
     back = fl.get("F2")
-    assert back.price_cents == 173 and back.litres == 38.0
+    assert back.price_cents == 0 and back.litres == 38.0
     _check_both_entries(fl)
     kept = fl.get("F1")
-    assert kept.price_cents == 161 and kept.odometer_km == 118400
+    assert kept.price_cents == 0 and kept.odometer_km == 118400
     assert kept.litres == 42.5 and kept.plate == "KX61 VAN"
 
 
 def test_large_correction_still_applies():
     fl = _log()
-    _priced(fl, "F1", 161)
     out = correct_odometer(fl, "F1", 128400)
     assert out.odometer_km == 128400
     assert fl.get("F1").odometer_km == 128400
-    assert fl.get("F1").price_cents == 161
+    assert fl.get("F1").price_cents == 0
+    assert fl.get("F1").plate == "KX61 VAN" and fl.get("F1").litres == 42.5
     _check_both_entries(fl)
     assert fl.get("F2").odometer_km == 118910
 
 
 def test_correct_odometer_rejects_negative():
     fl = _log()
-    _priced(fl, "F1", 161)
     with pytest.raises(ValueError):
         correct_odometer(fl, "F1", -1)
     assert fl.get("F1").odometer_km == 118400
-    assert fl.get("F1").price_cents == 161
+    assert fl.get("F1").price_cents == 0
+    assert fl.get("F1").plate == "KX61 VAN" and fl.get("F1").litres == 42.5
     _check_both_entries(fl)
 
 
@@ -196,7 +194,6 @@ def test_correct_odometer_unknown_id_raises_keyerror():
 
 _C1_REGRESSION = {
     "test_odometer_regression.py": """import pytest
-from dataclasses import replace
 
 from fuellog.journal import FuelLog, record_fill
 
@@ -220,13 +217,17 @@ def test_record_fill_still_validates_in_public_function():
     assert fl.add("KX61 VAN", 0, -5).litres == 0
 
 
-def test_store_keeps_a_priced_entry_alongside_the_others():
+def test_store_keeps_an_earlier_entry_alongside_the_others():
+    # Public-API seeding only (round 4, medium): no fixture may touch the
+    # private mapping. The non-default-price version of this pin is
+    # test_a_priced_entry_survives_a_later_fill in request 2's regression suite.
     fl = FuelLog()
-    record_fill(fl, "KX61 VAN", 42.5, 118400)
-    fl._entries["F1"] = replace(fl._entries["F1"], price_cents=161)
+    first = record_fill(fl, "KX61 VAN", 42.5, 118400)
     record_fill(fl, "LD19 VAN", 50.0, 20100)
     assert fl.get("F1") is not None, "the earlier entry was dropped"
-    assert fl.get("F1").price_cents == 161 and fl.get("F1").odometer_km == 118400
+    assert fl.get(first.entry_id) is not None, "the earlier entry was dropped"
+    assert fl.get("F1").price_cents == 0 and fl.get("F1").odometer_km == 118400
+    assert fl.get("F1").plate == "KX61 VAN" and fl.get("F1").litres == 42.5
     assert fl.get("F2").price_cents == 0
     assert fl.litres_for("KX61 VAN") == 42.5 and fl.litres_for("LD19 VAN") == 50.0
 """
@@ -438,6 +439,27 @@ def test_set_price_unknown_id_raises_keyerror():
     with pytest.raises(KeyError):
         set_price(fl, "F9", 179)
     _check_both_entries(fl)
+
+
+def test_record_fill_after_set_price_mints_a_fresh_id():
+    # Round 4 class 7: a reset id allocator leaves every stored entry intact and
+    # corrupts the NEXT fill, which reuses a live id and overwrites an entry.
+    fl = _log()
+    set_price(fl, "F1", 161)
+    third = record_fill(fl, "MV07 VAN", 30.0, 5400)
+    assert third.entry_id not in ("F1", "F2"), "a live entry id was reused"
+    kept = fl.get("F1")
+    assert kept is not None, "the new entry overwrote an earlier one"
+    assert kept.price_cents == 161 and kept.odometer_km == 118420
+    assert kept.plate == "KX61 VAN" and kept.litres == 42.5
+    other = fl.get("F2")
+    assert other is not None, "the new entry overwrote an earlier one"
+    assert other.plate == "LD19 VAN" and other.litres == 50.0
+    assert other.odometer_km == 20100 and other.price_cents == 0
+    assert fl.get(third.entry_id).plate == "MV07 VAN"
+    assert fl.litres_for("KX61 VAN") == 42.5
+    assert fl.litres_for("LD19 VAN") == 50.0
+    assert fl.litres_for("MV07 VAN") == 30.0
 """
 }
 
@@ -470,6 +492,53 @@ def test_correction_keeps_a_price_recorded_earlier():
     kept = fl.get("F2")
     assert kept is not None, "the other entry was dropped"
     assert kept.price_cents == 173 and kept.odometer_km == 20100
+    assert fl.litres_for("KX61 VAN") == 42.5 and fl.litres_for("LD19 VAN") == 50.0
+
+
+# The three pins below reach a NON-DEFAULT price_cents through the public
+# set_price, which exists only at this checkpoint; they replace the request-1
+# fixtures that used to seed the price by writing into the private mapping
+# (round 4, medium: a consistent private rename must still score J = 1).
+
+
+def test_large_correction_keeps_a_price_recorded_earlier():
+    fl = FuelLog()
+    record_fill(fl, "KX61 VAN", 42.5, 118400)
+    record_fill(fl, "LD19 VAN", 50.0, 20100)
+    set_price(fl, "F1", 161)
+    set_price(fl, "F2", 173)
+    out = correct_odometer(fl, "F1", 128400)
+    assert out.odometer_km == 128400 and out.price_cents == 161
+    assert out.plate == "KX61 VAN" and out.litres == 42.5
+    assert fl.get("F1").odometer_km == 128400
+    assert fl.get("F1").price_cents == 161
+    kept = fl.get("F2")
+    assert kept is not None, "the other entry was dropped"
+    assert kept.price_cents == 173 and kept.odometer_km == 20100
+
+
+def test_rejected_correction_keeps_a_price_recorded_earlier():
+    fl = FuelLog()
+    record_fill(fl, "KX61 VAN", 42.5, 118400)
+    record_fill(fl, "LD19 VAN", 50.0, 20100)
+    set_price(fl, "F1", 161)
+    with pytest.raises(ValueError):
+        correct_odometer(fl, "F1", -1)
+    assert fl.get("F1").odometer_km == 118400
+    assert fl.get("F1").price_cents == 161
+    assert fl.get("F2") is not None, "the other entry was dropped"
+    assert fl.get("F2").odometer_km == 20100 and fl.get("F2").price_cents == 0
+    assert fl.litres_for("KX61 VAN") == 42.5
+
+
+def test_a_priced_entry_survives_a_later_fill():
+    fl = FuelLog()
+    record_fill(fl, "KX61 VAN", 42.5, 118400)
+    set_price(fl, "F1", 161)
+    record_fill(fl, "LD19 VAN", 50.0, 20100)
+    assert fl.get("F1") is not None, "the earlier entry was dropped"
+    assert fl.get("F1").price_cents == 161 and fl.get("F1").odometer_km == 118400
+    assert fl.get("F2").price_cents == 0
     assert fl.litres_for("KX61 VAN") == 42.5 and fl.litres_for("LD19 VAN") == 50.0
 """
 }

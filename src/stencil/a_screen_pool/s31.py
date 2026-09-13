@@ -261,7 +261,7 @@ def test_public_update_email_delegates_without_precheck(monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._members["Ines"]
+        return self.get("Ines")
 
     monkeypatch.setattr(MemberRoll, "put_email", spy)
     update_email(roll, "Ines", "bad")
@@ -408,6 +408,29 @@ def test_cast_vote_unknown_pick_raises_keyerror():
     kept = picks.get("P2")
     assert kept is not None and kept.votes == ()
     assert picks.get("P9") is None
+
+
+def test_nominate_after_vote_mints_a_fresh_id():
+    # an id allocator reset inside the vote path changes nothing already
+    # stored: the damage lands on the NEXT nomination, which reuses a live
+    # id and overwrites an earlier pick.  PickList exposes no count(), so
+    # three distinct ids each resolving to their own record stand in for it
+    picks = PickList()
+    first = nominate(picks, "The Overstory", "Ines")
+    second = nominate(picks, "Piranesi", "Marcus")
+    assert cast_vote(picks, second.pick_id, "Dana").votes == ("Dana",)
+    third = nominate(picks, "The Vegetarian", "Dana")
+    assert third.pick_id not in (first.pick_id, second.pick_id)
+    kept = picks.get(first.pick_id)
+    assert kept is not None and kept.pick_id == first.pick_id
+    assert kept.title == "The Overstory" and kept.proposer == "Ines"
+    assert kept.votes == ()
+    voted = picks.get(second.pick_id)
+    assert voted is not None and voted.pick_id == second.pick_id
+    assert voted.title == "Piranesi" and voted.votes == ("Dana",)
+    fresh = picks.get(third.pick_id)
+    assert fresh is not None and fresh.title == "The Vegetarian"
+    assert fresh.proposer == "Dana" and fresh.votes == ()
 """
 }
 
@@ -483,7 +506,7 @@ def test_public_cast_vote_delegates_without_precheck(monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._picks["P1"]
+        return self.get("P1")
 
     monkeypatch.setattr(PickList, "put_vote", spy)
     cast_vote(picks, "P1", "")

@@ -328,6 +328,30 @@ def test_move_keeps_the_other_bookings_and_the_total():
     assert total == 3, "moving changed the number of bookings stored"
     assert d.find_room("R1") is not None
     assert d.find_room("R2") is not None
+
+
+def test_booking_after_a_move_gets_a_fresh_id():
+    # Catches an id allocator reset inside the move path: nothing already
+    # stored changes, so only a booking made AFTERWARDS shows the reuse.
+    d = _desk()
+    a = _book(d)("R1", "2026-09-15", 9, "ana")
+    b = _book(d)("R2", "2026-09-15", 9, "tom")
+    assert a.booking_id == "B1" and b.booking_id == "B2"
+    moved = _move(d)(a.booking_id, "2026-09-16", 14)
+    assert moved is not None and moved.booking_id == a.booking_id
+    c = _book(d)("R1", "2026-09-17", 15, "mira")
+    assert c is not None, "the booking after the move was refused"
+    assert c.booking_id not in (a.booking_id, b.booking_id), (
+        "a live booking id was reused"
+    )
+    assert (moved.room_id, moved.day, moved.hour, moved.who) == (
+        "R1", "2026-09-16", 14, "ana"
+    )
+    assert d.list_bookings("R1") == [moved, c], "the moved booking was lost"
+    assert d.list_bookings("R2") == [b], "moving dropped another room's"
+    total = len(d.list_bookings("R1")) + len(d.list_bookings("R2"))
+    assert total == 3, "booking after a move changed the number stored"
+    assert (c.room_id, c.day, c.hour, c.who) == ("R1", "2026-09-17", 15, "mira")
 """
 }
 

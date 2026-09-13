@@ -383,6 +383,31 @@ def test_lend_game_unknown_raises_keyerror():
         lend_game(s, "G99", "Noor", 7)
     _assert_other_intact(s)
     assert s.get_game(g.game_id) is not None and s.get_loan(g.game_id) is None
+
+
+def test_add_game_after_lending_mints_a_fresh_id():
+    # Catches an id allocator reset inside the lend path: nothing already on
+    # the shelf changes, so only a game added AFTERWARDS shows the reuse.
+    s = Shelf()
+    a = add_game(s, "Azul", 4)
+    b = add_game(s, "Carcassonne", 2)
+    assert (a.game_id, b.game_id) == ("G1", "G2")
+    lend_game(s, b.game_id, "Noor", 14)
+    c = add_game(s, "Patchwork", 2)
+    assert c.game_id == "G3", "adding after a loan did not mint the next id"
+    assert c.game_id not in (a.game_id, b.game_id), "a live game id was reused"
+    kept_a = s.get_game(a.game_id)
+    assert kept_a is not None, "a game was dropped from the shelf"
+    assert kept_a.game_id == a.game_id and kept_a.title == "Azul"
+    assert kept_a.min_players == 4 and kept_a.rating is None
+    kept_b = s.get_game(b.game_id)
+    assert kept_b is not None, "a game was dropped from the shelf"
+    assert kept_b.game_id == b.game_id and kept_b.title == "Carcassonne"
+    assert kept_b.min_players == 2
+    assert s.get_game(c.game_id) is not None
+    assert s.get_game(c.game_id).title == "Patchwork"
+    loan = s.get_loan(b.game_id)
+    assert loan is not None and loan.borrower == "Noor" and loan.days == 14
 """
 }
 
@@ -414,6 +439,29 @@ def test_add_and_rate_unchanged():
     assert s.get_game(g.game_id) is not None
     assert s.get_game(other.game_id) is not None
     assert s.get_game(other.game_id).rating == 4
+
+
+def test_add_game_after_rating_mints_a_fresh_id():
+    # Catches an id allocator reset inside the rating path: nothing already on
+    # the shelf changes, so only a game added AFTERWARDS shows the reuse.
+    s = Shelf()
+    a = add_game(s, "Azul", 4)
+    b = add_game(s, "Carcassonne", 2)
+    assert (a.game_id, b.game_id) == ("G1", "G2")
+    rate_game(s, a.game_id, 4)
+    c = add_game(s, "Patchwork", 2)
+    assert c.game_id == "G3", "adding after a rating did not mint the next id"
+    assert c.game_id not in (a.game_id, b.game_id), "a live game id was reused"
+    kept_a = s.get_game(a.game_id)
+    assert kept_a is not None, "a game was dropped from the shelf"
+    assert kept_a.game_id == a.game_id and kept_a.title == "Azul"
+    assert kept_a.min_players == 4 and kept_a.rating == 4
+    kept_b = s.get_game(b.game_id)
+    assert kept_b is not None, "a game was dropped from the shelf"
+    assert kept_b.game_id == b.game_id and kept_b.title == "Carcassonne"
+    assert kept_b.min_players == 2 and kept_b.rating is None
+    assert s.get_game(c.game_id) is not None
+    assert s.get_game(c.game_id).title == "Patchwork"
 """
 }
 

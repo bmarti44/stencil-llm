@@ -368,6 +368,51 @@ def test_go_live_leaves_other_slots_alone():
     assert kept is not None and kept.host == "june"
     assert kept.show == "Lunch Jazz" and kept.start == 720
     assert len(g.on_day("tue")) == 1
+
+
+def test_go_live_preserves_every_required_slot_field():
+    # identity corruption: an update that makes the visible change but also
+    # replaces a REQUIRED field -- the slot id, the show, the day, the start
+    # or the length -- so status, host and the neighbours all survive while
+    # the slot itself is no longer the slot the grid stored
+    g = Grid()
+    a = g.add_slot("Morning Mix", "mon", 420, 120)
+    b = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    g.assign_host(a.slot_id, "ravi")
+    out = _live(g)(a.slot_id)
+    assert out.slot_id == a.slot_id and out.show == "Morning Mix"
+    assert out.day == "mon" and out.start == 420 and out.length_min == 120
+    stored = g.get(a.slot_id)
+    assert stored is not None and stored.slot_id == a.slot_id
+    assert stored.show == "Morning Mix" and stored.day == "mon"
+    assert stored.start == 420 and stored.length_min == 120
+    assert g.get("_audit") is None
+    kept = g.get(b.slot_id)
+    assert kept is not None and kept == b
+    assert kept.length_min == 60 and kept.start == 720
+    assert [x.slot_id for x in g.on_day("mon")] == [a.slot_id]
+    assert [x.slot_id for x in g.on_day("tue")] == [b.slot_id]
+
+
+def test_go_live_then_add_slot_mints_a_fresh_id():
+    # allocator reset: resetting the id counter inside go_live disturbs no
+    # slot already in the grid, so only a slot added AFTER it sees the
+    # rewind -- the new slot would reuse a live id and overwrite an earlier
+    # one.  Public API only.
+    g = Grid()
+    a = g.add_slot("Morning Mix", "mon", 420, 120)
+    b = g.add_slot("Lunch Jazz", "tue", 720, 60)
+    _live(g)(a.slot_id)
+    c = g.add_slot("Night Desk", "wed", 1320, 60)
+    assert c.slot_id not in (a.slot_id, b.slot_id)
+    kept_a = g.get(a.slot_id)
+    assert kept_a is not None and kept_a.show == "Morning Mix"
+    assert kept_a.status == "on_air" and kept_a.length_min == 120
+    kept_b = g.get(b.slot_id)
+    assert kept_b is not None and kept_b == b
+    assert g.get(c.slot_id) == c and c.show == "Night Desk"
+    assert len(g.on_day("mon")) == 1 and len(g.on_day("tue")) == 1
+    assert len(g.on_day("wed")) == 1
 """
 }
 

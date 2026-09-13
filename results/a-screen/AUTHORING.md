@@ -169,6 +169,45 @@ BOTH requests:
   assertion cannot pass vacuously on a failed read-back (AGENTS.md: an exact-zero or identity
   assertion must fail loudly when vacuous).
 
+## AMENDMENT 3 (2026-09-14, after Astra re-review round 4): identity, allocators, no private state
+
+The audit now has seven classes; two more were added after round 4 demonstrated them scoring
+J = 1 on a wrong repository:
+
+6. an update that additionally sets a **REQUIRED** field, so the record keeps every other value
+   but loses its identity (`replace(rec, recipe_id=tag, ...)`, and the `rec.with_X(...)` form);
+7. `self._counter = 0` at the top of a state-writing method, which disturbs no stored record and
+   corrupts the **next** insertion instead.
+
+So every `functional_tests` and `regression_tests` suite must also:
+
+- assert every REQUIRED field unchanged after the operation, on **both** the returned record and
+  the record read back through the store's public reader, and assert the store holds nothing
+  under the corrupted value (`get("_audit") is None`, or the slot's own raise policy);
+- contain a **create-after-update** sequence using only the public API — create, create, update,
+  create — asserting the third record gets a fresh id, both earlier records survive with their
+  own ids and values, and the count is three.
+
+Two traps when writing the create-after-update test:
+
+- If the slot mints its id BEFORE incrementing, a reset produces an UNUSED id (`J0`, `G0`) that
+  IS distinct from the live ones, so "distinct from both earlier ids" passes vacuously. Pin the
+  exact expected next id in that case.
+- Where the store exposes no public counter, express "the count is three" as three distinct ids
+  each resolving through the public reader to its own record. Never reach into private state.
+
+**No suite may touch a private attribute, at all.** The registered request does not name the
+target's private attributes, so a reply that consistently renames `self._members` to
+`self._records` is CORRECT and must still score J = 1. A fixture that seeds or reads private
+state imposes an undocumented implementation constraint and fails valid replies.
+`scripts/a_screen_rename.py` is the standing check and must report 0 rejected; it tests the
+property by renaming every private attribute in the gold's project source, because a grep misses
+accesses hidden inside a monkeypatch spy whose receiver is also spelled `self`.
+
+If a non-default state has no public writer at the checkpoint you need it, do not reach into the
+store: move the pin to the request where a public writer exists, or reach a different
+non-default state publicly and say in the registration which property you substituted.
+
 Never weaken an existing assertion to make a mutation detectable, and never change the project
 source, the request text, the gold, the contract statements, the prefix turns, `contract_tests` or
 `support_tests` to satisfy the audit. If a mutation is genuinely uncatchable without one of those

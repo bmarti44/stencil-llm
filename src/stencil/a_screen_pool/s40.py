@@ -236,6 +236,32 @@ def test_withdraw_keeps_the_committee_note(tmp_path):
     assert back.student == "priya" and back.program == "fieldwork"
     assert reg.get(keeper.app_id).status == "submitted"
     assert reg.count() == 2
+
+
+def test_submit_after_withdraw_mints_a_fresh_id(tmp_path):
+    # public API only: withdrawing must not rewind the id allocator, or the
+    # next submission reuses a live id and overwrites an earlier application
+    reg, path = _reg(tmp_path)
+    first = reg.submit("tom", "conference", 400)
+    second = reg.submit("priya", "fieldwork", 1200)
+    reg.withdraw(second.app_id)
+    third = reg.submit("ana", "fieldwork", 700)
+    assert third.app_id not in (first.app_id, second.app_id)
+    assert len({first.app_id, second.app_id, third.app_id}) == 3
+    assert reg.count() == 3
+    kept = reg.get(first.app_id)
+    assert kept is not None, "the earlier application was overwritten"
+    assert kept.app_id == first.app_id and kept.student == "tom"
+    assert kept.amount == 400 and kept.status == "submitted"
+    gone = reg.get(second.app_id)
+    assert gone is not None and gone.app_id == second.app_id
+    assert gone.status == "withdrawn" and gone.student == "priya"
+    assert gone.amount == 1200
+    back = reg.get(third.app_id)
+    assert back is not None and back.app_id == third.app_id
+    assert back.student == "ana" and back.amount == 700
+    assert back.status == "submitted"
+    assert path.read_text().splitlines()[-1] == f"submit {third.app_id} fieldwork 700"
 """
 }
 
@@ -423,6 +449,32 @@ def test_award_writes_one_audit_line_among_several_records(tmp_path):
     _award(reg)(a.app_id, 900)
     assert path.read_text().splitlines() == before + [f"award {a.app_id} 900"]
     assert reg.count() == 2
+
+
+def test_submit_after_award_mints_a_fresh_id(tmp_path):
+    # public API only: awarding must not rewind the id allocator, or the next
+    # submission reuses a live id and overwrites an earlier application
+    reg, path = _reg(tmp_path)
+    first = reg.submit("tom", "conference", 400)
+    second = reg.submit("priya", "fieldwork", 1200)
+    _award(reg)(second.app_id, 900)
+    third = reg.submit("ana", "fieldwork", 700)
+    assert third.app_id not in (first.app_id, second.app_id)
+    assert len({first.app_id, second.app_id, third.app_id}) == 3
+    assert reg.count() == 3
+    kept = reg.get(first.app_id)
+    assert kept is not None, "the earlier application was overwritten"
+    assert kept.app_id == first.app_id and kept.student == "tom"
+    assert kept.amount == 400 and kept.status == "submitted"
+    awarded = reg.get(second.app_id)
+    assert awarded is not None and awarded.app_id == second.app_id
+    assert awarded.status == "awarded" and awarded.amount == 900
+    assert awarded.student == "priya"
+    back = reg.get(third.app_id)
+    assert back is not None and back.app_id == third.app_id
+    assert back.student == "ana" and back.amount == 700
+    assert back.status == "submitted"
+    assert path.read_text().splitlines()[-1] == f"submit {third.app_id} fieldwork 700"
 """
 }
 

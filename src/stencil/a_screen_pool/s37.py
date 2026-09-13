@@ -219,6 +219,28 @@ def test_install_find_add_reading_set_threshold_unchanged():
         net.add_reading("G9", 0.5)
     with pytest.raises(KeyError):
         net.set_threshold("G9", 2.0)
+
+
+def test_add_reading_then_install_mints_a_fresh_id():
+    # allocator reset: rewinding the gauge-id counter inside the PRE-EXISTING
+    # add_reading disturbs no gauge already registered, so only an install
+    # AFTER it sees the damage -- the new gauge would reuse a live id and
+    # overwrite an earlier one.  Public API only.
+    net = GaugeNetwork()
+    first = net.install("Wharfe", "Otley bridge")
+    second = net.install("Aire", "Kildwick")
+    net.add_reading(first["gauge_id"], 1.1)
+    third = net.install("Nidd", "Pateley")
+    assert third["gauge_id"] not in (first["gauge_id"], second["gauge_id"])
+    kept_first = net.find(first["gauge_id"])
+    assert kept_first is not None and kept_first["river"] == "Wharfe"
+    assert kept_first["readings"] == [1.1] and kept_first["status"] == "live"
+    kept_second = net.find(second["gauge_id"])
+    assert kept_second is not None and kept_second["site"] == "Kildwick"
+    assert kept_second["river"] == "Aire" and kept_second["readings"] == []
+    got_third = net.find(third["gauge_id"])
+    assert got_third is not None and got_third["river"] == "Nidd"
+    assert got_third["readings"] == [] and got_third["site"] == "Pateley"
 """
 }
 

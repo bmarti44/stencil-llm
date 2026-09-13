@@ -229,7 +229,7 @@ def test_public_set_priority_delegates_without_precheck(monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._orders["W1"]
+        return self.get("W1")
 
     monkeypatch.setattr(OrderBook, "put_priority", spy)
     set_priority(book, "W1", "asap")
@@ -387,6 +387,26 @@ def test_assign_contractor_keeps_other_orders_and_fields():
     assert kept.unit == "2A" and kept.description == "hallway light out"
     assert book.get("W1").contractor == "Reyes Plumbing"
     assert len(book.for_unit("4B")) == 1 and len(book.for_unit("2A")) == 1
+
+
+def test_assign_contractor_then_open_gets_a_fresh_order_id():
+    # round 4: assigning a contractor must not disturb the id allocator; the
+    # damage only shows on the NEXT order, which would reuse a live id.
+    book = OrderBook()
+    first = open_order(book, "4B", "kitchen tap drips")
+    second = open_order(book, "2A", "hallway light out")
+    assign_contractor(book, first.order_id, "Reyes Plumbing")
+    third = open_order(book, "1C", "window latch broken")
+    assert third.order_id == "W3"
+    assert third.order_id not in (first.order_id, second.order_id)
+    kept = book.get(first.order_id)
+    assert kept is not None, "opening an order overwrote an earlier one"
+    assert kept.unit == "4B" and kept.description == "kitchen tap drips"
+    assert kept.contractor == "Reyes Plumbing"
+    assert book.get(second.order_id) == second
+    assert book.get(third.order_id).unit == "1C"
+    assert len(book.for_unit("4B")) == 1 and len(book.for_unit("2A")) == 1
+    assert len(book.for_unit("1C")) == 1
 """
 }
 
@@ -460,7 +480,7 @@ def test_public_assign_contractor_delegates_without_precheck(monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._orders["W1"]
+        return self.get("W1")
 
     monkeypatch.setattr(OrderBook, "put_contractor", spy)
     assign_contractor(book, "W1", "")

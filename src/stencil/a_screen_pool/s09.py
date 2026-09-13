@@ -373,6 +373,26 @@ def test_interval_bad_text_leaves_plant_untouched():
     assert s.find(p.plant_id).interval_days == 30
     assert s.find(p.plant_id).last_watered == date(2026, 8, 2)
     _check_keeper(s, keeper)
+
+
+def test_add_plant_after_interval_change_mints_a_fresh_id():
+    # Round 4 class 7: a reset id allocator leaves every stored plant intact and
+    # corrupts the NEXT insertion, which reuses a live id and overwrites a plant.
+    s = PlantStore()
+    keeper, p = _two(s, "monstera", 7)
+    _set_interval(s)(p.plant_id, "10d")
+    third = s.add_plant("third", 4)
+    assert third.plant_id not in (keeper.plant_id, p.plant_id), "a live id was reused"
+    assert s.count() == 3, "the new plant overwrote an earlier one"
+    kept = s.find(keeper.plant_id)
+    assert kept is not None and kept.name == "keeper"
+    assert kept.interval_days == 5 and kept.last_watered == date(2026, 8, 1)
+    changed = s.find(p.plant_id)
+    assert changed is not None and changed.name == "monstera"
+    assert changed.interval_days == 10
+    assert changed.last_watered == date(2026, 8, 2)
+    assert s.find(third.plant_id).name == "third"
+    assert s.find(third.plant_id).interval_days == 4
 """
 }
 

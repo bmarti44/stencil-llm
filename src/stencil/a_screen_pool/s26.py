@@ -273,7 +273,7 @@ def test_public_set_note_delegates_without_precheck(tmp_path, monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._terms["cat"]
+        return self.get("cat")
 
     monkeypatch.setattr(TermBook, "put_note", spy)
     set_note(book, "cat", "")
@@ -526,7 +526,7 @@ def test_public_rename_target_delegates_without_precheck(tmp_path, monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._terms["cat"]
+        return self.get("cat")
 
     monkeypatch.setattr(TermBook, "put_target", spy)
     rename_target(book, "cat", "")

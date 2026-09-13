@@ -41,7 +41,17 @@ def build_at(ref: str, slot: str):
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--ref", default="HEAD", help="git ref to compare against")
+    ap.add_argument(
+        "--allow",
+        default="",
+        help="comma-separated SLOT:REQUEST:field changes authorised for this run, e.g. "
+        "S26:1:contract_tests -- each must be named explicitly and recorded in the "
+        "registration; anything not listed is still a violation",
+    )
     a = ap.parse_args()
+    allow = {x.strip() for x in a.allow.split(",") if x.strip()}
+    allowed_slots = {x.split(":")[0] for x in allow}
+    used: set[str] = set()
 
     changed = _git(
         "diff", "--name-only", a.ref, "--", "src/stencil/a_screen_pool/"
@@ -65,16 +75,28 @@ def main() -> None:
                 if f.name in EXEMPT:
                     continue
                 if getattr(ro, f.name) != getattr(rn, f.name):
-                    bad.append(f"{slot}: request {i} .{f.name} changed")
-        if all(
-            getattr(ro, k) == getattr(rn, k)
-            for ro, rn in zip(old.requests, new.requests)
-            for k in EXEMPT
+                    key = f"{slot}:{i}:{f.name}"
+                    if key in allow:
+                        used.add(key)
+                        print(f"   authorised: {key}")
+                    else:
+                        bad.append(f"{slot}: request {i} .{f.name} changed")
+        if (
+            all(
+                getattr(ro, k) == getattr(rn, k)
+                for ro, rn in zip(old.requests, new.requests)
+                for k in EXEMPT
+            )
+            and slot not in allowed_slots
         ):
             bad.append(f"{slot}: file differs but no suite body changed")
 
     untouched = sorted(set(available_slots()) - set(slots))
     print(f"slots untouched: {len(untouched)} {untouched}")
+    # an allow entry matching nothing is a stale authorisation: report it rather than
+    # let it sit in a command line granting more than it needs to
+    for key in sorted(allow - used):
+        bad.append(f"stale --allow entry matched no change: {key}")
     print(f"\nCONTAINMENT VIOLATIONS: {len(bad)}")
     for line in bad:
         print("  ", line)

@@ -350,6 +350,39 @@ def test_retire_keeps_treated_siblings_and_count(tmp_path):
     assert kept.status == "treated" and kept.note == "oxalic acid dribble"
     assert kept.queen_year == 2026 and kept.site == "allotment"
     assert y.count() == 2 and y.get(a.hive_id).status == "retired"
+
+
+def test_retire_keeps_the_hive_id_on_record_and_in_yard(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    out = _retire(y)(a.hive_id)
+    assert out.hive_id == a.hive_id and out.site == "orchard"
+    assert out.queen_year == 2025
+    stored = y.get(a.hive_id)
+    assert stored is not None, "the retired hive is no longer under its own id"
+    assert stored.hive_id == a.hive_id and stored.site == "orchard"
+    assert stored.queen_year == 2025 and stored.status == "retired"
+    assert y.get("_audit") is None, "the hive was stored under a corrupted id"
+    assert y.get(b.hive_id).hive_id == b.hive_id
+    assert y.count() == 2
+
+
+def test_add_hive_after_retire_mints_a_fresh_id(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    _retire(y)(a.hive_id)
+    c = y.add_hive("church", 2023)
+    assert c.hive_id not in (a.hive_id, b.hive_id), "a live hive id was reused"
+    kept_a = y.get(a.hive_id)
+    assert kept_a is not None and kept_a.site == "orchard"
+    assert kept_a.queen_year == 2025 and kept_a.status == "retired"
+    kept_b = y.get(b.hive_id)
+    assert kept_b is not None and kept_b.site == "allotment"
+    assert kept_b.queen_year == 2024 and kept_b.status == "active"
+    assert y.get(c.hive_id).site == "church"
+    assert y.count() == 3
 """
 }
 
@@ -387,6 +420,74 @@ def test_requeen_keeps_treated_siblings_and_count(tmp_path):
     assert kept.queen_year == 2024 and kept.site == "allotment"
     assert y.count() == 2 and y.get(a.hive_id).note == "formic strip"
     assert path.read_text().splitlines()[-1] == f"requeen {a.hive_id} 2026"
+
+
+def _treat_fn(yard):
+    fn = getattr(yard, "record_treatment", None) or getattr(yard, "treat", None)
+    assert fn is not None, "no record_treatment method found"
+    return fn
+
+
+def test_requeen_keeps_the_hive_id_on_record_and_in_yard(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    out = y.requeen(a.hive_id, 2026)
+    assert out.hive_id == a.hive_id and out.site == "orchard"
+    stored = y.get(a.hive_id)
+    assert stored is not None, "the requeened hive is no longer under its own id"
+    assert stored.hive_id == a.hive_id and stored.site == "orchard"
+    assert stored.queen_year == 2026 and stored.status == "active"
+    assert y.get("_audit") is None, "the hive was stored under a corrupted id"
+    assert y.get(b.hive_id).hive_id == b.hive_id
+    assert y.count() == 2
+
+
+def test_record_treatment_keeps_the_hive_id_in_the_yard(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    out = _treat_fn(y)(a.hive_id, "formic strip")
+    assert out.hive_id == a.hive_id
+    stored = y.get(a.hive_id)
+    assert stored is not None, "the treated hive is no longer under its own id"
+    assert stored.hive_id == a.hive_id and stored.note == "formic strip"
+    assert stored.site == "orchard" and stored.queen_year == 2025
+    assert y.get("_audit") is None, "the hive was stored under a corrupted id"
+    assert y.count() == 1
+
+
+def test_add_hive_after_requeen_mints_a_fresh_id(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    y.requeen(a.hive_id, 2026)
+    c = y.add_hive("church", 2023)
+    assert c.hive_id not in (a.hive_id, b.hive_id), "a live hive id was reused"
+    kept_a = y.get(a.hive_id)
+    assert kept_a is not None and kept_a.site == "orchard"
+    assert kept_a.queen_year == 2026
+    kept_b = y.get(b.hive_id)
+    assert kept_b is not None and kept_b.site == "allotment"
+    assert kept_b.queen_year == 2024
+    assert y.get(c.hive_id).site == "church"
+    assert y.count() == 3
+
+
+def test_add_hive_after_record_treatment_mints_a_fresh_id(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    _treat_fn(y)(a.hive_id, "formic strip")
+    c = y.add_hive("church", 2023)
+    assert c.hive_id not in (a.hive_id, b.hive_id), "a live hive id was reused"
+    kept_a = y.get(a.hive_id)
+    assert kept_a is not None and kept_a.note == "formic strip"
+    assert kept_a.site == "orchard" and kept_a.queen_year == 2025
+    kept_b = y.get(b.hive_id)
+    assert kept_b is not None and kept_b.site == "allotment"
+    assert kept_b.note is None and kept_b.queen_year == 2024
+    assert y.get(c.hive_id).site == "church"
+    assert y.count() == 3
 """
 }
 

@@ -126,11 +126,13 @@ def test_lend_keeps_name_and_id():
     assert s.count() == 2
 
 
-def test_lend_needs_repair_tool_still_lends():
+def test_lend_tool_in_a_non_default_status_still_lends():
+    # seeded through the store's own public writer rather than the private
+    # mapping, so a reply that renames the mapping consistently still passes
     s = ToolStore()
     t = s.add_tool("hedge trimmer")
     other = s.add_tool("tile cutter")
-    s._tools[t.tool_id] = t.with_status("needs-repair")
+    s.retire_tool(t.tool_id)
     out = _lend(s)(t.tool_id, "kofi")
     assert out.status == "out" and out.borrower == "kofi"
     assert s.find(other.tool_id) == other
@@ -152,15 +154,44 @@ def test_lend_leaves_the_other_tool_untouched():
     assert s.find(a.tool_id).borrower == "kofi"
     assert s.find(a.tool_id).name == "cordless drill"
     assert s.count() == 2
+
+
+def test_add_tool_after_lending_mints_a_fresh_id():
+    # public API only: lending must not rewind the id allocator, and the
+    # lent record must keep every required field on read-back
+    s = ToolStore()
+    a = s.add_tool("cordless drill")
+    b = s.add_tool("tile cutter")
+    _lend(s)(b.tool_id, "mira")
+    c = s.add_tool("hedge trimmer")
+    assert c.tool_id not in (a.tool_id, b.tool_id)
+    assert len({a.tool_id, b.tool_id, c.tool_id}) == 3
+    assert s.count() == 3
+    first = s.find(a.tool_id)
+    assert first is not None and first.tool_id == a.tool_id
+    assert first.name == "cordless drill" and first.status == "in"
+    assert first.borrower is None
+    lent = s.find(b.tool_id)
+    assert lent is not None and lent.tool_id == b.tool_id
+    assert lent.name == "tile cutter" and lent.borrower == "mira"
+    third = s.find(c.tool_id)
+    assert third is not None and third.tool_id == c.tool_id
+    assert third.name == "hedge trimmer" and third.status == "in"
+    assert third.borrower is None
+    assert s.find("_audit") is None
 """
 }
 
 _C1_REGRESSION = {
-    "test_lend_regression.py": """from dataclasses import replace
-
-import pytest
+    "test_lend_regression.py": """import pytest
 
 from toolshed.store import ToolStore
+
+
+def _lend(store):
+    fn = getattr(store, "lend_tool", None)
+    assert fn is not None, "no lend_tool method found"
+    return fn
 
 
 def test_add_find_count_retire_unchanged():
@@ -191,8 +222,8 @@ def test_retire_keeps_other_tools_and_their_borrowers():
     s = ToolStore()
     a = s.add_tool("a")
     b = s.add_tool("b")
-    s._tools[a.tool_id] = replace(s.find(a.tool_id), status="out", borrower="kofi")
-    s._tools[b.tool_id] = replace(s.find(b.tool_id), status="out", borrower="mira")
+    _lend(s)(a.tool_id, "kofi")
+    _lend(s)(b.tool_id, "mira")
     out = s.retire_tool(b.tool_id)
     assert out.status == "retired" and out.borrower == "mira"
     kept = s.find(a.tool_id)
@@ -202,6 +233,44 @@ def test_retire_keeps_other_tools_and_their_borrowers():
     assert got.status == "retired" and got.borrower == "mira"
     assert got.name == "b"
     assert s.count() == 2
+
+
+def test_retire_keeps_the_tool_id_and_stores_it_under_that_id():
+    # the returned record AND the record read back through find keep every
+    # required field; nothing is filed under a corrupted id
+    s = ToolStore()
+    a = s.add_tool("a")
+    other = s.add_tool("b")
+    out = s.retire_tool(a.tool_id)
+    assert out.tool_id == a.tool_id and out.name == "a"
+    back = s.find(a.tool_id)
+    assert back is not None and back.tool_id == a.tool_id
+    assert back.name == "a" and back.status == "retired"
+    assert s.find("_audit") is None
+    assert s.find(other.tool_id) == other
+    assert s.count() == 2
+
+
+def test_add_tool_after_retiring_mints_a_fresh_id():
+    # public API only: retiring must not rewind the id allocator, so the
+    # next tool cannot reuse a live id and overwrite an earlier record
+    s = ToolStore()
+    a = s.add_tool("a")
+    b = s.add_tool("b")
+    s.retire_tool(b.tool_id)
+    c = s.add_tool("c")
+    assert c.tool_id not in (a.tool_id, b.tool_id)
+    assert len({a.tool_id, b.tool_id, c.tool_id}) == 3
+    assert s.count() == 3
+    first = s.find(a.tool_id)
+    assert first is not None and first.tool_id == a.tool_id
+    assert first.name == "a" and first.status == "in"
+    gone = s.find(b.tool_id)
+    assert gone is not None and gone.tool_id == b.tool_id
+    assert gone.name == "b" and gone.status == "retired"
+    third = s.find(c.tool_id)
+    assert third is not None and third.tool_id == c.tool_id
+    assert third.name == "c" and third.status == "in"
 """
 }
 
@@ -247,10 +316,11 @@ def test_lend_ordinary_emits_no_log(caplog):
     assert len(caplog.records) == 0
 
 
-def test_lend_needs_repair_emits_no_log(caplog):
+def test_lend_a_retired_tool_emits_no_log(caplog):
     s = ToolStore()
     t = s.add_tool("hedge trimmer")
-    s._tools[t.tool_id] = t.with_status("needs-repair")
+    s.retire_tool(t.tool_id)
+    assert s.find(t.tool_id).status != "in", "the tool is in a non-default status"
     with caplog.at_level(logging.DEBUG):
         _lend(s)(t.tool_id, "kofi")
     assert len(caplog.records) == 0
@@ -362,6 +432,30 @@ def test_cancel_keeps_the_other_holds_and_the_queue():
     assert neighbour is not None and neighbour.status == "cancelled"
     assert neighbour.member == "kofi" and neighbour.tool_id == "T1"
     assert b.waiting_for("T1") == [] and b.waiting_for("T2") == [h3]
+
+
+def test_place_hold_after_cancelling_mints_a_fresh_id():
+    # public API only: cancelling must not rewind the hold-id allocator, or
+    # the next hold reuses a live id and overwrites an earlier record
+    b = HoldBook()
+    h1 = b.place_hold("T1", "mira")
+    h2 = b.place_hold("T1", "kofi")
+    _cancel(b)(h1.hold_id)
+    h3 = b.place_hold("T2", "ada")
+    assert h3.hold_id not in (h1.hold_id, h2.hold_id)
+    assert len({h1.hold_id, h2.hold_id, h3.hold_id}) == 3
+    first = b.find(h1.hold_id)
+    assert first is not None and first.hold_id == h1.hold_id
+    assert first.status == "cancelled" and first.member == "mira"
+    assert first.tool_id == "T1"
+    second = b.find(h2.hold_id)
+    assert second is not None and second == h2
+    third = b.find(h3.hold_id)
+    assert third is not None and third.hold_id == h3.hold_id
+    assert third.member == "ada" and third.tool_id == "T2"
+    assert third.status == "waiting"
+    assert b.waiting_for("T1") == [h2] and b.waiting_for("T2") == [third]
+    assert b.find("_audit") is None
 """
 }
 

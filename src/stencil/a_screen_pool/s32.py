@@ -336,6 +336,45 @@ def test_a_returned_loan_keeps_its_status_when_extended():
     kept = reg.get(keep.loan_id)
     assert kept is not None, "extending one loan dropped the other"
     assert kept == keep and kept.status == "out"
+
+
+def test_take_back_preserves_the_loan_identity_and_its_other_fields():
+    reg = LoanRegister()
+    keep = lend(reg, "Harbour at Dusk", "Rijksmuseum", 90)
+    loan = lend(reg, "Nocturne in Grey", "Kunsthalle Bremen", 30)
+    out = take_back(reg, loan.loan_id, "good")
+    assert out.loan_id == loan.loan_id, "take_back replaced the loan's own id"
+    assert out.artwork == "Nocturne in Grey", "take_back replaced the artwork"
+    assert out.borrower == "Kunsthalle Bremen" and out.days == 30
+    stored = reg.get(loan.loan_id)
+    assert stored is not None, "the loan is no longer stored under its own id"
+    assert stored.loan_id == loan.loan_id, "the stored loan's id was replaced"
+    assert stored.artwork == "Nocturne in Grey", "the stored artwork was replaced"
+    assert stored.borrower == "Kunsthalle Bremen" and stored.days == 30
+    assert reg.get("_audit") is None, "a loan was stored under a foreign id"
+    kept = reg.get(keep.loan_id)
+    assert kept is not None and kept == keep
+
+
+def test_lending_after_a_take_back_still_mints_a_fresh_id():
+    reg = LoanRegister()
+    first = lend(reg, "Harbour at Dusk", "Rijksmuseum", 90)
+    second = lend(reg, "Study of Hands", "Ateneum", 60)
+    take_back(reg, second.loan_id, "good")
+    third = lend(reg, "Portrait in Sepia", "Nationalmuseum", 45)
+    assert len({first.loan_id, second.loan_id, third.loan_id}) == 3, (
+        "the id allocator was reset: a new loan reused a live id"
+    )
+    kept = reg.get(first.loan_id)
+    assert kept is not None, "the new loan overwrote the first one"
+    assert kept == first and kept.artwork == "Harbour at Dusk"
+    closed = reg.get(second.loan_id)
+    assert closed is not None, "the new loan overwrote the returned one"
+    assert closed.status == "returned" and closed.condition == "good"
+    assert closed.artwork == "Study of Hands" and closed.days == 60
+    newest = reg.get(third.loan_id)
+    assert newest is not None and newest == third
+    assert newest.artwork == "Portrait in Sepia" and newest.days == 45
 """
 }
 

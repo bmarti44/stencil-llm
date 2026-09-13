@@ -335,6 +335,35 @@ def test_start_keeps_the_other_job():
     assert back is not None, "starting one job dropped the other"
     assert back == kept and back.status == "in_progress"
     assert back.mechanic == "tom" and back.bike == "blue Surly"
+
+
+def test_open_job_after_starting_mints_a_fresh_id():
+    # public API only: starting a job must not rewind the id allocator, or a
+    # later job reuses a live id and overwrites an earlier record
+    w = Workshop()
+    a = w.open_job("blue Surly", "true rear wheel")
+    b = w.open_job("red Brompton", "brake cable frayed")
+    _start(w)(b.job_id, "priya")
+    c = w.open_job("green Bianchi", "new bar tape")
+    assert c.job_id == "J3"
+    assert c.job_id not in (a.job_id, b.job_id)
+    assert w.count() == 3
+    first = w.find(a.job_id)
+    assert first is not None and first == a
+    assert first.job_id == a.job_id and first.status == "queued"
+    assert first.mechanic is None
+    started = w.find(b.job_id)
+    assert started is not None and started.job_id == b.job_id
+    assert started.status == "in_progress" and started.mechanic == "priya"
+    assert started.bike == "red Brompton"
+    third = w.find(c.job_id)
+    assert third is not None and third.job_id == c.job_id
+    assert third.bike == "green Bianchi" and third.status == "queued"
+    assert third.mechanic is None
+    d = w.open_job("black Trek", "gear cable")
+    assert d.job_id not in (a.job_id, b.job_id, c.job_id)
+    assert w.count() == 4
+    assert w.find(a.job_id) == a
 """
 }
 

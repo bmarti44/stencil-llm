@@ -322,6 +322,41 @@ def test_excuse_without_mark_raises_keyerror():
     b, s = _book()
     with pytest.raises(KeyError):
         excuse_absence(b, s.student_id, "2026-09-15", "dentist")
+
+
+def test_excuse_keeps_the_marks_identity_fields():
+    # round 4: an update that keeps every visible field but replaces a REQUIRED
+    # one (the student id or the day) leaves the record under its old key with a
+    # different identity inside it.
+    b, s = _book()
+    out = excuse_absence(b, s.student_id, "2026-09-14", "dentist")
+    assert out.student_id == s.student_id and out.day == "2026-09-14"
+    assert out.status == "absent" and out.excuse == "dentist"
+    stored = b.get_mark(s.student_id, "2026-09-14")
+    assert stored is not None, "the excused mark left the book"
+    assert stored.student_id == s.student_id and stored.day == "2026-09-14"
+    assert stored.status == "absent" and stored.excuse == "dentist"
+    assert b.get_mark("_audit", "2026-09-14") is None
+    assert b.get_mark(s.student_id, "_audit") is None
+    assert b.get_student("_audit") is None
+
+
+def test_excuse_then_enroll_gets_a_fresh_student_id():
+    # round 4: excusing must not disturb the id allocator, which only the NEXT
+    # enrolment can show.
+    b = AttendanceBook()
+    first = enroll(b, "Aisha Khan")
+    second = enroll(b, "Ben Ortiz")
+    record_mark(b, first.student_id, "2026-09-14", "absent")
+    excuse_absence(b, first.student_id, "2026-09-14", "dentist")
+    third = enroll(b, "Cleo Adams")
+    assert third.student_id == "S3"
+    assert third.student_id not in (first.student_id, second.student_id)
+    assert b.student_count() == 3
+    assert b.get_student(first.student_id).name == "Aisha Khan"
+    assert b.get_student(second.student_id).name == "Ben Ortiz"
+    assert b.get_student(third.student_id).name == "Cleo Adams"
+    assert b.get_mark(first.student_id, "2026-09-14").excuse == "dentist"
 """
 }
 
@@ -343,6 +378,22 @@ def test_enroll_and_record_mark_unchanged():
     with pytest.raises(ValueError):
         record_mark(b, s.student_id, "2026-09-14", "sleeping")
     assert b.get_mark(s.student_id, "2026-09-14").status == "late"
+
+
+def test_record_mark_then_enroll_gets_a_fresh_student_id():
+    # round 4: recording a mark must not disturb the id allocator; the damage
+    # only shows on the NEXT enrolment.
+    b = AttendanceBook()
+    first = enroll(b, "Aisha Khan")
+    second = enroll(b, "Ben Ortiz")
+    record_mark(b, first.student_id, "2026-09-14", "present")
+    third = enroll(b, "Cleo Adams")
+    assert third.student_id == "S3"
+    assert third.student_id not in (first.student_id, second.student_id)
+    assert b.student_count() == 3
+    assert b.get_student(first.student_id).name == "Aisha Khan"
+    assert b.get_student(second.student_id).name == "Ben Ortiz"
+    assert b.get_mark(first.student_id, "2026-09-14").status == "present"
 """
 }
 

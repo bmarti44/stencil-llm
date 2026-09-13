@@ -257,6 +257,46 @@ def test_tag_unknown_raises_keyerror():
         assert b.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown recipe")
+
+
+def test_tag_preserves_the_recipe_identity():
+    # identity corruption: an update that keeps the title, the servings, the
+    # tags and the neighbour, but replaces a REQUIRED field -- here the
+    # record's own id, set to the new tag -- so the book holds the recipe
+    # under its original key while the record inside no longer knows its id
+    b = RecipeBook()
+    r = b.add_recipe("lentil soup", servings=6)
+    other = b.add_recipe("rye loaf", servings=9)
+    out = _tag(b)(r.recipe_id, "vegan")
+    assert out.recipe_id == r.recipe_id and out.title == "lentil soup"
+    assert out.servings == 6
+    stored = b.find(r.recipe_id)
+    assert stored is not None and stored.recipe_id == r.recipe_id
+    assert stored.title == "lentil soup" and stored.servings == 6
+    assert b.find("_audit") is None and b.find("vegan") is None
+    kept = b.find(other.recipe_id)
+    assert kept is not None and kept == other
+    assert kept.recipe_id == other.recipe_id and b.count() == 2
+
+
+def test_tag_then_add_mints_a_fresh_id():
+    # allocator reset: resetting the id counter inside the tag operation
+    # disturbs no recipe already stored, so only an add AFTER the tagging
+    # sees it -- the new recipe would reuse a live id and overwrite an
+    # earlier one.  Public API only.
+    b = RecipeBook()
+    first = b.add_recipe("lentil soup", servings=6)
+    second = b.add_recipe("rye loaf", servings=9)
+    _tag(b)(first.recipe_id, "vegan")
+    third = b.add_recipe("flatbread", servings=2)
+    assert third.recipe_id not in (first.recipe_id, second.recipe_id)
+    kept_first = b.find(first.recipe_id)
+    assert kept_first is not None and kept_first.title == "lentil soup"
+    assert kept_first.servings == 6 and kept_first.tags == ("vegan",)
+    kept_second = b.find(second.recipe_id)
+    assert kept_second is not None and kept_second == second
+    assert b.find(third.recipe_id) == third
+    assert third.title == "flatbread" and b.count() == 3
 """
 }
 

@@ -288,7 +288,7 @@ def test_public_set_runtime_delegates_without_precheck(tmp_path, monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._films["Slow River"]
+        return self.get("Slow River")
 
     monkeypatch.setattr(FilmStore, "put_runtime", spy)
     set_runtime(store, "Slow River", -5)
@@ -441,6 +441,31 @@ def test_assign_room_leaves_the_other_screening_untouched(tmp_path):
     assert store.get("SC9") is None
     lines = (tmp_path / "schedule.log").read_text().splitlines()
     assert len(lines) == 5 and lines[-1] == "room SC1 Gaumont"
+
+
+def test_assign_room_then_book_mints_a_fresh_id(tmp_path):
+    # allocator reset: rewinding the screening-id counter inside the room
+    # update disturbs no screening already stored, so only a booking made
+    # AFTER it sees the damage -- the new screening would reuse a live id and
+    # overwrite an earlier one.  Public API only.
+    store = ScreeningStore(tmp_path / "schedule.log")
+    a = book_screening(store, "Slow River", "Odeon 1", "18:30")
+    b = book_screening(store, "Night Shift", "Odeon 2", "21:00")
+    assign_room(store, a.screening_id, "Rialto")
+    c = book_screening(store, "Low Tide", "Odeon 3", "11:00")
+    assert c.screening_id not in (a.screening_id, b.screening_id)
+    kept_a = store.get(a.screening_id)
+    assert kept_a is not None and kept_a.title == "Slow River"
+    assert kept_a.room == "Rialto" and kept_a.start == "18:30"
+    assert kept_a.screening_id == a.screening_id
+    kept_b = store.get(b.screening_id)
+    assert kept_b is not None and kept_b == b
+    got_c = store.get(c.screening_id)
+    assert got_c is not None and got_c.title == "Low Tide"
+    assert got_c.room == "Odeon 3" and got_c.start == "11:00"
+    lines = (tmp_path / "schedule.log").read_text().splitlines()
+    assert len(lines) == 4
+    assert lines[-1] == "screening " + c.screening_id + " Low Tide"
 """
 }
 
@@ -527,7 +552,7 @@ def test_public_assign_room_delegates_without_precheck(tmp_path, monkeypatch):
 
     def spy(self, *args, **kwargs):
         calls.append(args + tuple(kwargs.values()))
-        return self._screenings["SC1"]
+        return self.get("SC1")
 
     monkeypatch.setattr(ScreeningStore, "put_room", spy)
     assign_room(store, "SC1", "")

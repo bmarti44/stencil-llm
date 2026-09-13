@@ -391,6 +391,26 @@ def test_leave_of_an_absent_rider_keeps_the_other_ride():
     back = s.find(other.ride_id)
     assert back is not None and back == other
     assert back.riders == ("mina",) and back.status == "cancelled"
+
+
+def test_offer_ride_after_leave_mints_a_fresh_id():
+    # Round 4 class 7: a reset id allocator leaves every stored ride intact and
+    # corrupts the NEXT insertion, which reuses a live id and overwrites a ride.
+    s = RideStore()
+    other, target = _two_rides(s)
+    _leave(s)(target.ride_id, "omar")
+    third = s.offer_ride("pia", 4)
+    assert third.ride_id not in (other.ride_id, target.ride_id), "a live id was reused"
+    assert s.count() == 3, "the new ride overwrote an earlier one"
+    back = s.find(other.ride_id)
+    assert back is not None and back == other
+    assert back.riders == ("mina",) and back.driver == "tariq"
+    assert back.seats == 2 and back.status == "cancelled"
+    changed = s.find(target.ride_id)
+    assert changed is not None and changed.driver == "nadia"
+    assert changed.riders == ("lea",) and changed.seats == 3
+    assert s.find(third.ride_id).driver == "pia"
+    assert s.find(third.ride_id).seats == 4
 """
 }
 

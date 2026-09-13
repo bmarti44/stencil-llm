@@ -257,6 +257,34 @@ def test_withdraw_leaves_other_rows_untouched():
     assert book.find(first.enrolment_id).marks == (64,)
     assert book.find(first.enrolment_id).student == "Priya Nair"
     assert book.find(second.enrolment_id) == out
+
+
+def test_enrol_after_withdraw_mints_a_fresh_id():
+    # Catches an id allocator reset inside the withdraw path: no row already in
+    # the book changes, so only an enrolment made AFTERWARDS shows the reuse.
+    book = MarkBook()
+    first = book.enrol("Priya Nair", "HIST2041")
+    second = book.enrol("Tomasz Wolak", "HIST2041")
+    book.record_mark(second.enrolment_id, 82)
+    book.withdraw(first.enrolment_id)
+    third = book.enrol("Ida Berg", "HIST2041")
+    assert third.enrolment_id not in (first.enrolment_id, second.enrolment_id), (
+        "a live enrolment id was reused"
+    )
+    assert book.count() == 3, "enrolling after a withdrawal lost a row"
+    kept_first = book.find(first.enrolment_id)
+    assert kept_first is not None, "a row was dropped from the book"
+    assert kept_first.enrolment_id == first.enrolment_id
+    assert kept_first.student == "Priya Nair" and kept_first.course == "HIST2041"
+    assert kept_first.status == "withdrawn" and kept_first.marks == ()
+    kept_second = book.find(second.enrolment_id)
+    assert kept_second is not None, "a row was dropped from the book"
+    assert kept_second.enrolment_id == second.enrolment_id
+    assert kept_second.student == "Tomasz Wolak" and kept_second.marks == (82,)
+    assert kept_second.status == "active"
+    kept_third = book.find(third.enrolment_id)
+    assert kept_third is not None and kept_third.student == "Ida Berg"
+    assert kept_third.marks == () and kept_third.status == "active"
 """
 }
 

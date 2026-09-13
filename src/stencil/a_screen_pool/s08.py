@@ -147,6 +147,25 @@ def test_bad_result_leaves_ratings_untouched():
         _record(b)("P1", "P2", "2-0")
     assert b.find("P1").rating == 1600 and b.find("P2").rating == 1400
     assert b.find("P1").games == 0
+
+
+def test_add_player_after_a_game_mints_a_fresh_id():
+    # public API only: recording a game must not rewind the id allocator, or
+    # the next player reuses a live id and overwrites an earlier record
+    b = _book()
+    _record(b)("P1", "P2", "1-0")
+    third = b.add_player("Di", 1700)
+    assert third.player_id not in ("P1", "P2")
+    assert b.count() == 3
+    white = b.find("P1")
+    assert white is not None and white.player_id == "P1"
+    assert white.name == "Ana" and white.rating == 1608 and white.games == 1
+    black = b.find("P2")
+    assert black is not None and black.player_id == "P2"
+    assert black.name == "Bo" and black.rating == 1392 and black.games == 1
+    back = b.find(third.player_id)
+    assert back is not None and back.player_id == third.player_id
+    assert back.name == "Di" and back.rating == 1700 and back.games == 0
 """
 }
 

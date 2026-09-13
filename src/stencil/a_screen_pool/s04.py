@@ -292,6 +292,41 @@ def test_extend_does_not_reset_a_non_default_status():
     assert stored.plate == "AB12CDE" and stored.zone == "north"
     assert lot.count() == 2
     assert lot.find(other.permit_id) == other
+
+
+def test_extend_keeps_the_permits_own_id():
+    # round 4: an update that keeps every other field but replaces a REQUIRED one
+    # leaves the record under its old key carrying a different identity.
+    lot = PermitLot()
+    other = lot.issue_permit("cd34 efg", "south", 200)
+    target = lot.issue_permit("ab12 cde", "north", 120)
+    out = _extend(lot)(target.permit_id, 30)
+    assert out.permit_id == target.permit_id
+    stored = lot.find(target.permit_id)
+    assert stored is not None, "the extended permit left the register"
+    assert stored.permit_id == target.permit_id
+    assert stored.plate == "AB12CDE" and stored.zone == "north"
+    assert stored.expires_day == 150 and stored.status == "active"
+    assert lot.find("_audit") is None
+    assert lot.count() == 2 and lot.find(other.permit_id) == other
+
+
+def test_extend_then_issue_gets_a_fresh_permit_id():
+    # round 4: extending must not disturb the id allocator, which only the NEXT
+    # issue can show.
+    lot = PermitLot()
+    first = lot.issue_permit("cd34 efg", "south", 200)
+    second = lot.issue_permit("ab12 cde", "north", 120)
+    _extend(lot)(second.permit_id, 30)
+    third = lot.issue_permit("ee55 fgh", "north", 60)
+    assert third.permit_id == "P3"
+    assert third.permit_id not in (first.permit_id, second.permit_id)
+    assert lot.count() == 3
+    assert lot.find(first.permit_id) == first
+    assert lot.find(second.permit_id).plate == "AB12CDE"
+    assert lot.find(second.permit_id).expires_day == 150
+    assert lot.find(third.permit_id).plate == "EE55FGH"
+    assert lot.find(third.permit_id).expires_day == 60
 """
 }
 

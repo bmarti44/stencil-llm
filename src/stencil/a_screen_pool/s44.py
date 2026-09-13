@@ -172,6 +172,27 @@ def test_register_find_count_relocate_unchanged():
     assert kept is not None, "relocating one item dropped the other"
     assert kept.location == "office" and kept.description == "a"
     assert s.find("LF2").location == "lobby"
+
+
+def test_relocate_preserves_the_item_identity_and_its_other_fields():
+    s = ItemStore()
+    other = s.register_item("hat", "pool")
+    it = s.register_item("blue umbrella", "front desk")
+    moved = s.relocate_item(it.item_id, "store room")
+    assert moved is not None, "relocating a stored item returned nothing"
+    assert moved.item_id == it.item_id, "relocating replaced the item's own id"
+    assert moved.description == "blue umbrella", "the description was replaced"
+    assert moved.location == "store room"
+    stored = s.find(it.item_id)
+    assert stored is not None, "the item is no longer stored under its own id"
+    assert stored.item_id == it.item_id, "the stored item's id was replaced"
+    assert stored.description == "blue umbrella", "the stored description changed"
+    assert stored.location == "store room"
+    assert s.find("_audit") is None, "an item was stored under a foreign id"
+    assert s.count() == 2, "relocating changed the stored count"
+    kept = s.find(other.item_id)
+    assert kept is not None and kept == other
+    assert kept.description == "hat" and kept.location == "pool"
 """
 }
 
@@ -320,6 +341,45 @@ def test_dispose_keeps_the_other_item_and_the_count():
     assert kept.status == "claimed", "the other item's status changed"
     assert kept.claimant == "ana"
     assert kept.description == "hat" and kept.location == "pool"
+
+
+def test_dispose_preserves_the_item_identity():
+    s = ItemStore()
+    other = s.register_item("hat", "pool")
+    it = s.register_item("single glove", "bus stop")
+    out = _dispose(s)(it.item_id)
+    assert out.item_id == it.item_id, "disposing replaced the item's own id"
+    assert out.description == "single glove" and out.location == "bus stop"
+    stored = s.find(it.item_id)
+    assert stored is not None, "the item is no longer stored under its own id"
+    assert stored.item_id == it.item_id, "the stored item's id was replaced"
+    assert stored.description == "single glove"
+    assert stored.location == "bus stop" and stored.status == "disposed"
+    assert s.find("_audit") is None, "an item was stored under a foreign id"
+    assert s.count() == 2, "disposing changed the stored count"
+    kept = s.find(other.item_id)
+    assert kept is not None and kept == other
+
+
+def test_registering_after_a_disposal_gets_a_fresh_id():
+    s = ItemStore()
+    first = s.register_item("hat", "pool")
+    second = s.register_item("single glove", "bus stop")
+    _dispose(s)(second.item_id)
+    third = s.register_item("thermos", "kitchen")
+    assert len({first.item_id, second.item_id, third.item_id}) == 3, (
+        "the id allocator was reset: a new item reused a live id"
+    )
+    assert s.count() == 3, "the new item overwrote an existing one"
+    kept = s.find(first.item_id)
+    assert kept is not None and kept == first
+    assert kept.description == "hat" and kept.status == "held"
+    gone = s.find(second.item_id)
+    assert gone is not None, "the new item overwrote the disposed one"
+    assert gone.status == "disposed" and gone.description == "single glove"
+    newest = s.find(third.item_id)
+    assert newest is not None and newest == third
+    assert newest.description == "thermos" and newest.location == "kitchen"
 """
 }
 

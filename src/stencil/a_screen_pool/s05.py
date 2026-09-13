@@ -71,9 +71,6 @@ _C1_FUNCTIONAL = {
     "test_freeze_functional.py": _C1_HELPER
     + """
 
-from dataclasses import replace
-
-
 def test_freeze_sets_status_frozen():
     r = MemberRoll()
     m = r.member_enroll("Priya", "annual")
@@ -97,20 +94,23 @@ def test_freeze_keeps_name_plan_renewals():
 
 
 def test_freeze_keeps_nondefault_attributes_of_both_records():
-    # two members, both holding NON-DEFAULT values for the defaulted
-    # attributes (status, renewals); freezing one must touch nothing else
+    # two members; the neighbour already holds a NON-DEFAULT status when the
+    # operation under test runs, so freezing one must touch nothing else.
+    # Seeded only through the public API -- a reply is free to rename its own
+    # private attributes, so no fixture may reach into them.  The renewals
+    # half of this pin lives in request 2's regression suite, where the
+    # public writer that can set a non-default renewal count exists.
     r = MemberRoll()
     a = r.member_enroll("Priya", "annual")
     b = r.member_enroll("Ines", "monthly")
-    r._members[a.member_id] = replace(r.find(a.member_id), renewals=3)
-    seeded = replace(r.find(b.member_id), renewals=7, status="frozen")
-    r._members[b.member_id] = seeded
+    seeded = _freeze(r)(b.member_id)
+    assert seeded.status == "frozen" and seeded.renewals == 0
     out = _freeze(r)(a.member_id)
-    assert out.status == "frozen" and out.renewals == 3
+    assert out.status == "frozen" and out.renewals == 0
     got = r.find(a.member_id)
-    assert got.renewals == 3 and got.name == "Priya" and got.plan == "annual"
+    assert got.renewals == 0 and got.name == "Priya" and got.plan == "annual"
     kept = r.find(b.member_id)
-    assert kept is not None and kept.renewals == 7
+    assert kept is not None and kept.renewals == 0
     assert kept.status == "frozen" and kept.name == "Ines"
     assert kept.plan == "monthly" and kept == seeded
     assert r.count() == 2
@@ -291,6 +291,45 @@ def test_renew_unknown_raises_keyerror():
         assert r.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown member")
+
+
+def test_renew_preserves_the_member_identity():
+    # identity corruption: an update that keeps name, plan, status, the
+    # renewal count and the neighbour, but replaces a REQUIRED field -- here
+    # the record's own id -- so the roll holds it under the original key
+    # while the record inside no longer knows who it is
+    r = MemberRoll()
+    m = r.member_enroll("Priya", "annual")
+    other = r.member_enroll("Ines", "monthly")
+    out = _renew(r)(m.member_id)
+    assert out.member_id == m.member_id
+    assert out.name == "Priya" and out.plan == "annual"
+    stored = r.find(m.member_id)
+    assert stored is not None and stored.member_id == m.member_id
+    assert stored.name == "Priya" and stored.plan == "annual"
+    assert r.find("_audit") is None
+    kept = r.find(other.member_id)
+    assert kept is not None and kept == other
+    assert kept.member_id == other.member_id and r.count() == 2
+
+
+def test_renew_then_enroll_mints_a_fresh_id():
+    # allocator reset: resetting the id counter inside renew disturbs no
+    # record already stored, so only an enrolment AFTER the renewal sees it
+    # -- the new member would reuse a live id and overwrite an earlier one
+    r = MemberRoll()
+    a = r.member_enroll("Priya", "annual")
+    b = r.member_enroll("Ines", "monthly")
+    _renew(r)(a.member_id)
+    c = r.member_enroll("Tomasz", "student")
+    assert c.member_id not in (a.member_id, b.member_id)
+    kept_a = r.find(a.member_id)
+    assert kept_a is not None and kept_a.name == "Priya"
+    assert kept_a.plan == "annual" and kept_a.renewals == 1
+    kept_b = r.find(b.member_id)
+    assert kept_b is not None and kept_b == b
+    assert r.find(c.member_id) == c and c.name == "Tomasz"
+    assert r.count() == 3
 """
 }
 
@@ -300,6 +339,12 @@ _C2_REGRESSION = {
 
 def _freeze(roll):
     return getattr(roll, "member_freeze", None) or getattr(roll, "freeze_member", None)
+
+
+def _renew(roll):
+    fn = getattr(roll, "member_renew", None) or getattr(roll, "renew_member", None)
+    assert fn is not None, "no renew method found"
+    return fn
 
 
 def test_enroll_find_freeze_unchanged():
@@ -319,6 +364,49 @@ def test_freeze_keeps_the_other_members_and_the_count():
     assert kept.status == "active" and kept.renewals == 0
     assert kept.name == "Priya" and kept.plan == "annual"
     assert r.find(b.member_id).status == "frozen"
+    assert r.count() == 2
+
+
+def test_freeze_then_enroll_mints_a_fresh_id():
+    # allocator reset in the PRE-EXISTING freeze operation: nothing already
+    # stored changes, so only an enrolment after the freeze sees the counter
+    # rewind and the next member reuse a live id.  Public API only.
+    r = MemberRoll()
+    a = r.member_enroll("Priya", "annual")
+    b = r.member_enroll("Ines", "monthly")
+    _freeze(r)(a.member_id)
+    c = r.member_enroll("Tomasz", "student")
+    assert c.member_id not in (a.member_id, b.member_id)
+    kept_a = r.find(a.member_id)
+    assert kept_a is not None and kept_a.status == "frozen"
+    assert kept_a.name == "Priya" and kept_a.plan == "annual"
+    kept_b = r.find(b.member_id)
+    assert kept_b is not None and kept_b == b
+    assert r.find(c.member_id) == c and c.name == "Tomasz"
+    assert r.count() == 3
+
+
+def test_freeze_keeps_nondefault_renewal_counts_of_both_records():
+    # the renewals half of request 1's non-default pin, which needed private
+    # seeding there: member_renew exists at this checkpoint, so both members
+    # reach non-default renewal counts through the public API before the
+    # freeze under test
+    r = MemberRoll()
+    a = r.member_enroll("Priya", "annual")
+    b = r.member_enroll("Ines", "monthly")
+    for _ in range(3):
+        _renew(r)(a.member_id)
+    _renew(r)(b.member_id)
+    _renew(r)(b.member_id)
+    seeded = _freeze(r)(b.member_id)
+    out = _freeze(r)(a.member_id)
+    assert out.status == "frozen" and out.renewals == 3
+    got = r.find(a.member_id)
+    assert got.renewals == 3 and got.name == "Priya" and got.plan == "annual"
+    kept = r.find(b.member_id)
+    assert kept is not None and kept.renewals == 2
+    assert kept.status == "frozen" and kept.name == "Ines"
+    assert kept.plan == "monthly" and kept == seeded
     assert r.count() == 2
 """
 }

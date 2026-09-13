@@ -341,6 +341,28 @@ def test_add_item_to_a_held_box_keeps_status_and_siblings():
     assert s.find(b.box_id).status == "held"
     assert s.find(b.box_id).contents == ("kale", "beets")
     _assert_other_intact(s, other)
+
+
+def test_hold_then_pack_gets_a_fresh_box_id():
+    # round 4: holding a box must not disturb the id allocator; the damage only
+    # shows on the NEXT pack, which would reuse a live id and overwrite a box.
+    s = BoxStore()
+    first = s.pack_box("hollis", 38)
+    second = s.pack_box("ayla", 38)
+    s.add_item(first.box_id, "kale")
+    _hold(s)(first.box_id)
+    third = s.pack_box("ren", 38)
+    assert third.box_id == "B3"
+    assert third.box_id not in (first.box_id, second.box_id)
+    assert s.count() == 3
+    kept = s.find(first.box_id)
+    assert kept is not None, "packing a box overwrote an earlier one"
+    assert kept.box_id == first.box_id and kept.member == "hollis"
+    assert kept.week == 38 and kept.contents == ("kale",)
+    assert kept.status == "held"
+    assert s.find(second.box_id) == second
+    assert s.find(third.box_id).member == "ren"
+    assert s.find(third.box_id).status == "packed"
 """
 }
 

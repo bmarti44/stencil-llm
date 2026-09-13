@@ -399,6 +399,26 @@ def test_close_keeps_the_reviewer_and_the_other_flights(tmp_path):
     assert out.status == "closed" and out.reviewer == "rae"
     assert log.get(b.flight_id).reviewer == "rae"
     _assert_other_intact(log, a, "mira", "mavic-3", 22, "ken")
+
+
+def test_mark_uploaded_preserves_every_required_field(tmp_path):
+    log, _ = _log(tmp_path)
+    other = log.record("jon", "mini-4", 9)
+    log.approve(other.flight_id, "rae")
+    f = log.record("mira", "mavic-3", 22)
+    out = _uploaded(log)(f.flight_id, "9f3a")
+    assert out.flight_id == f.flight_id, "the flight's own id was replaced"
+    assert out.pilot == "mira", "the pilot was replaced"
+    assert out.drone == "mavic-3", "the drone was replaced"
+    assert out.duration_min == 22, "the duration was replaced"
+    stored = log.get(f.flight_id)
+    assert stored is not None, "the flight is no longer stored under its own id"
+    assert stored.flight_id == f.flight_id, "the stored flight's id was replaced"
+    assert stored.pilot == "mira", "the stored pilot was replaced"
+    assert stored.drone == "mavic-3", "the stored drone was replaced"
+    assert stored.duration_min == 22 and stored.status == "uploaded"
+    assert log.get("_audit") is None, "a flight was stored under a foreign id"
+    _assert_other_intact(log, other, "jon", "mini-4", 9, "rae")
 """
 }
 

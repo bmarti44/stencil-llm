@@ -32,8 +32,10 @@ both checkpoints.
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from stencil.contracts import extract_file, run_tests
 
@@ -509,3 +511,30 @@ def render_prompt(tok, msgs: list[dict[str, str]]) -> str:
     return tok.apply_chat_template(
         msgs, add_generation_prompt=True, tokenize=False, enable_thinking=False
     )
+
+
+def file_sha(path: Path) -> str:
+    """Streaming sha256 of a file's actual bytes (first 16 hex chars)."""
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(8 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
+def dir_sha(d: Path) -> str:
+    """Fingerprint a model directory by every file's ACTUAL BYTES (round 3 F15).
+
+    An earlier version hashed JSON under 2 MB in full and everything else by size, so the
+    11 MB tokenizer, the 2.7 MB vocabulary and all three weight shards were size-only:
+    different content of the same length produced an identical fingerprint.  Shared by the
+    harness and the trainer so an adapter can be bound to the trunk bytes it trained on
+    (round 4 F15), not merely to a pathname.
+    """
+    return hashlib.sha256(
+        "\n".join(
+            f"{p.name}:{p.stat().st_size}:{file_sha(p)}"
+            for p in sorted(d.iterdir())
+            if p.is_file()
+        ).encode()
+    ).hexdigest()[:16]

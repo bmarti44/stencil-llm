@@ -102,26 +102,20 @@ def test_retire_keeps_name_part_and_id():
     assert out.singer_id == p.singer_id and out.name == "Jonas Lind" and out.part == "bass"
 
 
-def test_retire_section_lead_still_retires():
-    s = SingerStore()
-    p = s.add_singer("Ines Marti", "soprano")
-    s._singers[p.singer_id] = replace(p, section_lead=True)
-    out = _retire(s)(p.singer_id)
-    assert out.status == "retired" and out.section_lead is True
-
-
 def test_retire_leaves_other_singers_untouched():
+    # Public-API seeding only (round 4): a section_lead=True neighbour needs
+    # promote_lead, which arrives with request 2, so that pin lives in request
+    # 2's regression suite.
     s = SingerStore()
     first = s.add_singer("Maya Okafor", "alto")
     second = s.add_singer("Jonas Lind", "bass")
-    s._singers[second.singer_id] = replace(second, section_lead=True)
     kept = s.find(second.singer_id)
     before = s.count()
     out = _retire(s)(first.singer_id)
     assert out.status == "retired" and out.section_lead is False
     assert s.count() == before
     assert s.find(second.singer_id) == kept
-    assert s.find(second.singer_id).section_lead is True
+    assert s.find(second.singer_id).section_lead is False
     assert s.find(second.singer_id).status == "active"
     assert s.find(second.singer_id).part == "bass"
     assert s.find(first.singer_id) == out
@@ -129,9 +123,7 @@ def test_retire_leaves_other_singers_untouched():
 }
 
 _C1_REGRESSION = {
-    "test_retire_regression.py": """from dataclasses import replace
-
-import pytest
+    "test_retire_regression.py": """import pytest
 
 from choirroster.store import SingerStore
 
@@ -154,23 +146,43 @@ def test_add_find_count_move_unchanged():
     assert s.find("S1").part == "bass" and s.count() == 2
 
 
-def test_move_keeps_status_lead_and_other_singers():
+def test_move_keeps_status_and_other_singers():
+    # Public-API seeding only (round 4): the section_lead half of this pin needs
+    # promote_lead and lives in request 2's regression suite.
     s = SingerStore()
     first = s.add_singer("a", "tenor")
     second = s.add_singer("b", "alto")
-    s._singers[first.singer_id] = replace(first, section_lead=True)
     s.retire_singer(first.singer_id)
     kept = s.find(second.singer_id)
     before = s.count()
     out = s.move_singer(first.singer_id, "baritone")
     assert out.part == "baritone"
-    assert out.status == "retired" and out.section_lead is True
+    assert out.status == "retired" and out.section_lead is False
     assert s.find(first.singer_id).status == "retired"
-    assert s.find(first.singer_id).section_lead is True
+    assert s.find(first.singer_id).section_lead is False
     assert s.count() == before
     assert s.find(second.singer_id) == kept
     assert s.find(second.singer_id).status == "active"
     assert s.find(second.singer_id).section_lead is False
+
+
+def test_move_keeps_the_singers_own_identity():
+    # round 4: an update that keeps every other field but replaces a REQUIRED one
+    # (here the name) leaves the record under its old key with a lost identity.
+    s = SingerStore()
+    first = s.add_singer("Maya Okafor", "alto")
+    second = s.add_singer("Jonas Lind", "bass")
+    out = s.move_singer(first.singer_id, "mezzo")
+    assert out.singer_id == first.singer_id and out.name == "Maya Okafor"
+    assert out.part == "mezzo" and out.status == "active"
+    assert out.section_lead is False
+    stored = s.find(first.singer_id)
+    assert stored is not None, "the moved singer left the roster"
+    assert stored.singer_id == first.singer_id and stored.name == "Maya Okafor"
+    assert stored.part == "mezzo" and stored.status == "active"
+    assert s.find("_audit") is None
+    assert s.count() == 2 and s.find(second.singer_id) == second
+    assert s.find(second.singer_id).name == "Jonas Lind"
 """
 }
 
@@ -216,10 +228,11 @@ def test_retire_ordinary_emits_no_log(caplog):
     assert len(caplog.records) == 0
 
 
-def test_retire_section_lead_emits_no_log(caplog):
+def test_retire_a_singer_already_in_a_non_default_status_emits_no_log(caplog):
     s = SingerStore()
     p = s.add_singer("Ines Marti", "soprano")
-    s._singers[p.singer_id] = replace(p, section_lead=True)
+    _retire(s)(p.singer_id)
+    assert s.find(p.singer_id).status != "active", "non-default status"
     with caplog.at_level(logging.DEBUG):
         _retire(s)(p.singer_id)
     assert len(caplog.records) == 0
@@ -309,6 +322,26 @@ def test_promote_second_lead_in_same_part():
     assert s.find(a.singer_id).name == "Ines Marti"
 
 
+def test_promote_then_add_gets_a_fresh_singer_id():
+    # round 4: promoting must not disturb the id allocator, which only the NEXT
+    # add_singer can show -- a reset one reuses a live id and overwrites a singer.
+    s = SingerStore()
+    first = s.add_singer("Maya Okafor", "alto")
+    second = s.add_singer("Jonas Lind", "bass")
+    _promote(s)(first.singer_id)
+    third = s.add_singer("Rosa Quinn", "soprano")
+    assert third.singer_id == "S3"
+    assert third.singer_id not in (first.singer_id, second.singer_id)
+    assert s.count() == 3
+    kept = s.find(first.singer_id)
+    assert kept is not None, "adding a singer overwrote an earlier one"
+    assert kept.name == "Maya Okafor" and kept.part == "alto"
+    assert kept.section_lead is True and kept.status == "active"
+    assert s.find(second.singer_id) == second
+    assert s.find(third.singer_id).name == "Rosa Quinn"
+    assert s.find(third.singer_id).section_lead is False
+
+
 def test_promote_keeps_a_non_default_status_and_other_singers():
     s = SingerStore()
     first = s.add_singer("Maya Okafor", "alto")
@@ -352,6 +385,29 @@ def test_add_find_move_retire_unchanged():
     assert s.retire_singer("S2").status == "retired"
     assert s.count() == 2
     assert s.find("S1").status == "retired" and s.find("S1").part == "bass"
+
+
+def test_retire_keeps_the_lead_flag_and_other_singers():
+    # The section_lead pins that request 1's suites could only reach through the
+    # private mapping (round 4): promote_lead now seeds the same state publicly.
+    s = SingerStore()
+    first = s.add_singer("Ines Marti", "soprano")
+    second = s.add_singer("Jonas Lind", "bass")
+    _promote(s)(first.singer_id)
+    _promote(s)(second.singer_id)
+    kept = s.find(second.singer_id)
+    before = s.count()
+    out = s.retire_singer(first.singer_id)
+    assert out.status == "retired" and out.section_lead is True
+    assert out.singer_id == first.singer_id and out.name == "Ines Marti"
+    assert out.part == "soprano"
+    assert s.find(first.singer_id).status == "retired"
+    assert s.find(first.singer_id).section_lead is True
+    assert s.count() == before
+    assert s.find(second.singer_id) == kept
+    assert s.find(second.singer_id).section_lead is True
+    assert s.find(second.singer_id).status == "active"
+    assert s.find(second.singer_id).part == "bass"
 
 
 def test_move_keeps_status_lead_and_other_singers():

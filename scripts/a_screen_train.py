@@ -243,6 +243,10 @@ def main() -> None:
             ),
             "trainer_sha256": _sha(Path(__file__).read_text()),
             "hub": str(a.hub),
+            # Round 4 F15: a pathname does not identify the trunk -- weights can be replaced
+            # at the same path between allocations, invisibly.  Bind the actual bytes, with
+            # the same function the harness uses, so the adapter is tied to what it trained on.
+            "hub_sha256": A.dir_sha(Path(a.hub)),
             "limit": a.limit,
         },
         "seed": a.seed,
@@ -283,8 +287,18 @@ def main() -> None:
         # INCOMPLETE, not complete; the harness refuses either way.
         if not final:
             log["status"] = "running"
+        elif log.get("steps", 0) < 1:
+            log["status"] = "incomplete"
+        elif log["seconds"] > budget_s:
+            # Round 4 F13: the final save can finish past the allocation (a save starting at
+            # 14,390 s of a 14,400 s budget and taking 30 s wrote seconds=14,420 and still
+            # claimed "complete", and the harness's runtime check is a lower bound only).
+            # An allocation that ends beyond its registered budget is over_budget, and the
+            # harness refuses it.
+            log["status"] = "over_budget"
+            log["over_budget_s"] = log["seconds"] - budget_s
         else:
-            log["status"] = "complete" if log.get("steps", 0) >= 1 else "incomplete"
+            log["status"] = "complete"
         (out / "train-log.json").write_text(json.dumps(log, indent=1) + "\n")
 
     model.train()
@@ -324,6 +338,10 @@ def main() -> None:
                     loss = loss + a.dpo_weight * (-F.logsigmoid(margin))
             (loss / a.accum).backward()
             micro += 1
+            # Round 4 F13: loss.item() synchronises with the device, so reading it AFTER the
+            # timestamp left that synchronisation outside the measured micro-step and made
+            # the stop estimate optimistic.  Read it first, then close the measurement.
+            loss_value = loss.item()
             micro_times.append(time.time() - t_micro)
             log["micro_steps"] = micro
             log["completion_tokens_seen"] += n_c
@@ -335,8 +353,8 @@ def main() -> None:
             log["sequence_tokens_seen"] = (
                 log["chosen_tokens_seen"] + log["rejected_tokens_seen"]
             )
-            window.append(loss.item())
-            update.append(loss.item())
+            window.append(loss_value)
+            update.append(loss_value)
             if micro % a.accum == 0:
                 t_step = time.time()
                 torch.nn.utils.clip_grad_norm_(params, 1.0)

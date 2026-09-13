@@ -302,6 +302,30 @@ def test_waive_leaves_other_fines_untouched():
     assert f.find(third.fine_id) == third
     assert f.find(third.fine_id).status == "owed"
     assert f.owed("ana") == 0 and f.owed("ben") == 0 and f.owed("cal") == 40
+
+
+def test_record_after_waive_mints_a_fresh_id():
+    # an id allocator reset inside the waive method changes nothing already
+    # stored: the damage lands on the NEXT record_fine, which reuses a live
+    # id and overwrites the waived fine.  FineLedger exposes no count(), so
+    # three distinct ids each resolving to their own record stand in for it
+    f = FineLedger()
+    first = f.record_fine("ana", 250)
+    second = f.record_fine("ben", 75)
+    assert _waive(f)(first.fine_id).status == "waived"
+    third = f.record_fine("cal", 40)
+    assert third.fine_id not in (first.fine_id, second.fine_id)
+    kept = f.find(first.fine_id)
+    assert kept is not None and kept.fine_id == first.fine_id
+    assert kept.patron == "ana" and kept.cents == 250
+    assert kept.status == "waived"
+    owing = f.find(second.fine_id)
+    assert owing is not None and owing.fine_id == second.fine_id
+    assert owing.patron == "ben" and owing.cents == 75
+    assert owing.status == "owed"
+    fresh = f.find(third.fine_id)
+    assert fresh is not None and fresh.patron == "cal" and fresh.cents == 40
+    assert f.owed("ana") == 0 and f.owed("ben") == 75 and f.owed("cal") == 40
 """
 }
 

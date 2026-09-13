@@ -292,6 +292,33 @@ def test_retire_unknown_raises_keyerror():
         _assert_other_intact(b, other)
         return
     raise AssertionError("expected KeyError for an unknown packet")
+
+
+def test_packet_add_after_retire_mints_a_fresh_id():
+    # Catches an id allocator reset inside the retire path: nothing already in
+    # the bin changes, so only a packet added AFTERWARDS shows the reuse.
+    b = SeedBin()
+    first = b.packet_add("Blue Lake bean", 30, 2025)
+    second = b.packet_add("Golden Bantam corn", 12, 2023)
+    _retire(b)(first.packet_id)
+    third = b.packet_add("Painted Mountain corn", 10, 2024)
+    assert third.packet_id not in (first.packet_id, second.packet_id), (
+        "a live packet id was reused"
+    )
+    assert b.count() == 3, "adding after a retire did not store a third packet"
+    kept_first = b.find(first.packet_id)
+    assert kept_first is not None, "a packet was dropped from the bin"
+    assert kept_first.packet_id == first.packet_id
+    assert kept_first.variety == "Blue Lake bean" and kept_first.year == 2025
+    assert kept_first.quantity == 30 and kept_first.status == "retired"
+    kept_second = b.find(second.packet_id)
+    assert kept_second is not None, "a packet was dropped from the bin"
+    assert kept_second.packet_id == second.packet_id
+    assert kept_second.variety == "Golden Bantam corn" and kept_second.year == 2023
+    assert kept_second.quantity == 12 and kept_second.status == "in_stock"
+    kept_third = b.find(third.packet_id)
+    assert kept_third is not None and kept_third.quantity == 10
+    assert kept_third.variety == "Painted Mountain corn" and kept_third.year == 2024
 """
 }
 
