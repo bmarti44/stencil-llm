@@ -131,6 +131,21 @@ def test_collect_after_ready_keeps_note_and_the_other_order():
     assert back is not None, "collecting one order dropped the other"
     assert back == other and back.note == "candles, no nuts"
     assert back.paid_p == 2400 and back.status == "placed"
+
+
+def test_collect_leaves_the_id_allocator_intact():
+    # an order placed AFTER a collection must get a fresh id, and the collected
+    # order must survive that next placement
+    book = OrderBook()
+    order = book.place("Mrs Okafor", "sourdough", 2, 900)
+    book.collect(order.order_id)
+    fresh = book.place("Dev", "birthday cake", 1, 2400)
+    assert fresh.order_id != order.order_id, "collect reissued a live order id"
+    first = book.find(order.order_id)
+    assert first is not None, "the new order overwrote the collected one"
+    assert first.status == "collected" and first.customer == "Mrs Okafor"
+    assert first.item == "sourdough" and first.qty == 2 and first.paid_p == 900
+    assert book.find(fresh.order_id).customer == "Dev"
 """
 }
 
@@ -195,6 +210,21 @@ def test_save_keeps_every_other_order():
     assert book.find(first.order_id) == first
     assert book.find(second.order_id).note == "seeded crust"
     assert book.find(second.order_id).paid_p == 900
+
+
+def test_ready_leaves_the_id_allocator_intact():
+    # an order placed AFTER a readying must get a fresh id, and the readied
+    # order must survive that next placement
+    book = OrderBook()
+    order = book.place("Mrs Okafor", "sourdough", 2, 900)
+    book.ready(order.order_id)
+    fresh = book.place("Dev", "birthday cake", 1, 2400)
+    assert fresh.order_id != order.order_id, "ready reissued a live order id"
+    first = book.find(order.order_id)
+    assert first is not None, "the new order overwrote the readied one"
+    assert first.status == "ready" and first.customer == "Mrs Okafor"
+    assert first.item == "sourdough" and first.qty == 2 and first.paid_p == 900
+    assert book.find(fresh.order_id).customer == "Dev"
 """
 }
 
@@ -335,6 +365,22 @@ def test_refund_after_collect_keeps_the_other_order():
     assert back is not None, "refunding one order dropped the other"
     assert back == other and back.note == "candles, no nuts"
     assert back.paid_p == 2400 and back.status == "ready"
+
+
+def test_refund_leaves_the_id_allocator_intact():
+    # an order placed AFTER a refund must get a fresh id, and the refunded order must
+    # survive that next placement
+    book = OrderBook()
+    order = book.place("Mrs Okafor", "sourdough", 2, 900)
+    refund(book, order.order_id, "stale")
+    fresh = book.place("Dev", "birthday cake", 1, 2400)
+    assert fresh.order_id != order.order_id, "the refund reissued a live order id"
+    first = book.find(order.order_id)
+    assert first is not None, "the new order overwrote the refunded one"
+    assert first.status == "refunded" and first.paid_p == 0
+    assert first.note == "stale" and first.customer == "Mrs Okafor"
+    assert first.item == "sourdough" and first.qty == 2
+    assert book.find(fresh.order_id).customer == "Dev"
 """
 }
 

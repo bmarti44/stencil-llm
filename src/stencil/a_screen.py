@@ -613,7 +613,9 @@ def ledger_pid(launch: str) -> int | None:
     return int(tail) if tail.isdigit() else None
 
 
-def ledger_observe(path: Path, now: float, mark: Callable | None = None) -> list[str]:
+def ledger_observe(
+    path: Path, clock: Callable[[], float] = time.time, mark: Callable | None = None
+) -> list[str]:
     """Record VERIFIED termination for every unfinished launch whose process is gone.
 
     Round 7 F13: the previous rule inferred death from the ABSENCE of a heartbeat, and
@@ -624,9 +626,16 @@ def ledger_observe(path: Path, now: float, mark: Callable | None = None) -> list
     time cannot have lived past that time, so the observation itself is the evidence and it
     is written into the ledger once, after which the launch's charge never moves again.
     A launch still running, or one whose pid has been recycled, is not observed and keeps
-    accruing its lifetime -- the conservative direction.  Returns the launches observed."""
+    accruing its lifetime -- the conservative direction.  Returns the launches observed.
+
+    Round 8 F13: the timestamp is sampled AFTER each successful probe, never before.  The
+    caller used to sample it once and pass it in, so a process descheduled between the
+    sample and the probe wrote a BACKDATED observation -- sampled at 300 s, probed at
+    1,000 s, permanently charging 300 s for a launch that lived to 900.  What absence at
+    the probe establishes is termination by the PROBE's time, so that is the time written."""
     if not path.exists():
         return []
+    now = clock()
     seen: dict[str, dict] = {}
     for line in path.read_text().splitlines():
         if not line.strip():
@@ -648,6 +657,7 @@ def ledger_observe(path: Path, now: float, mark: Callable | None = None) -> list
         pid = ledger_pid(launch)
         if i["done"] or pid is None or Path(f"/proc/{pid}").exists():
             continue
+        now = clock()  # the probe has just succeeded; THIS is the time it bounds
         rec = {
             "launch": launch,
             "event": "observed_dead",

@@ -657,10 +657,16 @@ Two audit classes were added, bringing it to seven:
 |---|---|---|
 | 6 | an update additionally sets a REQUIRED field (`replace(...)` and the `with_X(...)` helper form) | the record keeps every other value but loses its identity |
 | 7 | `self._counter = 0` at the top of a state-writing method | the next insertion reuses a live id |
+| 7b | `<handle>.<counter> = 0` at the top of a function that writes a store it was given (§20.4) | the same, from outside the store's class |
 
 Class 7 is restricted to methods that already write state: a reply might plausibly clobber a
 counter while editing an update operation, not inside a pure reader, and generating the reader
 cases would have inflated the count without adding coverage.
+
+**AMENDED BY §20.3 AND §20.4.** Both halves of that restriction were too narrow, and each hid a
+demonstrated false J = 1. "Writes state" was a regex over the method's OWN body, so a method that
+stores by calling another method read as a pure reader (§20.3); and "method" excluded a function
+that writes a store handed to it as an argument (§20.4).
 
 At seven classes the audit found **65 undetected mutations across 34 of the 48 slots** (44
 allocator resets, 21 identity changes). All 34 were repaired by seven parallel agents against
@@ -1227,6 +1233,9 @@ its derivation.
 
 ### 19.1 A charge is bounded by evidence or not at all (F13)
 
+**AMENDED BY §20.1.** The three-case rule stands. The observation's TIMESTAMP did not: it was
+sampled by the caller before the pid probe, so it could be backdated.
+
 Amendment 6 charged an unfinished launch its last mark plus three heartbeat intervals whenever no
 gap in its marks was wider than that slack. Round 7's counterexample: ticks through 600 s, the
 TICKER dies, the process runs to 1,200 s, the ledger is read at 1,500 s → charged **780 s**. The
@@ -1265,6 +1274,9 @@ depends on it. Verified: the 600 s-ticks ledger charges 1,500 s at a 1,500 s rea
 9,000 s read; after the observation it charges 1,500 s at both.
 
 ### 19.2 Absent spend evidence is a refusal, not a zero (F12)
+
+**AMENDED BY §20.2.** The refusal path stands. It covered only INELIGIBILITY; a missing checkpoint
+took the other path and still reached the gates.
 
 Round 7: with complete 48-session records, DELETING the ordinary `.spend.jsonl` sidecar turned the
 over-budget refusal back into **`GATE PASSED`** — `ledger_charges` returned `{}` for a missing file
@@ -1370,3 +1382,219 @@ Four CLI guards smoke-checked by hand: `--budget-min 0`, `--budget-min 90`, `--m
 No arm, model, outcome unit, gate or statistic changed in this amendment. The per-arm evaluation
 ceiling changed from 45 to 50 minutes, derived in §19.3; §8's 16 GPU-hour total and its INCOMPLETE
 rule are untouched.
+
+## 20. Amendment 8 (2026-09-13, after the Astra re-review round 8, before any pilot, training or evaluation generation)
+
+*(Dating note, recorded once: §§17-19 and every review file from round 5 on carry a `2026-09-14`
+stamp. `git log` shows all of them authored and committed on **2026-09-13**; the stamp is a day
+ahead and nothing depends on it. This amendment and AUTHORING amendment 6 use the true date.)*
+
+Round 8 returned three blockers, and the third is the one that matters. Adding `self._n = 0` to
+`OrderBook.collect` in S35 passed **every suite at both checkpoints**, while the public sequence
+`place` -> `collect` -> `place` reissued a live order id and the second order silently overwrote the
+first: a **demonstrated false J = 1**, the scorer awarding a session success to a repository that is
+corrupt through its own public API. It reached the frozen pool because the allocator audit's write
+detector read only each method's own body, so a method that stores by delegating to another method
+was classified as a pure reader and never mutated. Asking the same question about a receiver other
+than `self` then found a **second** false J = 1 in the same slot (§20.4), which is the finding I
+would most want a reviewer to attack. The other two items are accounting: the death observation
+could carry a timestamp from before the probe that produced it, and missing checkpoints still
+reached the gate calculations. Each was reproduced before anything changed. No arm, model, outcome
+unit, gate or statistic changed. Unlike amendments 6 and 7, this one **changes pool fixtures**, so
+the SCREEN pool is re-frozen; §20.7 records the new hash.
+
+### 20.1 The observation is timestamped by its probe, not by its caller (F13)
+
+Amendment 7 made a positive observation that a launch's pid is gone the only thing that can bound
+that launch's charge. Round 8 showed the observation could be **backdated**: the runner sampled
+`now` once and passed it in, and that value survived the ledger read and the pid probe unchanged.
+Astra's scenario -- observation begins at 300 s, the launch dies at 900 s, the probe executes at
+1,000 s -- permanently fixed the charge at **300 s**. Beside 2,400 s of completed work that is 45
+minutes charged against 55 minutes spent, and the real summary prints `GATE PASSED`. Reproduced
+exactly.
+
+Absence at the probe establishes termination **by the probe's time** and by nothing earlier, so
+that is the only timestamp the evidence supports. `ledger_observe` now takes a `clock` instead of a
+timestamp and samples it AFTER each successful probe; the runner passes no time at all. Re-running
+Astra's scenario on the fixed code writes `{"event": "observed_dead", "t": 1000.0, "elapsed_s":
+1000.0}` and charges **1,000 s**, and a read at 5,000 s still charges 1,000 s, because the
+observation is still fixed evidence once written.
+
+The direction of the remaining error is unchanged and is the safe one. A launch whose probe happens
+late is charged through that late probe, never through its real death, which OVER-charges; the
+answer is a prompt observation, which the runner does at startup before the model load, and not a
+delay. `test_the_observation_is_timestamped_after_the_probe` and
+`test_a_backwards_clock_cannot_zero_a_charge` hold both ends: the probe's time is what is written,
+and a clock that moved backwards can never charge less than a mark the launch itself wrote.
+
+### 20.2 An incomplete evaluation is not analysable (F12)
+
+Round 7 stopped an INELIGIBLE evaluation from printing gates. Round 8 showed that **missing records
+took the other path**: dropping a single checkpoint (S48@2 from the CF arm) while leaving the budget
+evidence valid still printed all **twelve gate lines** and read `provisional: GATE PASSED`, because
+`missing` only rewrote the verdict after the gates had been computed. §8's rule is one rule -- N is
+not reduced and no checkpoint is selected to rescue a run -- so incompleteness now takes the
+identical short circuit as ineligibility:
+
+| the evaluation | what is printed |
+|---|---|
+| complete and eligible | arm table, contrasts, five gates, verdict |
+| incomplete, ineligible, or both | arm table, a `## Not analysable (rounds 6-8 F12)` block naming every reason, and `INCOMPLETE (...; see above)` |
+
+Verified with the real summary on synthetic 48-session records: dropping S48@2 gives `INCOMPLETE
+(47/48 sessions complete; see above). The gates are not read for an evaluation that is incomplete or
+not eligible` with **zero** gate lines, and the otherwise identical complete control gives `GATE
+PASSED` with **twelve**. An `assert not missing and not ineligible` immediately before the gate
+reading makes a future third path a crash rather than a printed gate.
+
+### 20.3 A method that writes through another method is a writer (high; the false J = 1)
+
+The class-7 allocator mutation (`self._counter = 0` at the top of a method that is not itself the
+allocator) is generated only for methods that write state, because generating it for pure readers
+would inflate the count without adding coverage. The test for "writes state" was a regex over the
+method's own body for an assignment to a private attribute. `OrderBook.collect` assigns nothing: it
+builds the updated record and calls `self.save(updated)`. So it read as a reader, was never mutated,
+and the mutation Astra wrote by hand went undetected at both checkpoints.
+
+`state_writers(src)` replaces the regex. It starts from the same direct test and then closes the
+set over calls to other methods of `self`, to a fixed point: a method that calls a writer is a
+writer. This is a strict superset -- nothing that used to be mutated stops being mutated -- and it
+costs six new mutants pool-wide: `S35@1` and `S35@2` in both `ready` and `collect`, `S08@2` in
+`import_results`, and `S10@2` in `load_feed`. All six were UNDETECTED on the pool as frozen at
+`e1329095`, confirming that the audit, not the fixtures, is where this was hiding; a three-slot
+probe over S08, S10 and S35 returned **76 mutations, 6 UNDETECTED, 0 unresolved sites** (class 7
+alone, before §20.4's class 7b existed).
+
+The fixtures that close them follow Astra's fix line -- "test subsequent insertion and preservation
+of earlier records" -- and AUTHORING amendment 6 now states the rule for future slots. Each is a
+create-after-operation sequence through the public API only: create, run the operation, create
+again, then assert both that the new record's id is not one of the live ids and that the earlier
+record still resolves through the public reader with its own field values. The second half is the
+one that is easy to drop, and it is the half that sees the collision.
+
+| slot | suite | what it runs |
+|---|---|---|
+| S08 | `_C2_FUNCTIONAL` | three players, import a one-line sheet, `add_player` -> a fourth id, `count() == 4`, `P1` is still Ana with one game |
+| S10 | `_C2_FUNCTIONAL` | add a feed, load it from a file, `add_feed` -> a different id, `count() == 2`, the loaded feed keeps its title, url and three episodes |
+| S35 | `_C1_FUNCTIONAL` | place, `collect`, place -> a different id, and the collected order still resolves with its customer, item, qty and payment |
+| S35 | `_C1_REGRESSION` | place, `ready`, place -> a different id, and the readied order still resolves with its customer, item, qty and payment |
+
+S35's checkpoint-2 mutants need no checkpoint-2 fixture: `score_checkpoint` re-runs request 1's
+functional and regression suites at checkpoint 2 as `protected_function`, so the two checkpoint-1
+tests above cover `ready` and `collect` at both checkpoints. The same three-slot probe after the
+fixtures returns **76 mutations, 0 UNDETECTED, 0 unresolved sites**.
+
+### 20.4 A handle is a receiver too -- the second false J = 1 (class 7b)
+
+Round 8's finding is about a boundary, not about one method, so the same question was asked of a
+receiver other than `self`: can a function reset a store's allocator through a handle it was
+given? In S35 it can. `refund(book, order_id, reason)` is the checkpoint-2 gold, it lives in
+`bakeorders/refunds.py`, and it stores through `book.save(refunded)`. `book._n = 0` at the top of
+it passes every suite at checkpoint 2, and `place` then reissues `O1`. This was found here, not by
+the reviewer, and it is the second demonstrated false J = 1 of the round.
+
+Class 7b generates it. `project_classes` collects every class in the project with its methods, its
+public writers and the counters it increments; `handle_allocator_mutants` walks every function and
+method of the file under mutation and, for every name other than `self` that the body uses to call
+one of those classes' writers, inserts `<name>.<counter> = 0` at the top.
+
+The receiver's CLASS has to resolve first, and that requirement is load-bearing rather than
+decorative. S31's `join_club(roll: MemberRoll, ...)` calls `roll.add(...)`, and `PickList.add` is a
+writer, but `MemberRoll` owns no counter -- `roll._counter = 0` there only creates an unused
+attribute, so it is a no-op that would report a **fake** escape. Resolution is the parameter
+annotation where there is one, and otherwise the unique project class whose methods cover every
+method called on the name (`book.find` and `book.save` -> `OrderBook`, which is how the real case
+resolves, since `refund`'s parameters are unannotated). A receiver that writes a counter-owning
+store and resolves to neither is reported beside the unresolved update sites rather than skipped
+silently; the frozen pool produces **none**.
+
+Class 7b generates **35 mutations** across the pool, in eleven slot-checkpoints (S27@2, S28@1/@2,
+S29@1/@2, S30@1/@2, S31@2, S32@1/@2, S35@2), with **zero unresolved receivers**. Exactly one of the
+thirty-five escaped -- `refund` -- and the S35 `_C2_FUNCTIONAL` fixture (place, refund, place, with
+the refunded order still resolving under its own id) closes it: S35 alone then reports **41
+mutations, 0 UNDETECTED, 0 unresolved**.
+
+One scope decision, stated because it is the place where this amendment declined to widen. The
+one-off probe that found `refund` ignored the audit's own path rule and mutated EVERY project file,
+which reported four further undetected cases: `S27@1 book_screening`, `S31@1 nominate`, and
+`S31@1`/`S31@2 join_club`. None of the four survives contact with the two rules above. The two
+`join_club` cases are the `MemberRoll` no-op -- the mutation writes an attribute nothing reads. The
+other two sit in request 2's target file at CHECKPOINT 1, where only request 1's target carries a
+reply, so no reply can introduce them; and at checkpoint 2, where a reply does write those files,
+class 7b generates both and the suites **detect** both. The probe was measuring something the screen
+cannot experience, which is exactly why the audit mutates only the target paths (§17.1's round-5
+rule).
+
+### 20.5 The new fixtures do not constrain a correct reply
+
+A fixture written against a mutation rather than against the request is how a screen becomes unfair
+to the arm it is meant to measure, so the five were checked in the other direction as well. Four
+alternative replies were written that implement the registered request faithfully and differ from
+the gold in construction, not in behaviour, with every state-dependent name read out of the gold so
+the check runs in the state the session actually carries:
+
+| slot | the alternative |
+|---|---|
+| S35@1 | `collect` builds a new `Order` field by field and stores it directly -- no `replace`, no `self.save` |
+| S35@2 | `refund` builds a fresh `Order`, importing the class inside the function |
+| S08@2 | `import_results` is an index loop with its own accumulator and no tuple unpacking |
+| S10@2 | `load_feed` reads, parses and stores the feed itself instead of delegating to the refresh method |
+
+All four score **every suite at their checkpoint**: 4 alternatives, 0 rejected. The only way to fail
+the new assertions is to disturb the allocator or to file a record under a different id, which is
+the property they are there to pin. That the S35@2 alternative passes is the sharper of the four,
+because its `refund` does NOT delegate through the method the audit used to resolve the receiver;
+the fixture pins the outcome, not the implementation route.
+
+### 20.6 What round 8 accepted
+
+RESOLVED and re-verified by Astra: the derived 47.2693-minute ceiling and the 50-minute registered
+value that admits all 96 requests; the registered output cap, refused at parse time and checked
+independently by the summary; missing and empty ledgers and budget refusals; the ambiguity fix,
+with `a = B(); replace(a, ...); a = A()` now reporting UNRESOLVED. The reverse risks were probed
+and behave as registered: a correctly recorded two-launch, 40-minute resumption passes, and a
+launch killed at 60 s but observed an hour later is charged 60 minutes -- a real over-charge, in the
+conservative direction, recoverable by relaunching rather than waiting. PID absence is meaningful
+only in the launch's own PID namespace, and Astra checked that the registered wrapper launches
+normally and that generation happens in the runner process, so there is no separate orphaned
+GPU-worker path; pid recycling prolongs charges rather than shortening them. All 48 SCREEN and 576
+TRAIN content hashes reproduced against the records as frozen at `e1329095`. No new demonstrated
+false J = 0. All five gates and every statistic still match §7: McNemar 0.0625 for 5-0, 0.25 for
+3-0, and +/-0.0872490536 at zero discordance with N = 48.
+
+One correction to my own reading of round 7, which I had recorded as findings moving away from the
+science and towards the accounting: round 8's third item is a scoring defect, demonstrated, on the
+frozen pool, and it is the reason this amendment touches pool files at all. The audit's coverage,
+not the fixtures' strictness, was the weak part, and the same shape -- an instrument whose detector
+is narrower than the property it claims to check -- has now produced findings in rounds 5, 6 and 8,
+plus §20.4 from my own probe. The standing lesson is recorded in AUTHORING amendment 6: when a
+detector is narrowed by a plausibility argument, measure the boundary instead of arguing it.
+
+### 20.7 Re-frozen pool and self-checks
+
+This amendment changed three slot modules, in the two containment-exempt fixture fields only, so the
+SCREEN pool is re-frozen and its hash changes. `scripts/a_screen_freeze.py` reports zero problems
+and 48 slots; no TRAIN file was touched. No arm has run, so no record carries the old hash.
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `ef802ce2160ee00c` | re-frozen from `fa633cceefe47562` |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | unchanged; no TRAIN file was touched |
+
+`uv run python scripts/a_screen_mutate.py` -> **1,002 mutations, 0 undetected, 0 unresolved
+sites** (both checkpoints; 131 update sites typed; 967 from classes 1-7 -- +6 over amendment 7's
+961 from §20.3's writer closure -- plus 35 from §20.4's class 7b).
+`uv run python scripts/a_screen_rename.py` -> **108 renames, 0 rejected**.
+`uv run python scripts/a_screen_containment.py --ref HEAD` -> **0 violations with NO
+authorizations**, three slots differing and 45 untouched. Because `functional_tests` and
+`regression_tests` are the two exempt fields, that is the mechanical statement that the request
+text, the gold, the project files, the contract suites, the support suites and the prefix turns are
+all byte-identical to `e1329095`.
+`uv run pytest -q tests/test_a_screen.py tests/test_a_screen_spend.py
+tests/test_no_side_effect_imports.py tests/test_contracts.py` -> **477 passed, 1 xfailed**
+(`tests/test_a_screen_spend.py` grew 26 -> **28**).
+`uv run ruff check .` and `ruff format --check .` -> clean, 897 files.
+
+No arm, model, outcome unit, gate, statistic or ceiling changed in this amendment. The only changes
+are the two accounting fixes, the audit's two widened detectors, and the five fixtures that close
+what they found.

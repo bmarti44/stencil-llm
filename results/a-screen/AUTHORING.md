@@ -286,3 +286,68 @@ the project's own code happens to set.
 **A name with two classes in one function now fails the audit.** `old = A(...)` … `old = B(...)` in
 one function leaves `old` untyped, which reports the site UNRESOLVED rather than mutating the wrong
 class's field. Do not reuse one local name for two record classes in a method that updates either.
+
+## AMENDMENT 6 (2026-09-13, after Astra re-review round 8): delegating writers allocate too
+
+*(Dating note: amendments 3-5 and the review files from round 5 on carry a `2026-09-14` stamp
+written a day ahead. Every one of them was authored on 2026-09-13; this amendment uses the true
+date.)*
+
+**A method that writes the store by CALLING another writer is a writer, and needs its own
+create-after-operation test.** Amendment 3 required one create-after-update sequence per suite, and
+in practice that was written for the checkpoint's own update method. Round 8 demonstrated the gap
+with a public sequence three calls long:
+
+```python
+book = OrderBook()
+order = book.place("Mrs Okafor", "sourdough", 2, 900)
+book.collect(order.order_id)                 # self._n = 0 hides here
+fresh = book.place("Dev", "birthday cake", 1, 2400)   # reissues O1, overwriting the first order
+```
+
+`OrderBook.collect` stores through `self.save(updated)` and assigns nothing itself, so it read as a
+pure reader: the audit never mutated it, and every suite at both checkpoints passed a repository
+that reissues live ids. That is a demonstrated false J = 1, not a theoretical one.
+
+So, for every public method that changes stored state — **including one whose body contains no
+assignment at all, because it delegates to a writer, and including a bulk method that loops over an
+existing writer** — the suite that owns that method needs a create-after-operation sequence:
+
+1. create a record through the public API;
+2. run the operation on it;
+3. create again, and assert the new record's id is **not** one of the live ids (pin the exact
+   expected id where the slot mints before incrementing, per amendment 3);
+4. assert the earlier record still resolves through the public reader, with its own required field
+   values, and that the new record resolves to itself.
+
+Step 4 is the half that is easy to drop. An allocator reset is only visible through the *collision*
+it causes later, so a test that checks the fresh id and stops proves nothing about the record that
+id used to belong to.
+
+Where the method under test is the checkpoint's gold, the test belongs in `functional_tests`; where
+it is pre-existing project code, it belongs in `regression_tests`. A checkpoint-1 fixture covers
+both checkpoints for free — `score_checkpoint` re-runs request 1's functional and regression suites
+at checkpoint 2 as `protected_function` — so a pre-existing writer needs the test written once, at
+checkpoint 1.
+
+`scripts/a_screen_mutate.py` enforces this: `state_writers` closes the writer set over calls to
+other methods of `self`, so a delegating writer is now mutated like any other, and a missing
+create-after-operation test shows up as an UNDETECTED mutation rather than as a silent pass.
+
+**And the writer need not be a method of the store at all.** Asking round 8's question about a
+different receiver found a second one, in the same slot:
+
+```python
+book = OrderBook()
+order = book.place("Mrs Okafor", "sourdough", 2, 900)
+refund(book, order.order_id, "stale")        # book._n = 0 hides here
+fresh = book.place("Dev", "birthday cake", 1, 2400)   # reissues O1 again
+```
+
+`refund` is a module-level function in another file that takes the book and stores through
+`book.save(...)`. It is the checkpoint-2 gold, so a reply writes it, and every suite passed. The
+audit now mutates through any handle a function writes the store with (class 7b), not only through
+`self`, so the rule for an author is simply: **the operation, not the class, is what needs the
+create-after-operation test.** If a request adds a function that changes stored state, that
+function's suite needs the sequence above, whether the function lives on the store class, in
+another module, or anywhere else.

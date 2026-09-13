@@ -336,6 +336,20 @@ def test_import_stops_at_bad_line_after_applying_earlier_ones():
         _import(b)(["P1 P2 1-0", "P2 P3"])
     assert b.find("P1").games == 1
     assert b.find("P3").games == 0
+
+
+def test_import_leaves_the_id_allocator_intact():
+    # a player added AFTER the sheet import must get a fresh id, and the players
+    # recorded before it must survive that next addition
+    b = _book()
+    assert _import(b)(["P1 P2 1-0"]) == 1
+    fresh = b.add_player("Di", 1700)
+    assert fresh.player_id not in ("P1", "P2", "P3"), "the import reissued a live id"
+    assert b.count() == 4
+    ana = b.find("P1")
+    assert ana is not None, "the new player overwrote a recorded one"
+    assert ana.name == "Ana" and ana.games == 1
+    assert b.find(fresh.player_id).name == "Di"
 """
 }
 

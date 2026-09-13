@@ -260,7 +260,7 @@ def main() -> None:
     # THROUGH NOW until something verifies it stopped.  This is that verification, and it
     # runs before the model load so recovering from a kill costs no GPU time: a launch whose
     # pid is gone cannot have lived past this moment, and the observation is written once.
-    dead = A.ledger_observe(spend_path, time.time(), mark)
+    dead = A.ledger_observe(spend_path, mark=mark)
     if dead:
         print("observed terminated launch(es): " + ",".join(dead))
 

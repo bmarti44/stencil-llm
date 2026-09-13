@@ -67,10 +67,23 @@ def test_an_observation_bounds_it_and_then_never_moves(tmp_path):
     # have lived past it, and the observation is recorded once so later reads agree
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0), ("record", 600.0)])
-    assert A.ledger_observe(p, T0 + 1500.0) == [DEAD]
+    assert A.ledger_observe(p, clock=lambda: T0 + 1500.0) == [DEAD]
     assert A.ledger_charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
     assert A.ledger_charges(p, "B", T0 + 99_999.0)[0][DEAD] == 1500.0
-    assert A.ledger_observe(p, T0 + 99_999.0) == []  # recorded once, never re-recorded
+    # recorded once, never re-recorded
+    assert A.ledger_observe(p, clock=lambda: T0 + 99_999.0) == []
+
+
+def test_the_observation_is_timestamped_after_the_probe(tmp_path):
+    """Round 8 F13: the caller sampled ``now`` once and passed it in, so a process
+    descheduled between that sample and the pid probe wrote a BACKDATED observation --
+    sampled at 300 s, probed at 1,000 s, permanently charging 300 s for a launch that
+    lived to 900.  Absence at the probe establishes termination by the PROBE's time."""
+    p = tmp_path / "spend.jsonl"
+    _write(p, DEAD, [("start", 0.0)])
+    reads = iter([T0 + 300.0, T0 + 1000.0])  # read at 300, probe returns at 1,000
+    assert A.ledger_observe(p, clock=lambda: next(reads)) == [DEAD]
+    assert A.ledger_charges(p, "B", T0 + 5000.0)[0][DEAD] == 1000.0
 
 
 def test_a_live_launch_is_not_observed_dead(tmp_path):
@@ -78,7 +91,7 @@ def test_a_live_launch_is_not_observed_dead(tmp_path):
     # direction
     p = tmp_path / "spend.jsonl"
     _write(p, MINE, [("start", 0.0)])
-    assert A.ledger_observe(p, T0 + 500.0) == []
+    assert A.ledger_observe(p, clock=lambda: T0 + 500.0) == []
     assert A.ledger_charges(p, "other", T0 + 500.0)[0][MINE] == 500.0
 
 
@@ -88,7 +101,7 @@ def test_a_launch_killed_while_loading_is_charged_its_loading_time(tmp_path):
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0)])
     assert A.ledger_charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
-    A.ledger_observe(p, T0 + 1200.0)
+    A.ledger_observe(p, clock=lambda: T0 + 1200.0)
     assert A.ledger_charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
 
 
@@ -118,7 +131,8 @@ def test_a_torn_tail_is_repaired_so_the_next_launch_is_visible(tmp_path):
         fh.write('{"launch": "A", "event": "rec')  # killed mid-write, no newline
     torn = A.ledger_repair(p)
     assert torn is not None and torn.startswith('{"launch": "A"')
-    A.ledger_mark(p, "B", "start", __import__("time").time())
+    # launch B's own marks, in the same synthetic epoch as A's
+    _write(p, "B", [("start", 0.0), ("record", 60.0)], t0=T0 + 1200.0)
     charges, malformed = A.ledger_charges(p, "C", T0 + 1300.0)
     assert malformed == 0
     assert "B" in charges and charges["B"] > 0.0  # B was erased before the repair
@@ -386,6 +400,23 @@ def test_the_summary_refuses_a_deleted_spend_ledger(tmp_path):
     assert "INCOMPLETE (budget eligibility:" in verdict and gates == 0
 
 
+def test_the_summary_refuses_an_incomplete_evaluation(tmp_path):
+    """Round 8 F12: missing records took the other path -- dropping a single checkpoint
+    still printed all twelve gates and read "provisional: GATE PASSED", because
+    `missing` only rewrote the verdict after the gates had been computed."""
+    runs = _screen_records(tmp_path / "runs", 2400.0, A.ARM_BUDGET_MIN)
+    cf = runs / "cf.jsonl"
+    kept = [
+        ln
+        for ln in cf.read_text().splitlines()
+        if not (json.loads(ln)["session"] == "S48" and json.loads(ln)["request"] == 2)
+    ]
+    cf.write_text("\n".join(kept) + "\n")
+    verdict, gates = _summary(runs)
+    assert "INCOMPLETE (47/48 sessions complete" in verdict
+    assert "GATE PASSED" not in verdict and gates == 0
+
+
 def test_the_summary_refuses_an_unregistered_output_cap(tmp_path):
     # round 7, medium: the three arms AGREEING on --max-new 2048 passed every identity
     # check, so the registered cap is checked against its own value
@@ -400,6 +431,6 @@ def test_a_backwards_clock_cannot_zero_a_charge(tmp_path):
     # launch's own marks
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0), ("record", 900.0)])
-    A.ledger_observe(p, T0 - 500.0)  # "now" is BEFORE the launch started
+    A.ledger_observe(p, clock=lambda: T0 - 500.0)  # "now" is BEFORE the launch started
     charges, _ = A.ledger_charges(p, "B", T0 + 1000.0)
     assert charges[DEAD] == 900.0

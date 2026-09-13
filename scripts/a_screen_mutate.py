@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import itertools
 import re
 import sys
 from collections.abc import Iterator
@@ -589,6 +590,7 @@ def mutants(
     # Restricted to methods that already WRITE state: a reply might plausibly clobber a
     # counter while editing an update operation, but not inside a pure reader, and
     # generating the reader cases would inflate the count without adding coverage.
+    writers = state_writers(src)
     for counter in counters(src):
         for m in re.finditer(r"\n    def (\w+)\(self[^\n]*\n", src):
             name = m.group(1)
@@ -598,12 +600,121 @@ def mutants(
             body = src[m.end() : end if end != -1 else len(src)]
             if f"self.{counter} += 1" in body or f"self.{counter} =" in body:
                 continue  # this IS the allocator, or already assigns it
-            if not re.search(r"self\._\w+(\[[^\]]*\])? *=|\.append\(|\.write", body):
+            if name not in writers:
                 continue  # a pure reader: not a plausible place for a reply to do this
             yield (
                 f"reset allocator self.{counter} in {name} @{m.start()}",
                 src[: m.end()] + f"        self.{counter} = 0\n" + src[m.end() :],
             )
+
+
+DEF = re.compile(r"\n([ ]*)def (\w+)\(([^)]*)\)[^\n]*:\n")
+
+
+def project_classes(files: dict[str, str]) -> dict[str, dict]:
+    """Every class in the project, with its method names, its public writers and the id
+    counters it increments.  Used to resolve the RECEIVER of an allocator reset that is
+    not ``self`` (round 8, class 7b)."""
+    out: dict[str, dict] = {}
+    for text in files.values():
+        for m in re.finditer(r"\nclass (\w+)[^\n]*:\n", text):
+            nxt = text.find("\nclass ", m.end())
+            body = text[m.end() : nxt if nxt != -1 else len(text)]
+            out[m.group(1)] = {
+                "methods": set(re.findall(r"\n    def (\w+)\(", body)),
+                "writers": state_writers(body),
+                "counters": counters(body),
+            }
+    return out
+
+
+def handle_allocator_mutants(
+    files: dict[str, str], src: str, unresolved: list[str] | None = None
+) -> Iterator[tuple[str, str]]:
+    """Class 7b (round 8): reset a store's id allocator through a HANDLE, not ``self``.
+
+    Class 7 only mutates methods of the class that OWNS the counter.  S35's refund
+    operation lives in another module and takes the book as a parameter, so
+    ``book._n = 0`` at the top of ``refund`` was outside that boundary: it passed every
+    suite at checkpoint 2, a second demonstrated false J = 1 of the same family as
+    ``collect``.  The receiver is therefore generalised to any other name a function
+    writes the store through.
+
+    The receiver's CLASS has to resolve, or the mutation is a no-op that would report a
+    fake escape: S31's ``join_club(roll: MemberRoll, ...)`` calls ``roll.add(...)`` and
+    ``PickList.add`` is a writer too, but ``MemberRoll`` has no counter, so
+    ``roll._counter = 0`` only creates an unused attribute.  Resolution is the parameter
+    annotation where there is one, else the unique project class whose methods cover
+    every method called on the name (``book.find`` + ``book.save`` -> ``OrderBook``).  A
+    receiver that writes a counter-owning class's store and resolves to neither is
+    appended to ``unresolved`` rather than skipped silently.
+    """
+    classes = project_classes(files)
+    owned = {c: n for n, info in classes.items() for c in info["counters"]}
+    if not owned:
+        return
+    writers = {w for n in owned.values() for w in classes[n]["writers"]}
+    for m in DEF.finditer(src):
+        indent, fname, params = m.group(1), m.group(2), m.group(3)
+        nxt = re.search(rf"\n{indent}\S", src[m.end() :])
+        body = src[m.end() : m.end() + nxt.start()] if nxt else src[m.end() :]
+        ann = {}
+        for part in params.split(","):
+            if ":" in part:
+                name, _, typ = part.partition(":")
+                ann[name.strip()] = typ.split("=")[0].strip().strip("\"'")
+        called: dict[str, set[str]] = {}
+        for r in re.finditer(r"\b([A-Za-z_]\w*)\.(\w+)\s*\(", body):
+            if r.group(1) != "self":
+                called.setdefault(r.group(1), set()).add(r.group(2))
+        for name, methods in sorted(called.items()):
+            if not methods & writers:
+                continue  # not a write through this handle: class 7's rationale
+            cls = ann.get(name)
+            if cls not in classes:
+                fits = [n for n, i in classes.items() if methods <= i["methods"]]
+                cls = fits[0] if len(fits) == 1 else None
+            if cls is None:
+                if unresolved is not None:
+                    why = f"{name} writes a store, class unresolved"
+                    unresolved.append(f"{fname}: {why}")
+                continue
+            for counter in classes[cls]["counters"]:
+                if f"{name}.{counter}" in body:
+                    continue  # already assigns or reads it: not a silent reset
+                reset = f"{indent}    {name}.{counter} = 0\n"
+                yield (
+                    f"reset allocator {name}.{counter} in {fname} @{m.start()}",
+                    src[: m.end()] + reset + src[m.end() :],
+                )
+
+
+def state_writers(src: str) -> set[str]:
+    """Public method names that write the object's own state, DIRECTLY or by delegating.
+
+    Round 8: the allocator audit tested each method's own body for an assignment to a
+    private attribute, so ``OrderBook.collect``, which stores through
+    ``self.save(...)``, was classified as a pure reader and never mutated.  Adding
+    ``self._n = 0`` to it passed every suite at both checkpoints while ``place`` then
+    reissued a live order id -- a demonstrated false J = 1.  A method that calls a
+    writer is a writer, so the set is closed over calls to other methods of ``self``.
+    """
+    bodies: dict[str, str] = {}
+    for m in re.finditer(r"\n    def (\w+)\(self[^\n]*\n", src):
+        end = src.find("\n    def ", m.end())
+        bodies[m.group(1)] = src[m.end() : end if end != -1 else len(src)]
+    direct = r"self\._\w+(\[[^\]]*\])? *=|\.append\(|\.write"
+    writers = {n for n, b in bodies.items() if re.search(direct, b)}
+    for _ in range(len(bodies)):  # closure: a caller of a writer is a writer
+        grown = {
+            n
+            for n, b in bodies.items()
+            if any(re.search(rf"self\.{w}\s*\(", b) for w in writers)
+        }
+        if grown <= writers:
+            break
+        writers |= grown
+    return {n for n in writers if not n.startswith("_")}
 
 
 def main() -> None:
@@ -641,7 +752,12 @@ def main() -> None:
                         unresolved.append(
                             f"{slot}@{k} {path}: {site.text} -- {site.why}"
                         )
-                for label, mut in mutants(fk[path], classes, types, writable):
+                handles: list[str] = []
+                gen = itertools.chain(
+                    mutants(fk[path], classes, types, writable),
+                    handle_allocator_mutants(fk, fk[path], handles),
+                )
+                for label, mut in gen:
                     if mut == fk[path]:
                         continue
                     total += 1
@@ -655,6 +771,7 @@ def main() -> None:
                         continue
                     if res["all"]:
                         undetected.append((f"{slot}@{k}", path, label))
+                unresolved.extend(f"{slot}@{k} {path}: {h}" for h in handles)
         print(f"{slot}: done ({total} mutations so far)")
     print(
         f"\nmutations applied: {total}   UNDETECTED: {len(undetected)}   "

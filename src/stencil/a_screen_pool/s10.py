@@ -358,6 +358,24 @@ def test_load_keeps_other_feeds_and_count(tmp_path):
     assert kept.title == "Daily" and kept.url == "v"
     assert s.count() == 2
     assert s.find(f.feed_id).episodes == out.episodes
+
+
+def test_load_leaves_the_id_allocator_intact(tmp_path):
+    # a feed added AFTER a load must get a fresh id, and the loaded feed must
+    # survive that next addition
+    p = tmp_path / "weekly.txt"
+    p.write_text(DOC, encoding="utf-8")
+    s = FeedStore()
+    f = s.add_feed("Weekly", "u")
+    _load(s)(f.feed_id, str(p))
+    fresh = s.add_feed("Daily", "v")
+    assert fresh.feed_id != f.feed_id, "the load reissued a live feed id"
+    assert s.count() == 2
+    kept = s.find(f.feed_id)
+    assert kept is not None, "the new feed overwrote the loaded one"
+    assert kept.title == "Weekly" and kept.url == "u"
+    assert kept.episodes == ("Pilot", "The Second One", "Listener Mail")
+    assert s.find(fresh.feed_id).title == "Daily"
 """
 }
 

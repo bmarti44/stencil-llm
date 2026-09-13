@@ -362,21 +362,47 @@ def main() -> None:
                     f"manifest's {lifecycle[sid]!r}"
                 )
     changing = [s for s in ids if lifecycle[s] != "stable"]
-    if ineligible:
+    if ineligible or missing:
         # Round 7 F12: suppressing only the verdict still printed twelve "PASS" gate lines
         # above it.  §8 says an exhausted ceiling is recorded INCOMPLETE and "no checkpoint
         # is selected to rescue it", so for an ineligible evaluation the gates are not
         # COMPUTED at all -- the arm table above stays as a description of what was spent.
-        lines.append("\n## Budget eligibility (rounds 6-7 F12)\n")
-        lines.extend(f"- {r}" for r in ineligible)
+        #
+        # Round 8 F12: MISSING RECORDS took the other path.  Dropping a single checkpoint
+        # (S48@2 from CF) still printed all twelve gates and read "provisional: GATE
+        # PASSED", because `missing` only rewrote the verdict afterwards.  §8's rule is the
+        # same one -- N is not reduced and no checkpoint is selected to rescue a run -- so
+        # an incomplete evaluation now takes the identical short circuit.
+        why = []
+        if missing:
+            why.append(
+                f"{len(missing)} of {len(expected)} manifest sessions are not complete in "
+                f"all three arms: {', '.join(missing)}"
+            )
+        why.extend(ineligible)
+        lines.append("\n## Not analysable (rounds 6-8 F12)\n")
+        lines.extend(f"- {r}" for r in why)
         lines.append(
             "\nThe contrasts and the five gates are NOT computed for an evaluation that is "
-            "not eligible."
+            "incomplete or not eligible."
         )
         verdict = (
-            f"INCOMPLETE (budget eligibility: {len(ineligible)} refusal(s); see above"
-            + (f"; and {len(missing)} manifest sessions incomplete" if missing else "")
-            + "). The gates are not read for an evaluation that is not eligible"
+            "INCOMPLETE ("
+            + "; ".join(
+                filter(
+                    None,
+                    [
+                        f"{len(ids)}/{len(expected)} sessions complete"
+                        if missing
+                        else "",
+                        f"budget eligibility: {len(ineligible)} refusal(s)"
+                        if ineligible
+                        else "",
+                    ],
+                )
+            )
+            + "; see above). The gates are not read for an evaluation that is incomplete "
+            "or not eligible"
         )
         lines.append(
             f"\n**Verdict: {verdict}** (a passed gate authorises only the CONFIRM "
@@ -438,12 +464,10 @@ def main() -> None:
     lines.append("\n## Gate (registration §7; count rules decide)\n")
     for g, ok in gates.items():
         lines.append(f"- {g}: {'PASS' if ok else 'FAIL'}")
+    # a complete, eligible evaluation is the only one that reaches a gate reading: the
+    # short circuit above returned for every other case
+    assert not missing and not ineligible
     verdict = "GATE PASSED" if gates and all(gates.values()) else "GATE FAILED"
-    if missing:
-        verdict = (
-            f"INCOMPLETE ({len(ids)}/{len(expected)} manifest sessions complete in all "
-            f"three arms; missing {', '.join(missing)}); provisional: {verdict}"
-        )
     lines.append(
         f"\n**Verdict: {verdict}** (a passed gate authorises only the CONFIRM registration; no efficacy claim)."
     )
