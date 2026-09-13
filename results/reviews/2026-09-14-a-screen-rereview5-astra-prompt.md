@@ -45,8 +45,10 @@ Do not add arms, models, benchmarks or review stages, and do not reframe the dir
    regression suite, with the support test asserting the seed took effect so it cannot go vacuous.
    Both replies now score J = 0 on the support suite at checkpoint 1. These are the first
    authorised changes to `Session.files`; containment gained a `SLOT:session:field` form and this
-   round's authorisations are exactly four. **Judge whether a seed parameter is the right
-   instrument, or whether it weakens what request 2 asks for.**
+   round's authorisations are exactly seven — the two `files` entries, two `support_tests`, and
+   three `gold` entries that are the same two seed lines propagating into the embedded gold
+   (verified line by line: every changed gold line is one of the two seed lines). **Judge whether
+   a seed parameter is the right instrument, or whether it weakens what request 2 asks for.**
 
 4. **Interrupted spend is now bounded above, and the ledger is repaired before it is appended
    to.** An unfinished launch is charged `max(last mark, min(lifetime, last mark + bound))` with
@@ -78,6 +80,12 @@ Do not add arms, models, benchmarks or review stages, and do not reframe the dir
   (`SLOT:session:field`), `tests/test_a_screen_spend.py`.
 - The 28 repaired slots in `src/stencil/a_screen_pool/`, S45 and S47 especially;
   `results/a-screen/AUTHORING.md` AMENDMENT 4 replaces the substitution rule that caused F3.
+- Current freeze: SCREEN `fa633cceefe47562` (was `9168d17a9fbf2939`), TRAIN `b8f504494a281858`
+  unchanged. Clean-tree checks at commit `6f539bc6`: audit **959 mutations / 0 undetected / 0
+  unresolved sites**, rename **108 / 0 rejected**, containment **0 violations** with the seven
+  authorisations, `pytest tests/test_a_screen.py tests/test_a_screen_spend.py
+  tests/test_no_side_effect_imports.py tests/test_contracts.py` **458 passed, 1 xfailed**
+  (`test_a_screen.py` alone collects 301), `ruff check .` and `ruff format --check .` clean.
 
 ## Questions (answer each; cite file:line)
 
