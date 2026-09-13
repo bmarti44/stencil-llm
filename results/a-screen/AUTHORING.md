@@ -351,3 +351,113 @@ audit now mutates through any handle a function writes the store with (class 7b)
 create-after-operation test.** If a request adds a function that changes stored state, that
 function's suite needs the sequence above, whether the function lives on the store class, in
 another module, or anywhere else.
+
+## AMENDMENT 7 (2026-09-13, after Astra re-review round 9): every public callable, not only the writers
+
+Amendment 6 widened "writer" for the second time. Round 9 widened it a third: a method that never
+assigns and never delegates, but edits a record it pulled out of the store by alias, is a writer too.
+
+```python
+account = self._accounts[account_id]
+account["tokens"] -= n            # stored state changes; nothing is assigned through self
+```
+
+Thirteen such mutations across S34, S36 and S37 passed every applicable suite. Rather than widen the
+detector a fourth time, the boundary was **measured**: the audit was re-run with the writer
+restriction removed entirely. It generates 340 allocator mutations instead of 255, and **all 85 of
+the extra ones escaped** — so the restriction was never separating plausible damage from
+implausible damage, it was separating tested code from untested code.
+
+**The rule for authors is now unconditional. Any public callable can be where an allocator reset
+hides, so every slot whose target owns an id allocator carries one generic fixture that exercises
+all of them.** It goes in the checkpoint-1 `regression_tests` (which `score_checkpoint` re-runs at
+checkpoint 2 as `protected_function`, so one copy covers both checkpoints), and it reads:
+
+```python
+def test_no_public_call_disturbs_the_id_allocator():
+    import copy as _copy
+    import importlib as _il
+    import inspect as _in
+    import pkgutil as _pk
+    import <package> as _pkg
+    import <package>.<module> as _m0
+    _x = _m0.<Store>()
+    _first = _x.<create>(...)
+    _fid = _first.<id>
+    _before = _copy.deepcopy(_first)
+    _junk = "__no_such_record__"
+    _shapes = ((), (_junk,), (_junk, _junk), ..., (_x, _junk), (_x, _junk, _junk), ...)
+    _mods = [_pkg]                       # every module of the package, not just this one
+    for _mi in _pk.walk_packages(_pkg.__path__, _pkg.__name__ + "."):
+        try:
+            _mods.append(_il.import_module(_mi.name))
+        except Exception:
+            pass
+    _holders = [_x] + _mods
+    for _mod in _mods:                   # and an instance of every class they define
+        for _nm in sorted(dir(_mod)):
+            if _nm.startswith("_"):
+                continue
+            _cls = getattr(_mod, _nm)
+            if not _in.isclass(_cls) or _cls.__module__ != _mod.__name__:
+                continue
+            for _shape in _shapes:
+                try:
+                    _holders.append(_cls(*_shape))
+                    break
+                except Exception:
+                    pass
+    for _holder in _holders:
+        for _name in sorted(dir(_holder)):
+            if _name.startswith("_"):
+                continue
+            _fn = getattr(_holder, _name)
+            if not callable(_fn):
+                continue
+            for _args in _shapes:
+                try:
+                    _fn(*_args)
+                except Exception:
+                    pass
+    _second = _x.<create>(...)
+    assert _second.<id> != _fid, "a public call reissued a live id"
+    _back = _x.<read>(_fid)
+    assert _back is not None, "the second record overwrote the first"
+    assert _back == _before, "a public call refiled another record under it"
+```
+
+Five things make it work and are each easy to get wrong:
+
+1. **Junk arguments are the point.** A reset sits at the TOP of a method, so it runs before the
+   lookup that would have raised; a call that does not apply simply raises and is swallowed. That is
+   how one fixture covers readers, counters, validators and deleters without knowing what any of
+   them do.
+2. **Create again afterwards.** An allocator reset is invisible until the next create, exactly as in
+   amendment 6. The last three assertions are the whole test.
+3. **Compare the record, not the id.** The loop can consume the reissued id ITSELF: if the reset
+   hides in a method that sorts before the creator in `dir()`, the loop's own junk call to the
+   creator mints the live id again and files a junk record under it, and a fixture that only checks
+   that *some* record answers to that id passes a corrupt repository. Snapshot the first record
+   BEFORE the loop and assert the reader gives that record back.
+4. **"The package" means the package.** A store's allocator can be reset by a function or a METHOD
+   in another module -- `InvoiceArchive.invoice_archive(store, ...)` is one -- so walk every module
+   and construct every class they define. A fixture that exercises only the store and its own module
+   misses exactly the case class 7b exists for.
+5. **Resolve names the way the contract does.** Where the creator or reader is the target family's
+   own name, read it out with `getattr(_x, "book_room", None) or getattr(_x, "room_book", None)` so
+   the fixture runs in whichever state the session carries; where the constructor takes a path, take
+   `tmp_path` and pass one.
+
+What it does NOT reach: a reset placed AFTER the lookup that raises for an unknown id. Junk
+arguments never get past that point, which is why amendment 6's per-operation tests stay -- they run
+each operation on a record that exists. The two halves are complementary and neither is enough
+alone.
+
+Amendment 6's per-operation create-after-operation tests stay: they name the operation and fail with
+a message that says which one. This fixture is the floor under them, not a replacement.
+
+**The standing lesson, now stated as a rule rather than as advice.** A detector narrowed by a
+plausibility argument ("a reply would not do that here") has produced a real finding in rounds 4, 8
+and 9. When that happens a third time, do not widen it again — delete the narrowing and write the
+generic fixture. Plausibility belongs in what a reply is ASKED to do, never in what a scorer is
+willing to notice.

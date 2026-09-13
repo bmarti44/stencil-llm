@@ -238,6 +238,10 @@ def main() -> None:
                 "PILOT ADAPTER (not the registered allocation): " + "; ".join(problems)
             )
     t_start = time.time()
+    # Round 9, high: t_start is the launch's CALENDAR origin and names it; every
+    # DURATION below is measured from m_start, because time.time() can be stepped and
+    # a 600 s backward step 360 s into a 900 s launch charged it 300 s.
+    m_start = time.monotonic()
     out = Path(a.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     # Round 4 F13: `resident_s` only accounts for work that produced a record.  A launch
@@ -254,7 +258,7 @@ def main() -> None:
     torn = A.ledger_repair(spend_path)
 
     def mark(event: str, **extra: object) -> None:
-        A.ledger_mark(spend_path, launch_id, event, t_start, **extra)
+        A.ledger_mark(spend_path, launch_id, event, t_start, m_start, **extra)
 
     # Round 7 F13: an earlier launch that never wrote ``end`` is charged its lifetime
     # THROUGH NOW until something verifies it stopped.  This is that verification, and it
@@ -265,7 +269,9 @@ def main() -> None:
         print("observed terminated launch(es): " + ",".join(dead))
 
     def prior_launch_minutes() -> float:
-        charges, malformed = A.ledger_charges(spend_path, launch_id, time.time())
+        charges, malformed = A.ledger_charges(
+            spend_path, launch_id, time.time(), time.monotonic()
+        )
         if malformed:
             ap.error(
                 f"{spend_path} has {malformed} malformed line(s): a launch's spend cannot "
@@ -282,7 +288,7 @@ def main() -> None:
     atexit.register(stop_tick.set)
     threading.Thread(
         target=A.ledger_tick,
-        args=(spend_path, launch_id, t_start, stop_tick),
+        args=(spend_path, launch_id, t_start, m_start, stop_tick),
         daemon=True,
     ).start()
     if torn is not None:
@@ -306,7 +312,7 @@ def main() -> None:
         weights = Path(a.adapter) / "adapter_model.safetensors"
         adapter_id = sha(weights.read_bytes().hex()) if weights.exists() else "missing"
     model.eval()
-    mark("model_loaded", load_s=time.time() - t_start)
+    mark("model_loaded", load_s=time.monotonic() - m_start)
 
     # Astra F4: every terminal token the shipping package declares, not just config.eos
     gen_cfg = GenerationConfig.from_pretrained(a.hub)
@@ -369,13 +375,13 @@ def main() -> None:
         # such replies cannot establish the cost of all 1,584 registered suite invocations.
         # Measure the FULL scoring path directly, on the gold, for exactly the sessions being
         # extrapolated: 5 suites at checkpoint 1 and 6 at checkpoint 2 per session.
-        t_suites = time.time()
+        t_suites = time.monotonic()
         invocations = 0
         for s_ in sessions:
             for k in (1, 2):
                 A.score_checkpoint(s_, k, A.gold_files(s_, k))
                 invocations += 5 if k == 1 else 6
-        suite_s = time.time() - t_suites
+        suite_s = time.monotonic() - t_suites
         suite_cost = {
             "sessions": [s_.id for s_ in sessions],
             "suite_invocations": invocations,
@@ -483,7 +489,7 @@ def main() -> None:
             model.device
         )
         assert ids.shape[1] <= A.PROMPT_BUDGET, ids.shape
-        t0 = time.time()
+        t0 = time.monotonic()
         with torch.no_grad():
             gen = model.generate(
                 ids,
@@ -494,7 +500,7 @@ def main() -> None:
                 pad_token_id=gen_cfg.pad_token_id,
                 max_time=a.deadline,
             )
-        secs = time.time() - t0
+        secs = time.monotonic() - t0
         new = gen[0, ids.shape[1] :].tolist()
         ended = bool(new) and new[-1] in eos
         truncated = len(new) >= a.max_new and not ended
@@ -523,7 +529,7 @@ def main() -> None:
     def write(rec: dict) -> None:
         # resident wall time including this launch's prior spend, so a resumed run's budget
         # continues from where the last one stopped (re-review round 3 F13)
-        rec["resident_s"] = prior_min * 60 + (time.time() - t_start)
+        rec["resident_s"] = prior_min * 60 + (time.monotonic() - m_start)
         rec["launch"] = launch_id
         with out.open("a") as fh:
             fh.write(json.dumps(rec) + "\n")
@@ -532,7 +538,7 @@ def main() -> None:
 
     def spent_min() -> float:
         """This launch's elapsed minutes plus the spend of every earlier launch."""
-        return prior_min + (time.time() - t_start) / 60
+        return prior_min + (time.monotonic() - m_start) / 60
 
     n = n_j = n_f = 0
     incomplete: list[str] = []
@@ -642,7 +648,7 @@ def main() -> None:
             f"[{s.id} {a.arm}] J={J} fo={fo} | @1 {sc1['all']} ({g1['generated_tokens']} tok, "
             f"{g1['seconds']:.0f}s, {reason1}) | @2 {sc2['all']} ({g2['generated_tokens']} tok, "
             f"{g2['seconds']:.0f}s, {reason2}) | running J {n_j}/{n} fo {n_f}/{n} | "
-            f"{(time.time() - t_start) / 60:.0f} min"
+            f"{(time.monotonic() - m_start) / 60:.0f} min"
         )
     # Round 5 F13: a run that exhausts its budget is INCOMPLETE even if every session
     # started, because a started request can overrun the margin it was admitted under.
@@ -651,7 +657,7 @@ def main() -> None:
     status = A.run_status(incomplete, partial, a.budget_min, spent)
     print(
         f"DONE arm={a.arm} new={n} J={n_j} function_only={n_f} minutes="
-        f"{(time.time() - t_start) / 60:.1f} spent_min={spent:.1f} status={status}"
+        f"{(time.monotonic() - m_start) / 60:.1f} spent_min={spent:.1f} status={status}"
         + (f" not_started={','.join(incomplete)}" if incomplete else "")
         + (f" request2_not_started={','.join(partial)}" if partial else "")
         + (f" OVER_BUDGET by {spent - (a.budget_min or 0):.1f} min" if over else "")

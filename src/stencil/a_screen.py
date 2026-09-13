@@ -596,12 +596,40 @@ def ledger_repair(path: Path) -> str | None:
     return torn
 
 
+def boot_id() -> str:
+    """Identifier of the current boot, or ``""`` when the kernel does not expose one.
+
+    ``time.monotonic()`` is only comparable within one boot, so a reading carried in a
+    ledger line is usable only while this matches (round 9)."""
+    try:
+        return Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+    except OSError:
+        return ""
+
+
 def ledger_mark(
-    path: Path, launch: str, event: str, t0: float, **extra: object
+    path: Path, launch: str, event: str, t0: float, m0: float, **extra: object
 ) -> None:
-    """Append one launch-level checkpoint."""
-    now = time.time()
-    rec = {"launch": launch, "event": event, "t": now, "elapsed_s": now - t0, **extra}
+    """Append one launch-level checkpoint.
+
+    Round 9, high: every DURATION here is MONOTONIC.  ``t`` stays realtime because it is
+    the calendar timestamp a human reads, but ``time.time()`` can be stepped -- by NTP or
+    by hand -- and Astra stepped it 600 s backwards 360 s into a 900 s launch: the ledger
+    charged **300 s**, and beside 2,400 s of other work the real summary printed GATE
+    PASSED at 45 charged minutes against 55 spent.  The same step forwards made a
+    legitimate 45-minute run charge 55 and report INCOMPLETE, so the error runs both ways.
+    ``time.monotonic()`` cannot be stepped; ``boot`` records which boot its origin belongs
+    to, because a reading from another boot means nothing here."""
+    now, mono = time.time(), time.monotonic()
+    rec = {
+        "launch": launch,
+        "event": event,
+        "t": now,
+        "m": mono,
+        "boot": boot_id(),
+        "elapsed_s": mono - m0,
+        **extra,
+    }
     with path.open("a") as fh:
         fh.write(json.dumps(rec) + "\n")
         fh.flush()
@@ -614,7 +642,10 @@ def ledger_pid(launch: str) -> int | None:
 
 
 def ledger_observe(
-    path: Path, clock: Callable[[], float] = time.time, mark: Callable | None = None
+    path: Path,
+    clock: Callable[[], float] = time.monotonic,
+    mark: Callable | None = None,
+    wall: Callable[[], float] = time.time,
 ) -> list[str]:
     """Record VERIFIED termination for every unfinished launch whose process is gone.
 
@@ -632,10 +663,15 @@ def ledger_observe(
     caller used to sample it once and pass it in, so a process descheduled between the
     sample and the probe wrote a BACKDATED observation -- sampled at 300 s, probed at
     1,000 s, permanently charging 300 s for a launch that lived to 900.  What absence at
-    the probe establishes is termination by the PROBE's time, so that is the time written."""
+    the probe establishes is termination by the PROBE's time, so that is the time written.
+
+    Round 9, high: the observation's ELAPSED is monotonic, by the same rule as
+    :func:`ledger_charges` -- ``clock`` is ``time.monotonic`` and the realtime span is used
+    only for a launch that carries no comparable monotonic origin."""
     if not path.exists():
         return []
-    now = clock()
+    now_t = wall()
+    boot = boot_id()
     seen: dict[str, dict] = {}
     for line in path.read_text().splitlines():
         if not line.strip():
@@ -647,24 +683,31 @@ def ledger_observe(
         if not isinstance(r, dict) or "launch" not in r:
             continue
         cur = seen.setdefault(
-            r["launch"], {"first": float(r.get("t", now)), "done": False, "max": 0.0}
+            r["launch"],
+            {"first": float(r.get("t", now_t)), "done": False, "max": 0.0, "m": None},
         )
-        cur["first"] = min(cur["first"], float(r.get("t", now)))
+        cur["first"] = min(cur["first"], float(r.get("t", now_t)))
         cur["max"] = max(cur["max"], float(r.get("elapsed_s", 0.0)))
         cur["done"] = cur["done"] or r.get("event") in ("end", "observed_dead")
+        if boot and r.get("boot") == boot and "m" in r:
+            m = float(r["m"])
+            cur["m"] = m if cur["m"] is None else min(cur["m"], m)
     out = []
     for launch, i in sorted(seen.items()):
         pid = ledger_pid(launch)
         if i["done"] or pid is None or Path(f"/proc/{pid}").exists():
             continue
         now = clock()  # the probe has just succeeded; THIS is the time it bounds
+        span = now - i["m"] if i["m"] is not None else wall() - i["first"]
         rec = {
             "launch": launch,
             "event": "observed_dead",
             # never below a mark the launch actually wrote, so a clock that went backwards
             # cannot turn an observation into a zero charge
-            "elapsed_s": max(now - i["first"], i["max"]),
-            "t": now,
+            "elapsed_s": max(span, i["max"]),
+            "t": wall(),
+            "m": now,
+            "boot": boot,
         }
         with path.open("a") as fh:
             fh.write(json.dumps(rec) + "\n")
@@ -679,6 +722,7 @@ def ledger_charges(
     path: Path,
     exclude: str,
     now: float,
+    now_m: float | None = None,
 ) -> tuple[dict[str, float], int]:
     """``({launch: seconds charged}, malformed line count)`` for every launch but
     ``exclude``.
@@ -687,9 +731,19 @@ def ledger_charges(
     a launch that wrote ``end`` is charged its real elapsed time; one whose termination was
     OBSERVED is charged through that observation; and one that is neither -- no end, no
     observation -- is charged its whole lifetime THROUGH ``now``, with no cap, because
-    nothing establishes that it ever stopped."""
+    nothing establishes that it ever stopped.
+
+    Round 9, high: that lifetime is measured on the MONOTONIC clock.  ``elapsed_s`` is
+    already monotonic in every line the current runner writes, so the first two cases never
+    touch a wall clock at all; the third compares ``now_m`` with the launch's earliest
+    monotonic reading, which is meaningful only within one boot -- hence ``boot`` on every
+    line.  ``now`` (realtime) is the fallback for a launch that carries no comparable
+    monotonic origin: a ledger written before this amendment, or one from an earlier boot,
+    where the realtime span also covers the downtime and therefore over-charges."""
     if not path.exists():
         return {}, 0
+    now_m = time.monotonic() if now_m is None else now_m
+    boot = boot_id()
     by: dict[str, dict] = {}
     malformed = 0
     for line in path.read_text().splitlines():
@@ -706,10 +760,14 @@ def ledger_charges(
         if r["launch"] == exclude:
             continue
         cur = by.setdefault(
-            r["launch"], {"first": float(r.get("t", now)), "max": 0.0, "fixed": None}
+            r["launch"],
+            {"first": float(r.get("t", now)), "max": 0.0, "fixed": None, "m": None},
         )
         cur["first"] = min(cur["first"], float(r.get("t", now)))
         cur["max"] = max(cur["max"], float(r.get("elapsed_s", 0.0)))
+        if boot and r.get("boot") == boot and "m" in r:
+            m = float(r["m"])
+            cur["m"] = m if cur["m"] is None else min(cur["m"], m)
         if r.get("event") in ("end", "observed_dead"):
             cur["fixed"] = max(cur["fixed"] or 0.0, float(r.get("elapsed_s", 0.0)))
     out = {}
@@ -718,18 +776,22 @@ def ledger_charges(
         # backwards must not erase a launch, and an ``end`` cannot predate its own marks
         if i["fixed"] is not None:
             out[lid] = max(i["fixed"], i["max"])
+        elif i["m"] is not None:
+            out[lid] = max(i["max"], now_m - i["m"])
         else:
             out[lid] = max(i["max"], now - i["first"])
     return out, malformed
 
 
-def ledger_tick(path: Path, launch: str, t0: float, stop, interval: float = TICK_S):
+def ledger_tick(
+    path: Path, launch: str, t0: float, m0: float, stop, interval: float = TICK_S
+):
     """Body of the progress-mark thread: append a ``tick`` every ``interval`` seconds until
     ``stop`` is set.  Round 7 F13: these marks are a PROGRESS LOG and bound nothing -- a
     charge comes from ``end`` or from an observation, never from the last tick -- so a
     thread that dies silently costs no accuracy."""
     while True:
-        ledger_mark(path, launch, "tick", t0)
+        ledger_mark(path, launch, "tick", t0, m0)
         if stop.wait(interval):
             return
 
@@ -797,7 +859,10 @@ def read_status(path: Path) -> tuple[dict | None, str | None]:
 
 
 def ledger_spent_min(
-    path: Path, launches: set[str] | None = None, now: float | None = None
+    path: Path,
+    launches: set[str] | None = None,
+    now: float | None = None,
+    now_m: float | None = None,
 ) -> tuple[float, list[str]]:
     """``(minutes charged across every launch, refusals)`` — the INDEPENDENT reading of an
     arm's spend, so the summary checks the ledger rather than trusting the status.
@@ -817,7 +882,10 @@ def ledger_spent_min(
             f"{path.name} is empty: the arm's resident time cannot be accounted"
         ]
     charges, malformed = ledger_charges(
-        path, exclude="", now=time.time() if now is None else now
+        path,
+        exclude="",
+        now=time.time() if now is None else now,
+        now_m=now_m,
     )
     if malformed:
         refusals.append(

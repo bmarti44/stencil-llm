@@ -22,27 +22,96 @@ DEAD = "1000-999999"  # a launch id whose pid cannot exist, so it can be observe
 MINE = f"1000-{os.getpid()}"  # a launch id whose pid is alive: this process
 
 
-def _write(path, launch, events, t0=T0):
+BOOT = A.boot_id()
+
+
+def _write(path, launch, events, t0=T0, boot=None):
+    """Ledger lines in the production format: a realtime ``t`` for the calendar and a
+    MONOTONIC ``m`` under this boot's id for every duration (round 9).  ``m`` is written
+    on the same scale as ``t`` so a test can pass one number for both clocks.  Pass
+    ``boot=""`` to write a line whose monotonic reading is not comparable here -- a
+    legacy ledger, or one from an earlier boot -- which falls back to realtime."""
     with path.open("a") as fh:
         for event, elapsed in events:
-            fh.write(
-                json.dumps(
-                    {
-                        "launch": launch,
-                        "event": event,
-                        "t": t0 + elapsed,
-                        "elapsed_s": elapsed,
-                    }
-                )
-                + "\n"
-            )
+            rec = {
+                "launch": launch,
+                "event": event,
+                "t": t0 + elapsed,
+                "elapsed_s": elapsed,
+            }
+            if boot != "":
+                rec["m"] = t0 + elapsed
+                rec["boot"] = BOOT if boot is None else boot
+            fh.write(json.dumps(rec) + "\n")
+
+
+def _charges(path, exclude, at):
+    """``ledger_charges`` with both clocks reading ``at``: the tests write ``m`` on the
+    same scale as ``t``, so one number drives realtime and monotonic alike."""
+    return A.ledger_charges(path, exclude, at, at)
+
+
+def test_a_mark_measures_its_duration_on_the_monotonic_clock(monkeypatch, tmp_path):
+    """Round 9, high: ``elapsed_s`` came from ``time.time()``, which can be STEPPED by
+    NTP or by hand.  Astra stepped it 600 s backwards 360 s into a 900 s launch: the
+    ledger charged 300 s, and beside 2,400 s of other work the real summary printed GATE
+    PASSED at 45 charged minutes against 55 spent.  The step forwards is just as bad --
+    a legitimate 45-minute run charged 55 and reported INCOMPLETE."""
+    p = tmp_path / "spend.jsonl"
+    monkeypatch.setattr(A.time, "time", lambda: T0 - 600.0)  # stepped backwards
+    monkeypatch.setattr(A.time, "monotonic", lambda: T0 + 900.0)
+    A.ledger_mark(p, DEAD, "end", T0, T0)
+    rec = json.loads(p.read_text().splitlines()[0])
+    assert rec["elapsed_s"] == 900.0  # the real duration, not the stepped one
+    assert rec["t"] == T0 - 600.0 and rec["m"] == T0 + 900.0
+    assert rec["boot"] == BOOT
+
+
+def test_an_unfinished_launch_is_measured_on_the_monotonic_clock(tmp_path):
+    # the third charging case compares NOW with the launch's earliest reading, so that
+    # comparison is monotonic too: realtime says 5,000 s, the monotonic clock says 900
+    p = tmp_path / "spend.jsonl"
+    _write(p, DEAD, [("start", 0.0)])
+    assert A.ledger_charges(p, "B", T0 + 5000.0, T0 + 900.0)[0][DEAD] == 900.0
+
+
+def test_a_reading_from_another_boot_falls_back_to_realtime(tmp_path):
+    """A monotonic origin means nothing across a reboot, so it is used only while the
+    recorded boot id matches.  The realtime span then also covers the downtime, which
+    over-charges -- the conservative direction."""
+    p = tmp_path / "other.jsonl"
+    _write(p, DEAD, [("start", 0.0)], boot="0000-not-this-boot")
+    assert A.ledger_charges(p, "B", T0 + 5000.0, T0 + 900.0)[0][DEAD] == 5000.0
+    legacy = tmp_path / "legacy.jsonl"  # a ledger written before this amendment
+    _write(legacy, DEAD, [("start", 0.0)], boot="")
+    assert A.ledger_charges(legacy, "B", T0 + 5000.0, T0 + 900.0)[0][DEAD] == 5000.0
+
+
+def test_no_duration_is_measured_on_the_wall_clock():
+    """The mechanical form of round 9's fix: nothing in the screen subtracts wall-clock
+    readings.  ``time.time()`` survives only as a calendar stamp and as the documented
+    fallback for a launch with no comparable monotonic origin."""
+    for name in (
+        "src/stencil/a_screen.py",
+        "scripts/a_screen_run.py",
+        "scripts/a_screen_summary.py",
+    ):
+        src = (ROOT / name).read_text()
+        bad = []
+        for ln in src.splitlines():
+            if "time.time()" not in ln:
+                continue
+            before, _, after = ln.partition("time.time()")
+            if after.lstrip().startswith("-") or before.rstrip().endswith("-"):
+                bad.append(ln.strip())
+        assert not bad, f"{name}: duration taken from the wall clock: {bad}"
 
 
 def test_an_interrupted_launch_is_charged_through_now(tmp_path):
     # round 5: last checkpoint at 600 s, death at 1,200 s was charged 900 s
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0), ("model_loaded", 80.0), ("record", 600.0)])
-    charges, malformed = A.ledger_charges(p, "B", T0 + 1300.0)
+    charges, malformed = _charges(p, "B", T0 + 1300.0)
     assert malformed == 0
     assert charges[DEAD] == 1300.0
 
@@ -58,8 +127,8 @@ def test_silence_does_not_bound_a_launch(tmp_path):
     ticks = [("tick", float(x)) for x in range(0, 601, 60)]
     _write(p, DEAD, [("start", 0.0), *ticks])
     # the old rule charged 600 + 180 = 780 whatever the read time
-    assert A.ledger_charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
-    assert A.ledger_charges(p, "B", T0 + 9000.0)[0][DEAD] == 9000.0
+    assert _charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
+    assert _charges(p, "B", T0 + 9000.0)[0][DEAD] == 9000.0
 
 
 def test_an_observation_bounds_it_and_then_never_moves(tmp_path):
@@ -68,8 +137,8 @@ def test_an_observation_bounds_it_and_then_never_moves(tmp_path):
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0), ("record", 600.0)])
     assert A.ledger_observe(p, clock=lambda: T0 + 1500.0) == [DEAD]
-    assert A.ledger_charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
-    assert A.ledger_charges(p, "B", T0 + 99_999.0)[0][DEAD] == 1500.0
+    assert _charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
+    assert _charges(p, "B", T0 + 99_999.0)[0][DEAD] == 1500.0
     # recorded once, never re-recorded
     assert A.ledger_observe(p, clock=lambda: T0 + 99_999.0) == []
 
@@ -78,12 +147,23 @@ def test_the_observation_is_timestamped_after_the_probe(tmp_path):
     """Round 8 F13: the caller sampled ``now`` once and passed it in, so a process
     descheduled between that sample and the pid probe wrote a BACKDATED observation --
     sampled at 300 s, probed at 1,000 s, permanently charging 300 s for a launch that
-    lived to 900.  Absence at the probe establishes termination by the PROBE's time."""
+    lived to 900.  Absence at the probe establishes termination by the PROBE's time.
+
+    Round 9 makes the property structural: the function takes ONE duration reading and
+    takes it after the probe, and the wall clock it reads for the calendar stamp --
+    300 s here -- cannot reach the charge at all."""
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0)])
-    reads = iter([T0 + 300.0, T0 + 1000.0])  # read at 300, probe returns at 1,000
-    assert A.ledger_observe(p, clock=lambda: next(reads)) == [DEAD]
-    assert A.ledger_charges(p, "B", T0 + 5000.0)[0][DEAD] == 1000.0
+    seen = []
+
+    def probe_clock():
+        seen.append("probe")
+        return T0 + 1000.0
+
+    observed = A.ledger_observe(p, clock=probe_clock, wall=lambda: T0 + 300.0)
+    assert observed == [DEAD]
+    assert seen == ["probe"]  # sampled exactly once, after the pid probe succeeded
+    assert _charges(p, "B", T0 + 5000.0)[0][DEAD] == 1000.0
 
 
 def test_a_live_launch_is_not_observed_dead(tmp_path):
@@ -92,7 +172,7 @@ def test_a_live_launch_is_not_observed_dead(tmp_path):
     p = tmp_path / "spend.jsonl"
     _write(p, MINE, [("start", 0.0)])
     assert A.ledger_observe(p, clock=lambda: T0 + 500.0) == []
-    assert A.ledger_charges(p, "other", T0 + 500.0)[0][MINE] == 500.0
+    assert _charges(p, "other", T0 + 500.0)[0][MINE] == 500.0
 
 
 def test_a_launch_killed_while_loading_is_charged_its_loading_time(tmp_path):
@@ -100,9 +180,9 @@ def test_a_launch_killed_while_loading_is_charged_its_loading_time(tmp_path):
     # at 900 s and read at 1,200 s was charged the 600 s load bound
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0)])
-    assert A.ledger_charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
+    assert _charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
     A.ledger_observe(p, clock=lambda: T0 + 1200.0)
-    assert A.ledger_charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
+    assert _charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
 
 
 def test_the_pilots_suite_cost_gap_is_inside_the_charge(tmp_path):
@@ -114,13 +194,13 @@ def test_the_pilots_suite_cost_gap_is_inside_the_charge(tmp_path):
         DEAD,
         [("start", 0.0), ("model_loaded", 200.0), ("suite_cost_measured", 900.0)],
     )
-    assert A.ledger_charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
+    assert _charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
 
 
 def test_a_finished_launch_is_charged_its_elapsed_time(tmp_path):
     p = tmp_path / "spend.jsonl"
     _write(p, "A", [("start", 0.0), ("record", 600.0), ("end", 900.0)])
-    charges, _ = A.ledger_charges(p, "B", T0 + 5000.0)
+    charges, _ = _charges(p, "B", T0 + 5000.0)
     assert charges["A"] == 900.0
 
 
@@ -133,7 +213,7 @@ def test_a_torn_tail_is_repaired_so_the_next_launch_is_visible(tmp_path):
     assert torn is not None and torn.startswith('{"launch": "A"')
     # launch B's own marks, in the same synthetic epoch as A's
     _write(p, "B", [("start", 0.0), ("record", 60.0)], t0=T0 + 1200.0)
-    charges, malformed = A.ledger_charges(p, "C", T0 + 1300.0)
+    charges, malformed = _charges(p, "C", T0 + 1300.0)
     assert malformed == 0
     assert "B" in charges and charges["B"] > 0.0  # B was erased before the repair
     assert A.ledger_repair(p) is None  # a clean tail is left alone
@@ -144,7 +224,7 @@ def test_a_malformed_line_is_reported_not_skipped(tmp_path):
     _write(p, "A", [("start", 0.0)])
     with p.open("a") as fh:
         fh.write("not json at all\n")
-    _, malformed = A.ledger_charges(p, "B", T0 + 10.0)
+    _, malformed = _charges(p, "B", T0 + 10.0)
     assert malformed == 1
 
 
@@ -237,9 +317,11 @@ def test_the_ledger_must_account_for_every_launch_the_records_name(tmp_path):
     # none of the rest, which is a refusal rather than a smaller number
     p = tmp_path / "spend.jsonl"
     _write(p, "L1", [("start", 0.0), ("end", 60.0)])
-    spent, refusals = A.ledger_spent_min(p, {"L1", "L2"}, now=T0 + 60.0)
+    spent, refusals = A.ledger_spent_min(
+        p, {"L1", "L2"}, now=T0 + 60.0, now_m=T0 + 60.0
+    )
     assert len(refusals) == 1 and "L2" in refusals[0]
-    assert A.ledger_spent_min(p, {"L1"}, now=T0 + 60.0)[1] == []
+    assert A.ledger_spent_min(p, {"L1"}, now=T0 + 60.0, now_m=T0 + 60.0)[1] == []
 
 
 def test_the_registered_ceiling_admits_the_last_request(tmp_path):
@@ -268,7 +350,7 @@ def test_the_ledger_is_read_independently_of_the_status(tmp_path):
     # COMPLETE and 40 minutes over a ledger holding 45.02 must not be believed.
     p = tmp_path / "cf.jsonl.spend.jsonl"
     _write(p, "L1", [("start", 0.0), ("end", 3001.0)])
-    spent, refusals = A.ledger_spent_min(p, {"L1"}, now=T0 + 3001.0)
+    spent, refusals = A.ledger_spent_min(p, {"L1"}, now=T0 + 3001.0, now_m=T0 + 3001.0)
     assert refusals == []
     assert spent > A.ARM_BUDGET_MIN
 
@@ -432,5 +514,5 @@ def test_a_backwards_clock_cannot_zero_a_charge(tmp_path):
     p = tmp_path / "spend.jsonl"
     _write(p, DEAD, [("start", 0.0), ("record", 900.0)])
     A.ledger_observe(p, clock=lambda: T0 - 500.0)  # "now" is BEFORE the launch started
-    charges, _ = A.ledger_charges(p, "B", T0 + 1000.0)
+    charges, _ = _charges(p, "B", T0 + 1000.0)
     assert charges[DEAD] == 900.0

@@ -24,6 +24,17 @@ Round 5, F2: only checkpoint 2 was mutated, so a wrong FIRST repository that
 the ordinary second gold repairs scored J = 1 (S01's allocator reset in
 ``scale_recipe``).  Both checkpoints are mutated and scored now.
 
+Round 9: the allocator classes (7 and 7b) carried a PLAUSIBILITY narrowing --
+they mutated only methods that already write state -- and it was too narrow in
+rounds 4, 8 and 9 running.  The boundary was measured instead of argued for a
+fourth time: without the narrowing the pool yields 340 allocator mutations
+instead of 255, and all 85 of the extra ones escaped every suite.  The
+narrowing is gone; what remains is TYPING, which decides only whether a
+mutation could reach a project object at all, and an untypable receiver is
+reported as UNRESOLVED rather than skipped.  Coverage comes from the generic
+``test_no_public_call_disturbs_the_id_allocator`` fixture now carried by all
+23 affected slots (AUTHORING amendment 7).
+
 Usage: ``uv run python scripts/a_screen_mutate.py``; exit 1 if any mutation
 is undetected or any update site cannot be typed.
 """
@@ -587,10 +598,16 @@ def mutants(
     # Class 7 (round 4): reset the id allocator at the top of a method that is not
     # itself the allocator.  Nothing already stored changes, so only a fixture that
     # CREATES a record after the update can see the new record reuse a live id.
-    # Restricted to methods that already WRITE state: a reply might plausibly clobber a
-    # counter while editing an update operation, but not inside a pure reader, and
-    # generating the reader cases would inflate the count without adding coverage.
-    writers = state_writers(src)
+    #
+    # Round 9: the restriction to methods that already WRITE state is GONE.  It was a
+    # plausibility narrowing -- "a reply would not do this inside a pure reader" -- and
+    # it was too narrow in rounds 4, 8 and 9 running.  Measured rather than argued this
+    # time: with the restriction removed the pool yields 340 allocator mutations instead
+    # of 255, and all 85 of the extra ones escaped every suite, so the narrowing was
+    # buying nothing but the appearance of coverage.  Every slot whose target owns an
+    # allocator now carries the generic regression fixture
+    # ``test_no_public_call_disturbs_the_id_allocator`` (AUTHORING amendment 7), which
+    # exercises every public callable of the package and then creates one more record.
     for counter in counters(src):
         for m in re.finditer(r"\n    def (\w+)\(self[^\n]*\n", src):
             name = m.group(1)
@@ -600,8 +617,6 @@ def mutants(
             body = src[m.end() : end if end != -1 else len(src)]
             if f"self.{counter} += 1" in body or f"self.{counter} =" in body:
                 continue  # this IS the allocator, or already assigns it
-            if name not in writers:
-                continue  # a pure reader: not a plausible place for a reply to do this
             yield (
                 f"reset allocator self.{counter} in {name} @{m.start()}",
                 src[: m.end()] + f"        self.{counter} = 0\n" + src[m.end() :],
@@ -609,12 +624,17 @@ def mutants(
 
 
 DEF = re.compile(r"\n([ ]*)def (\w+)\(([^)]*)\)[^\n]*:\n")
+RECEIVER = re.compile(r"(?<![.\w])((?:[A-Za-z_]\w*\.)*[A-Za-z_]\w*)\.(\w+)\s*\(")
+NOT_A_RECORD = re.compile(
+    r"^((dict|list|set|tuple|frozenset|defaultdict|Counter|deque|str|int|float|bool"
+    r"|bytes|Path|None|True|False)\b|[\{\[\"'\d-])"
+)
 
 
 def project_classes(files: dict[str, str]) -> dict[str, dict]:
-    """Every class in the project, with its method names, its public writers and the id
-    counters it increments.  Used to resolve the RECEIVER of an allocator reset that is
-    not ``self`` (round 8, class 7b)."""
+    """Every class in the project, with its method names and the id counters it
+    increments.  Used to resolve the RECEIVER of an allocator reset that is not
+    ``self`` (round 8, class 7b)."""
     out: dict[str, dict] = {}
     for text in files.values():
         for m in re.finditer(r"\nclass (\w+)[^\n]*:\n", text):
@@ -622,10 +642,73 @@ def project_classes(files: dict[str, str]) -> dict[str, dict]:
             body = text[m.end() : nxt if nxt != -1 else len(text)]
             out[m.group(1)] = {
                 "methods": set(re.findall(r"\n    def (\w+)\(", body)),
-                "writers": state_writers(body),
                 "counters": counters(body),
             }
     return out
+
+
+def expression_class(text: str, classes: set[str]) -> tuple[bool, str | None]:
+    """Type an annotation or an assigned expression.
+
+    ``(True, name)`` = a project class; ``(True, None)`` = demonstrably not one (a
+    container, a path, a literal); ``(False, None)`` = untypable, which the caller must
+    report rather than skip.
+    """
+    text = text.strip()
+    head = re.match(r"([A-Za-z_][\w.]*)", text)
+    name = head.group(1).split(".")[-1] if head else ""
+    if name in classes:
+        return True, name
+    if NOT_A_RECORD.match(text):
+        return True, None
+    return False, None
+
+
+def attribute_classes(src: str, classes: set[str]) -> dict[str, str | None]:
+    """``<attr>`` of ``self.<attr>`` -> the project class it holds, or ``None`` when it
+    demonstrably holds something else.  An attribute this cannot type, or one two
+    classes of the file type differently, is absent, and class 7b reports it."""
+    seen: dict[str, set[str | None]] = {}
+    for m in re.finditer(r"self\.(\w+)\s*(?::\s*([^=\n]+?))?\s*=\s*([^\n]+)", src):
+        attr, ann, value = m.group(1), m.group(2), m.group(3)
+        typed, cls = expression_class(ann or value, classes)
+        seen.setdefault(attr, set()).add(cls if typed else "?")
+    return {a: next(iter(v)) for a, v in seen.items() if len(v) == 1 and "?" not in v}
+
+
+def receiver_class(
+    name: str,
+    called: set[str],
+    ann: dict[str, str],
+    classes: dict[str, dict],
+    attrs: dict[str, str | None],
+    owners: set[str],
+) -> tuple[str | None, str | None]:
+    """``(class, why-unresolved)`` for one receiver of a method call.
+
+    Round 9: the old rule mutated a receiver only when the body called one of the
+    store's WRITERS.  That was the same plausibility narrowing class 7 carried, so it is
+    gone; what remains is TYPING, which decides whether the mutation could hit a project
+    object at all.  A receiver that cannot be typed is reported, never skipped -- except
+    when its called methods appear on no counter-owning class, which proves it is not
+    one of them.
+    """
+    if name.startswith("self."):
+        attr = name[len("self.") :]
+        if attr in attrs:
+            return attrs[attr], None
+        return None, f"self.{attr} is untyped"
+    if "." in name:
+        return None, f"{name} is a nested attribute this cannot type"
+    cls = ann.get(name)
+    if cls in classes:
+        return cls, None
+    fits = [n for n, i in classes.items() if called and called <= i["methods"]]
+    if len(fits) == 1:
+        return fits[0], None
+    if not any(called & classes[n]["methods"] for n in owners):
+        return None, None  # shares no method with any store: cannot be one
+    return None, f"{name} could be a store, class unresolved"
 
 
 def handle_allocator_mutants(
@@ -637,23 +720,22 @@ def handle_allocator_mutants(
     operation lives in another module and takes the book as a parameter, so
     ``book._n = 0`` at the top of ``refund`` was outside that boundary: it passed every
     suite at checkpoint 2, a second demonstrated false J = 1 of the same family as
-    ``collect``.  The receiver is therefore generalised to any other name a function
-    writes the store through.
+    ``collect``.  The receiver is therefore generalised to any other name the function
+    reaches the store through.
 
     The receiver's CLASS has to resolve, or the mutation is a no-op that would report a
     fake escape: S31's ``join_club(roll: MemberRoll, ...)`` calls ``roll.add(...)`` and
-    ``PickList.add`` is a writer too, but ``MemberRoll`` has no counter, so
-    ``roll._counter = 0`` only creates an unused attribute.  Resolution is the parameter
-    annotation where there is one, else the unique project class whose methods cover
-    every method called on the name (``book.find`` + ``book.save`` -> ``OrderBook``).  A
-    receiver that writes a counter-owning class's store and resolves to neither is
-    appended to ``unresolved`` rather than skipped silently.
+    ``MemberRoll`` has no counter, so ``roll._counter = 0`` only creates an unused
+    attribute.  Resolution is the parameter annotation where there is one, the
+    attribute's own annotation or initialiser for ``self.<attr>``, else the unique
+    project class whose methods cover every method called on the name (``book.find`` +
+    ``book.save`` -> ``OrderBook``).  Anything else is reported in ``unresolved``.
     """
     classes = project_classes(files)
-    owned = {c: n for n, info in classes.items() for c in info["counters"]}
-    if not owned:
+    owners = {n for n, info in classes.items() if info["counters"]}
+    if not owners:
         return
-    writers = {w for n in owned.values() for w in classes[n]["writers"]}
+    attrs = attribute_classes(src, set(classes))
     for m in DEF.finditer(src):
         indent, fname, params = m.group(1), m.group(2), m.group(3)
         nxt = re.search(rf"\n{indent}\S", src[m.end() :])
@@ -664,19 +746,15 @@ def handle_allocator_mutants(
                 name, _, typ = part.partition(":")
                 ann[name.strip()] = typ.split("=")[0].strip().strip("\"'")
         called: dict[str, set[str]] = {}
-        for r in re.finditer(r"\b([A-Za-z_]\w*)\.(\w+)\s*\(", body):
+        # a parameter annotated as a store is a handle even if the body only reads it
+        called.update({n: set() for n, t in ann.items() if t in owners})
+        for r in RECEIVER.finditer(body):
             if r.group(1) != "self":
                 called.setdefault(r.group(1), set()).add(r.group(2))
         for name, methods in sorted(called.items()):
-            if not methods & writers:
-                continue  # not a write through this handle: class 7's rationale
-            cls = ann.get(name)
-            if cls not in classes:
-                fits = [n for n, i in classes.items() if methods <= i["methods"]]
-                cls = fits[0] if len(fits) == 1 else None
+            cls, why = receiver_class(name, methods, ann, classes, attrs, owners)
             if cls is None:
-                if unresolved is not None:
-                    why = f"{name} writes a store, class unresolved"
+                if why and unresolved is not None:
                     unresolved.append(f"{fname}: {why}")
                 continue
             for counter in classes[cls]["counters"]:
@@ -687,34 +765,6 @@ def handle_allocator_mutants(
                     f"reset allocator {name}.{counter} in {fname} @{m.start()}",
                     src[: m.end()] + reset + src[m.end() :],
                 )
-
-
-def state_writers(src: str) -> set[str]:
-    """Public method names that write the object's own state, DIRECTLY or by delegating.
-
-    Round 8: the allocator audit tested each method's own body for an assignment to a
-    private attribute, so ``OrderBook.collect``, which stores through
-    ``self.save(...)``, was classified as a pure reader and never mutated.  Adding
-    ``self._n = 0`` to it passed every suite at both checkpoints while ``place`` then
-    reissued a live order id -- a demonstrated false J = 1.  A method that calls a
-    writer is a writer, so the set is closed over calls to other methods of ``self``.
-    """
-    bodies: dict[str, str] = {}
-    for m in re.finditer(r"\n    def (\w+)\(self[^\n]*\n", src):
-        end = src.find("\n    def ", m.end())
-        bodies[m.group(1)] = src[m.end() : end if end != -1 else len(src)]
-    direct = r"self\._\w+(\[[^\]]*\])? *=|\.append\(|\.write"
-    writers = {n for n, b in bodies.items() if re.search(direct, b)}
-    for _ in range(len(bodies)):  # closure: a caller of a writer is a writer
-        grown = {
-            n
-            for n, b in bodies.items()
-            if any(re.search(rf"self\.{w}\s*\(", b) for w in writers)
-        }
-        if grown <= writers:
-            break
-        writers |= grown
-    return {n for n in writers if not n.startswith("_")}
 
 
 def main() -> None:

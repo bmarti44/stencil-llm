@@ -195,6 +195,74 @@ def test_get_loan_missing_returns_none():
     add_game(s, "Azul", 4)
     add_game(s, "Hive", 2)
     assert s.get_loan("G1") is None and s.get_loan("G2") is None
+
+
+def test_no_public_call_disturbs_the_id_allocator():
+    # Round 9: an id-allocator reset is visible only when a record is created AFTER the
+    # call that did it, so a suite that never creates again cannot see it.  Every public
+    # callable of the package is exercised with arguments that name no existing record --
+    # a reset sits at the top of a method, so it runs before any lookup, and a call that
+    # does not apply simply raises.  One more record must then still get a fresh id, with
+    # the first one intact under its own.
+    import copy as _copy
+    import importlib as _il
+    import inspect as _in
+    import pkgutil as _pk
+    import meepleshelf as _pkg
+    import meepleshelf.shelf as _m0
+    _x = _m0.Shelf()
+    _first = _x.put_game("Azul", 4)
+    _fid = _first.game_id
+    _before = _copy.deepcopy(_first)
+    _junk = "__no_such_record__"
+    _shapes = (
+        (),
+        (_junk,),
+        (_junk, _junk),
+        (_junk, _junk, _junk),
+        (_junk, 1),
+        (_junk, 1, 1),
+        (_x, _junk),
+        (_x, _junk, _junk),
+        (_x, _junk, _junk, _junk),
+    )
+    _mods = [_pkg]
+    for _mi in _pk.walk_packages(_pkg.__path__, _pkg.__name__ + "."):
+        try:
+            _mods.append(_il.import_module(_mi.name))
+        except Exception:
+            pass
+    _holders = [_x] + _mods
+    for _mod in _mods:
+        for _nm in sorted(dir(_mod)):
+            if _nm.startswith("_"):
+                continue
+            _cls = getattr(_mod, _nm)
+            if not _in.isclass(_cls) or _cls.__module__ != _mod.__name__:
+                continue
+            for _shape in _shapes:
+                try:
+                    _holders.append(_cls(*_shape))
+                    break
+                except Exception:
+                    pass
+    for _holder in _holders:
+        for _name in sorted(dir(_holder)):
+            if _name.startswith("_"):
+                continue
+            _fn = getattr(_holder, _name)
+            if not callable(_fn):
+                continue
+            for _args in _shapes:
+                try:
+                    _fn(*_args)
+                except Exception:
+                    pass
+    _second = _x.put_game("Patchwork", 2)
+    assert _second.game_id != _fid, "a public call reissued a live id"
+    _back = _x.get_game(_fid)
+    assert _back is not None, "the second record overwrote the first"
+    assert _back == _before, "a public call refiled another record under it"
 """
 }
 

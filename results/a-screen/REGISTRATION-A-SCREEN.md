@@ -663,10 +663,12 @@ Class 7 is restricted to methods that already write state: a reply might plausib
 counter while editing an update operation, not inside a pure reader, and generating the reader
 cases would have inflated the count without adding coverage.
 
-**AMENDED BY §20.3 AND §20.4.** Both halves of that restriction were too narrow, and each hid a
-demonstrated false J = 1. "Writes state" was a regex over the method's OWN body, so a method that
+**AMENDED BY §20.3, §20.4 AND §21.2.** Both halves of that restriction were too narrow, and each hid
+a demonstrated false J = 1. "Writes state" was a regex over the method's OWN body, so a method that
 stores by calling another method read as a pure reader (§20.3); and "method" excluded a function
-that writes a store handed to it as an argument (§20.4).
+that writes a store handed to it as an argument (§20.4). §21.2 **deletes the restriction outright**
+after it was too narrow a third time: it was a plausibility claim inside the instrument meant to
+measure the thing, and measuring it showed all 85 mutations it suppressed escape every suite.
 
 At seven classes the audit found **65 undetected mutations across 34 of the 48 slots** (44
 allocator resets, 21 identity changes). All 34 were repaired by seven parallel agents against
@@ -1233,8 +1235,11 @@ its derivation.
 
 ### 19.1 A charge is bounded by evidence or not at all (F13)
 
-**AMENDED BY §20.1.** The three-case rule stands. The observation's TIMESTAMP did not: it was
-sampled by the caller before the pid probe, so it could be backdated.
+**AMENDED BY §20.1 AND §21.1.** The three-case rule stands. The observation's TIMESTAMP did not: it
+was sampled by the caller before the pid probe, so it could be backdated (§20.1); and every duration
+in the rule was measured on a clock the system can step, so a backward adjustment undercharged a
+launch and a forward one discarded a complete run (§21.1). The three cases are now spanned on
+`time.monotonic()`.
 
 Amendment 6 charged an unfinished launch its last mark plus three heartbeat intervals whenever no
 gap in its marks was wider than that slack. Round 7's counterexample: ticks through 600 s, the
@@ -1598,3 +1603,226 @@ tests/test_no_side_effect_imports.py tests/test_contracts.py` -> **477 passed, 1
 No arm, model, outcome unit, gate, statistic or ceiling changed in this amendment. The only changes
 are the two accounting fixes, the audit's two widened detectors, and the five fixtures that close
 what they found.
+
+## 21. Amendment 9 (2026-09-13, after the Astra re-review round 9, before any pilot, training or evaluation generation)
+
+Round 9 returned two high findings and both reproduced exactly before anything changed. One is the
+allocator boundary for the third round running; the other is that every duration in the spend
+ledger was measured on a clock the system can move. Neither touches an arm, a model, an outcome
+unit, a gate or a statistic. This amendment does change pool fixtures — twenty-three slots — so the
+SCREEN pool is re-frozen; §21.6 records the new hash.
+
+The important thing about this amendment is what it declines to do. Rounds 4, 8 and 9 each found a
+real escape in the same detector, and each time the repair had been to widen the detector by one
+more case. §21.2 removes the narrowing instead, which is the only move that ends the sequence.
+
+### 21.1 Durations are measured on a monotonic clock (F, high)
+
+Every duration in the spend ledger — the marks the runner writes, the charge a reader computes, the
+runtime budget guards — was `time.time()` arithmetic. Astra's scenario: a 900-second launch with
+60-second ticks and a clean `end`, with realtime stepping **backward** 600 s at real second 360.
+Taking the maximum recorded elapsed value does not recover the lost span, so the launch charges
+**300 s**; beside 2,400 s of completed work that reads `GATE PASSED: 45 minutes charged, 55 minutes
+elapsed`. The reverse is equally bad: a 600-second **forward** step makes a legitimate 45-minute run
+charge 55 minutes and report INCOMPLETE, discarding a complete evaluation. Both reproduced.
+
+Realtime now does exactly two jobs — the calendar timestamp in a record, and the launch id. Every
+span is `time.monotonic()`:
+
+- `ledger_mark` writes `m` (a monotonic reading) and `boot` (`/proc/sys/kernel/random/boot_id`)
+  beside `t`, and computes `elapsed_s` from `m0`;
+- `ledger_observe` takes a `clock` and a separate `wall`, calls the clock **exactly once, after the
+  probe** (amendment 8's rule, now with one call instead of two), and spans from the launch's own
+  `m` when it has one;
+- `ledger_charges` spans a live launch from the earliest `m` of the SAME boot; a record from another
+  boot, or a legacy record with no `m`, falls back to realtime, which is the old behaviour and no
+  worse;
+- `scripts/a_screen_run.py` keeps `t_start` only for the launch id and the calendar, and takes every
+  duration — load, suites, generation, residency, spend — from `m_start`.
+
+Monotonic readings are meaningless across a reboot, which is why `boot` is recorded and compared;
+this is the one place where the code deliberately falls back to the clock the finding is about, and
+it does so only when no monotonic evidence from this boot exists. End to end on the fixed code:
+
+```
+no adjustment, 900 s real        -> charged 900 s
+backward 600 s at real 360 s     -> charged 900 s  (real 900 s)
+forward  600 s, 2,700 s real run -> charged 2700 s = 45.0 min (real 45.0 min; ceiling 50)
+the end line: t=1000300 (stepped) m=5900 elapsed_s=900
+```
+
+Four tests hold it: `test_a_mark_measures_its_duration_on_the_monotonic_clock`,
+`test_an_unfinished_launch_is_measured_on_the_monotonic_clock`,
+`test_a_reading_from_another_boot_falls_back_to_realtime`, and
+`test_no_duration_is_measured_on_the_wall_clock`, which scans the three source files for a
+`time.time()` adjacent to a subtraction so a future edit cannot quietly reintroduce one.
+
+### 21.2 The writer narrowing is removed, not widened again (F, high; the third round on the same boundary)
+
+Astra's finding was that a method can change stored state through an alias without assigning through
+`self` and without calling another writer:
+
+```python
+account = self._accounts[account_id]
+account["tokens"] -= n
+```
+
+Thirteen mutations of exactly that shape — `self._n = 0` at the top of `top_up`, `spend`,
+`close_account`, `log_hours`, `set_role`, `retire`, `set_threshold` and `decommission`, across S34,
+S36 and S37 — passed every applicable suite. All thirteen reproduced.
+
+The obvious repair was a fourth widening of `state_writers`. This amendment does not do that. The
+restriction existed for one reason — "a reply might plausibly clobber a counter while editing an
+update operation, but not inside a pure reader" — and that is a plausibility argument about the
+thing being measured, made inside the instrument that is supposed to measure it. It was wrong in
+round 4, wrong in round 8, and wrong again in round 9, so it was **measured** instead of argued for
+a fourth time: the audit was re-run pool-wide with the writer test deleted from both allocator
+classes.
+
+| rule | allocator mutations | undetected |
+|---|---|---|
+| with the writer restriction, as frozen at `a0469f71` | 255 | 0 |
+| the same rule with the writer test deleted (the measurement) | 340 | **85** |
+| what ships: writer test gone, typing kept | 311 | 0 |
+
+Every one of the 85 is a case the restricted rule never generates, and zero of the 1,002 mutations
+the restricted rule does generate escaped. So the restriction was not separating plausible damage
+from implausible damage; it was separating tested code from untested code. It is gone from class 7
+and from class 7b.
+
+The measurement generated 29 mutations the shipped rule does not, and the difference is the typing
+rule rather than a narrowing: the throwaway script resolved a `self.<attr>` receiver by method fit,
+which types a plain `dict` as whatever project class happens to have a `get`, and writing
+`_films._counter = 0` on a dict raises `AttributeError` — a detection that detects nothing. The
+shipped rule types those attributes by their own annotation or initialiser and skips them. **None of
+the 85 escapes is among the 29**: a coverage check confirms every one of the 85 is still generated.
+
+`state_writers()` was amendment 8's repair and is deleted with the restriction it served; nothing
+else read it. What remains in class 7b is **typing**, which is a different kind of rule: it decides
+only whether a mutation could reach a project object at all, and a mutation that cannot is a no-op
+that would report a fake escape (§20.4's `MemberRoll` case). A receiver is now resolved by its parameter
+annotation, by the annotation or initialiser of the attribute for a `self.<attr>` receiver, or by the
+unique project class whose methods cover every method called on it; a parameter annotated as a
+counter-owning class is a handle even when the body only reads it; and anything that cannot be typed
+is reported as UNRESOLVED rather than skipped. On the frozen pool that reports **none**.
+
+One scope boundary, stated rather than discovered: class 7b's receiver is a NAME, so a store reached
+through a subscript or a call (`stores[0]._n = 0`) is outside it. An AST scan of every mutable target
+finds eleven attribute receivers that are not names — `self._invoices[number].with_status`,
+`table.get_bin(bin_id).quantity`, `Path(path).read_text`, `' '.join` — and **every one of them is a
+record, a string or a path, not a store**, so nothing on this pool escapes that way. A future slot
+that keeps its stores in a container would need the rule extended; the scan is how to find out.
+
+### 21.3 One generic fixture per slot, and the three ways it can lie
+
+Removing the narrowing needs coverage that does not depend on knowing which methods matter, so every
+slot whose target owns an id allocator — twenty-three of them — carries one fixture in its
+checkpoint-1 `regression_tests` (which `score_checkpoint` re-runs at checkpoint 2 as
+`protected_function`, so one copy covers both). It creates a record, calls **every public callable of
+the object and of its module** with arguments that name no existing record, then creates again and
+checks the allocator. A reset sits at the top of a method, so it runs before the lookup that would
+have raised; a call that does not apply simply raises and is swallowed. AUTHORING amendment 7 states
+the rule and the template.
+
+What the fixture does NOT reach, said plainly: junk arguments reach a reset at the TOP of a method
+and nothing deeper, because a reset placed after the lookup that raises for an unknown id never runs
+under it. That half is amendment 6's per-operation create-after-operation tests, which run each
+operation on a record that EXISTS. The two are complementary and neither is sufficient alone, which
+is why amendment 6's tests stay. The audit's own mutation model is top-of-method, so the fixture
+matches what the audit generates; a deeper reset is caught by the per-operation tests instead.
+
+Three drafting traps were found and closed while building it, every one of them by RUNNING the
+fixture -- against the thirteen reproduced escapes, and then against the whole audit -- rather than
+by reading it:
+
+1. **The junk loop can consume the reissued id itself.** `close_account` sorts before `open_account`
+   in `dir()`, so the reset fired, then the loop's own junk call to the creator minted `A1` again
+   and filed a junk record under it. The next real create got `A2`, the reader found *something*
+   under `A1`, and the fixture passed a corrupt repository — 2 of the 13 still escaped. The fixture
+   now deep-copies the first record BEFORE the loop and asserts the reader returns **that record**,
+   not merely a record with that id. With that assertion all 13 are detected.
+2. **"Every public callable of the package" has to mean the package.** The first version looped over
+   the store and the modules named in its own imports, which is not the same thing. The full audit
+   found the difference: `S11@2`'s `InvoiceArchive.invoice_archive(store, number_text)` is a METHOD
+   of a second class in a second module, so `store._seq = 0` at its top still passed every suite --
+   one undetected mutation out of 1,155, and exactly the case class 7b exists for. The fixture now
+   walks every module of the package with `pkgutil.walk_packages` and constructs an instance of
+   every class those modules define, so the loop reaches methods as well as functions.
+3. **The constructor and the creator are not always free functions of no arguments.** Four slots take
+   a journal path (S38, S40, S41, S42) and take `tmp_path`; one (S12) has the creator inside the
+   naming family, so the fixture resolves it the way the rest of the suite does, with
+   `getattr(_x, "book_room", None) or getattr(_x, "room_book", None)`.
+
+The registered per-arm ceiling is derived from §16.7's measured `SUITE_COST_S = 0.189` seconds per
+suite invocation, so a fixture that slowed the scoring path could make the frozen 50-minute ceiling
+too small. Measured A/B, five slots, five repetitions each, the same suite with and without the
+fixture: **+7, +6, +3, −4, −4 milliseconds** against a 0.13-second pytest invocation, which is
+subprocess-start noise. `SUITE_COST_S`, `arm_budget_min() = 47.27` and the 50-minute ceiling are
+unchanged.
+
+### 21.4 The new fixtures do not constrain a correct reply
+
+The fairness check is mechanical this round, so it covers all twenty-three slots at both checkpoints
+rather than a sample — and it is the shape class 7b exists for. For every slot, every callable the
+reply ADDS keeps its name, its signature and its behaviour, but its body moves to a module-level
+delegate that reaches the store through a handle; the body is moved, not rewritten, so behaviour is
+identical by construction and any suite that fails is a suite reading the gold's structure instead of
+the request. Run twice, once with a private delegate and once with a public one (which the new
+fixture's loop then calls with junk arguments):
+
+**46 alternative replies scored, 0 rejected**, in each run.
+
+That check is mechanical and therefore weak in one specific way: it preserves behaviour exactly, so
+it cannot find a fixture that is unfair about WHAT a correct reply does when it is called with
+arguments naming no existing record — which is precisely what the new fixture's loop does. Four
+hand-written alternatives cover that axis, each a faithful implementation of its registered request
+that differs from the gold in record identity, validation order, exception message or return:
+
+| slot | the alternative |
+|---|---|
+| S34@1 | `spend` replaces the stored dict instead of mutating it, so the public reader returns a different OBJECT with the same value, and raises its own `ValueError` message |
+| S04@1 | `permit_revoke` rebuilds the `Permit` through its constructor instead of `with_status`, and looks it up through the public reader |
+| S17@1 | `record_mark` validates against a set built at call time and raises a different message |
+| S38@1 | `admit` writes the journal BEFORE storing and is idempotent: re-admitting returns the stored record unchanged |
+
+**4 behavioural alternatives, 0 rejected.**
+
+### 21.5 What round 9 accepted
+
+Amendment 8's two accounting fixes were re-verified as RESOLVED: the observation is timestamped by
+its probe, and an incomplete evaluation produces zero gate lines where the complete control produces
+twelve. The class-7b closure was confirmed a superset on every frozen slot-checkpoint — zero
+removals, six additions, zero unresolved receivers — and the path rule was confirmed correct: only
+the designated target is replaced, so `book_screening` and `nominate` are unreachable at checkpoint 1
+and detected at checkpoint 2. Astra found **no correct reply rejected** by amendment 8's five
+fixtures, including four replies that expose their implementations through class and module aliases.
+All 48 SCREEN and 576 TRAIN content hashes reproduced. All five gates and every statistic still match
+§7: McNemar 0.0625 for 5-0, 0.25 for 3-0, and ±0.0872490536 at zero discordance with N = 48.
+
+### 21.6 Re-frozen pool and self-checks
+
+Twenty-three slot modules changed, in the containment-exempt fixture fields only, so the SCREEN pool
+is re-frozen and its hash changes. No TRAIN file was touched and no arm has run, so no record carries
+the old hash.
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `7789e34aec0e9b55` | re-frozen from `ef802ce2160ee00c` |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | unchanged; no TRAIN file was touched |
+
+`uv run python scripts/a_screen_mutate.py` -> **1,155 mutations, 0 undetected, 0 unresolved sites** (both checkpoints; 131 update sites
+typed; 844 from classes 1-6, 275 from class 7 and 36 from class 7b).
+`uv run python scripts/a_screen_rename.py` -> **108 renames, 0 rejected**.
+`uv run python scripts/a_screen_containment.py --ref HEAD` -> **0 violations with NO
+authorizations**, 23 slots differing and 25 untouched. Because `functional_tests` and
+`regression_tests` are the two exempt fields, that is the mechanical statement that the request
+text, the gold, the project files, the contract suites, the support suites and the prefix turns are
+all byte-identical to `a0469f71`.
+`uv run pytest -q tests/test_a_screen.py tests/test_a_screen_spend.py
+tests/test_no_side_effect_imports.py tests/test_contracts.py` -> **481 passed, 1 xfailed**
+(`tests/test_a_screen_spend.py` grew 28 -> **32**).
+`uv run ruff check .` and `ruff format --check .` -> clean, 897 files.
+
+No arm, model, outcome unit, gate, statistic or ceiling changed in this amendment. The only changes
+are the monotonic clock, the deletion of the allocator audit's plausibility narrowing, and the
+twenty-three fixtures that cover what the deletion exposed.
