@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from stencil.scoped_blocks import (  # noqa: E402
     BASELINE,
     LABEL_KEYS,
+    OBLIGATION_POLICIES,
     POLICIES,
     REQUIRED_FIVE,
     RIVALS,
@@ -58,7 +59,17 @@ def gate(blocks=BLOCKS):
         want = []
         for case in block.cases:
             value, obs, ambiguous = resolve(block.history, case.path, case.fn_kind)
-            want.append(value)
+            want.append(case.expect_value)
+            # THE check on the resolver: the oracle enforces the hand-frozen
+            # expectation, so the resolver has to reproduce it.  Agreement
+            # between two calls to the same resolver never established anything.
+            frozen_obs = ("note",) if case.expect_note else ()
+            if (value, obs) != (case.expect_value, frozen_obs):
+                problems.append(
+                    f"{block.id}/{case.name}: the resolver says "
+                    f"{(value, obs)} but the authored expectation is "
+                    f"{(case.expect_value, frozen_obs)}")
+            value, obs = case.expect_value, frozen_obs
             if ambiguous:
                 problems.append(f"{block.id}/{case.name}: resolution is a TIE -- "
                                 "the measurement would depend on the tie-break")
@@ -131,16 +142,17 @@ def gate(blocks=BLOCKS):
         if not defeated_by[policy]:
             problems.append(f"no block defeats {policy}")
 
-    # 7b. the scope-aware rivals are the anti-vacuity evidence: each must be
-    #     refuted by at least one block AND survive at least one, or the matrix
-    #     is just "the oracle refuses everything that is not gold".
+    # 7b. every scope-aware rival must be refuted somewhere.  It must NOT also be
+    #     required to survive somewhere: Astra's finding 1 -- a correct fixture
+    #     may legitimately defeat a wrong policy everywhere, and the positive
+    #     control is the independently spelled valid implementations, not the
+    #     survival of a wrong one.
     for policy in RIVALS:
-        survived = len(blocks) - len(defeated_by[policy])
         if not defeated_by[policy]:
             problems.append(f"no block defeats the scope-aware rival {policy}")
-        if not survived:
-            problems.append(f"{policy} fails every block -- it cannot show that "
-                            "the instrument discriminates between semantics")
+    for policy in OBLIGATION_POLICIES:
+        if not defeated_by[policy]:
+            problems.append(f"no block defeats {policy}")
 
     # 8. code precedent carries no signal about the answer.  The two cases of a
     #    block always require different values, so the precedent can agree with
@@ -150,8 +162,7 @@ def gate(blocks=BLOCKS):
     #    case is which.
     counts = {"A": 0, "B": 0, "neither": 0}
     for block in blocks:
-        answers = [resolve(block.history, c.path, c.fn_kind)[0]
-                   for c in block.cases]
+        answers = [c.expect_value for c in block.cases]
         if block.precedent == answers[0]:
             counts["A"] += 1
         elif block.precedent == answers[1]:
@@ -176,8 +187,8 @@ def main(argv=None):
         "blocks": [{"id": b.id, "family": b.family, "precedent": b.precedent,
                     "digest": block_digest(b),
                     "cases": [c.name for c in b.cases],
-                    "answers": [resolve(b.history, c.path, c.fn_kind)[0]
-                                for c in b.cases],
+                    "answers": [c.expect_value for c in b.cases],
+                    "expect_note": [c.expect_note for c in b.cases],
                     "defeats": list(b.defeats)} for b in BLOCKS],
         "defeated_by": {p: v for p, v in defeated_by.items()},
         "precedent_counterbalance": counts,
@@ -192,14 +203,15 @@ def main(argv=None):
 
     print(f"{'block':6} {'family':9} {'prec':8} {'case A -> B':28} defeats")
     for b in BLOCKS:
-        ans = [resolve(b.history, c.path, c.fn_kind)[0] for c in b.cases]
+        ans = [c.expect_value for c in b.cases]
         pair = f"{b.cases[0].name}={ans[0]} / {b.cases[1].name}={ans[1]}"
         print(f"{b.id:6} {b.family:9} {b.precedent:8} {pair:28} "
               f"{','.join(b.defeats)}")
     print()
     for policy in POLICIES:
         mark = ("required" if policy in REQUIRED_FIVE
-                else "RIVAL   " if policy in RIVALS else "extra   ")
+                else "RIVAL   " if policy in (*RIVALS, *OBLIGATION_POLICIES)
+                else "extra   ")
         print(f"{policy:16} {mark} defeated by {len(defeated_by[policy]):2}/16 "
               f"blocks: {' '.join(defeated_by[policy])}")
     print(f"\ncode precedent agrees with case A in {counts['A']} blocks, "

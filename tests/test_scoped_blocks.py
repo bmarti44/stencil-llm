@@ -39,6 +39,7 @@ from stencil.scoped_blocks import (  # noqa: E402
     live_state,
     passes,
     resolve,
+    resolve_events,
     shortcut_candidate,
     value_candidate,
 )
@@ -147,12 +148,25 @@ def test_cancelling_an_exception_exposes_the_still_live_enclosing_rule():
 
 
 def test_reinstatement_restores_by_reference_without_restating_a_value():
+    """It may name the rule it is leaving; it may not name the one it restores."""
+    for bid in ("R1", "R2", "R3"):
+        block = _by_id(bid)
+        reinstate = next(e for e in block.history if e.kind == "reinstate")
+        referenced = next(e for e in block.history if e.id == reinstate.ref)
+        assert reinstate.value is None
+        assert referenced.value not in reinstate.text.lower(), bid
+    assert resolve(_by_id("R1").history, "core", "lookup")[0] == "raise"
+
+
+def test_reinstatement_does_not_point_at_the_first_statement_at_its_scope():
+    """Astra's finding 1: every reinstatement referenced the first policy ever
+    stated at its scope, so "always restore the first one" passed all 16."""
     block = _by_id("R1")
     reinstate = next(e for e in block.history if e.kind == "reinstate")
-    assert reinstate.value is None
-    for value in ("raise", "none", "default"):
-        assert value not in reinstate.text.lower()
-    assert resolve(block.history, "core", "lookup")[0] == "raise"
+    same_scope = [e for e in block.history
+                  if e.kind in ("set", "replace") and e.scope == "*"]
+    assert same_scope[0].id != reinstate.ref
+    assert same_scope[1].id == reinstate.ref
 
 
 def test_restoring_a_global_rule_leaves_a_later_narrower_rule_in_force():
@@ -166,6 +180,32 @@ def test_an_obligation_survives_the_cancellation_of_a_policy():
     _live, obligations = live_state(block.history)
     assert ("note", "compat") in obligations
     assert resolve(block.history, "compat", "lookup")[1] == ("note",)
+
+
+def test_an_obligation_does_not_apply_outside_its_own_scope():
+    """Astra's finding 1: treating every obligation as package-wide passed 16/16
+    because the only scoped obligation had both its cases inside its scope."""
+    block = _by_id("R3")
+    assert resolve(block.history, "compat", "lookup")[1] == ("note",)
+    assert resolve(block.history, "core", "lookup")[1] == ()
+    source = next(e for e in block.history if e.kind == "obligate")
+    assert "compat/" in source.text and "core.py does not need it" in source.text
+
+
+def test_a_released_support_stops_appearing_among_the_live_supports():
+    """Astra's finding 8: supports were selected by NAME, so a released
+    package-wide statement kept appearing beside a live compat one."""
+    history = (
+        Event("o1", "Every public function in the package calls note().",
+              "obligate", "*", name="note"),
+        Event("o2", "Every public function in compat/ calls note().",
+              "obligate", "compat", name="note"),
+        Event("o3", "Drop the package-wide note() rule.",
+              "release", "*", name="note"),
+    )
+    _winner, supports = resolve_events(history, "compat", "lookup")
+    assert [e.id for e in supports] == ["o2"]
+    assert resolve(history, "core", "lookup")[1] == ()
 
 
 def test_releasing_an_obligation_is_prospective():

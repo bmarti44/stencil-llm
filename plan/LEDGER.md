@@ -38,10 +38,32 @@ runs with NO model verify extraction, scoring and the decision arithmetic
 --stub-mode rescue -> READING: RESCUED). Step 3 is now a single command.
 
 Registered limitation, recorded before any outcome: the development histories are
-3-7 messages and fit ENTIRELY in the 3,936-token budget in both conditions, so
-the reminder is additive (23-68 tokens) rather than displacing. The diagnostic
+2-6 messages and fit ENTIRELY in the 3,936-token budget in both conditions, so
+the reminder is additive (25-75 tokens) rather than displacing. The diagnostic
 measures RESOLUTION WITH EVERYTHING VISIBLE, not retrieval under eviction, and a
 rescue may not be read as evidence about eviction.
+
+ASTRA'S IMPLEMENTATION REVIEW REJECTED THE FIRST PASS and it was right to:
+results/reviews/2026-09-13-scoped-instrument-astra.md, VERDICT REPAIR, six HIGH
+findings, forecast unchanged at 28%. It reproduced two wrong resolvers passing
+16/16 (reinstatement restoring the first policy at a scope; every obligation
+treated as package-wide), three materially wrong implementations passing all four
+suites, an incomplete 48-record prefix printing RESCUED, and "thinking disabled"
+registered but never implemented. All findings applied, none negotiated;
+dispositions in results/scoped/REVIEW-RESPONSE.md.
+
+The structural one worth remembering: gold_candidate() and evaluate() both took
+their expectation from resolve(), so agreement between them validated NOTHING --
+a wrong resolver was simply believed twice. Each case now carries a hand-frozen
+expect_value/expect_note and the gate checks the resolver against it. LESSON: an
+oracle whose requirement is computed by the component under test is not an
+oracle, however much executable machinery sits on top.
+
+Two defects found by my own stress testing before the review landed: reply
+extraction dropped an `import` above the function and lost answers whose code was
+in the second fence -- both scoring CORRECT answers as total failures, and both
+biased against the oracle arm, since a formal cue makes a model answer more
+formally. Extraction is now syntax-aware (ast).
 
 NEXT: step 3 is the first GPU spend — 64 short generations, 0.2-0.3 GPU-hours —
 and is BLOCKED by the standing pause below. Prespecified thresholds (Astra, not

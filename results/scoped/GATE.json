@@ -4,7 +4,7 @@
    "id": "S1",
    "family": "scope",
    "precedent": "none",
-   "digest": "23d1189307727f69",
+   "digest": "e3115ed0fd4ee66e",
    "cases": [
     "compat:lookup",
     "core:lookup"
@@ -12,6 +12,10 @@
    "answers": [
     "none",
     "raise"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -24,7 +28,7 @@
    "id": "S2",
    "family": "scope",
    "precedent": "raise",
-   "digest": "9b0efe04c06440bf",
+   "digest": "a8c865f378ed5085",
    "cases": [
     "core:lookup",
     "compat:lookup"
@@ -32,6 +36,10 @@
    "answers": [
     "raise",
     "none"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -44,7 +52,7 @@
    "id": "S3",
    "family": "scope",
    "precedent": "default",
-   "digest": "04a8f3901b373655",
+   "digest": "8a5067ec76e76a3e",
    "cases": [
     "core:bulk",
     "core:lookup"
@@ -52,6 +60,10 @@
    "answers": [
     "raise",
     "none"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -64,7 +76,7 @@
    "id": "S4",
    "family": "scope",
    "precedent": "none",
-   "digest": "d54f5fb0c0edec41",
+   "digest": "76b1cf91deba0711",
    "cases": [
     "compat:bulk",
     "compat:lookup"
@@ -72,6 +84,10 @@
    "answers": [
     "raise",
     "none"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -84,7 +100,7 @@
    "id": "G1",
    "family": "global",
    "precedent": "none",
-   "digest": "0f52b44e9f895892",
+   "digest": "5e859c61a5d74bd9",
    "cases": [
     "core:lookup",
     "core:bulk"
@@ -92,6 +108,10 @@
    "answers": [
     "raise",
     "default"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -104,7 +124,7 @@
    "id": "G2",
    "family": "global",
    "precedent": "raise",
-   "digest": "ca49ec9ce156f9f3",
+   "digest": "5a246a87a0214900",
    "cases": [
     "core:bulk",
     "core:lookup"
@@ -112,6 +132,10 @@
    "answers": [
     "raise",
     "none"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -124,7 +148,7 @@
    "id": "G3",
    "family": "global",
    "precedent": "raise",
-   "digest": "3a798c313278b8a3",
+   "digest": "d93d36849af9cb14",
    "cases": [
     "compat.legacy:lookup",
     "compat:lookup"
@@ -132,6 +156,10 @@
    "answers": [
     "none",
     "default"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -144,7 +172,7 @@
    "id": "C1",
    "family": "cancel",
    "precedent": "default",
-   "digest": "a66b72ef79a6e18c",
+   "digest": "bf9e94130ee0ad37",
    "cases": [
     "compat:lookup",
     "core:bulk"
@@ -152,6 +180,10 @@
    "answers": [
     "raise",
     "default"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -165,7 +197,7 @@
    "id": "C2",
    "family": "cancel",
    "precedent": "raise",
-   "digest": "8d8e6c3a096da977",
+   "digest": "11db1c27e988a728",
    "cases": [
     "compat:lookup",
     "core:lookup"
@@ -173,6 +205,10 @@
    "answers": [
     "none",
     "raise"
+   ],
+   "expect_note": [
+    true,
+    true
    ],
    "defeats": [
     "always_newest",
@@ -185,7 +221,7 @@
    "id": "C3",
    "family": "cancel",
    "precedent": "raise",
-   "digest": "04305930b32fcc02",
+   "digest": "b4199874121205a2",
    "cases": [
     "compat:lookup",
     "core:lookup"
@@ -193,6 +229,10 @@
    "answers": [
     "raise",
     "default"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -205,7 +245,7 @@
    "id": "C4",
    "family": "cancel",
    "precedent": "raise",
-   "digest": "d814a5260175ec93",
+   "digest": "94340ab196366fff",
    "cases": [
     "core:lookup",
     "compat:bulk"
@@ -213,6 +253,10 @@
    "answers": [
     "default",
     "none"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -226,7 +270,7 @@
    "id": "R1",
    "family": "restore",
    "precedent": "none",
-   "digest": "8a585d47287461ea",
+   "digest": "8164214bbcb28b5d",
    "cases": [
     "core:lookup",
     "compat.legacy:lookup"
@@ -235,19 +279,24 @@
     "raise",
     "default"
    ],
+   "expect_note": [
+    true,
+    true
+   ],
    "defeats": [
     "always_newest",
     "always_oldest",
     "copy_existing",
     "rollback",
-    "recency_general"
+    "recency_general",
+    "reinstate_first"
    ]
   },
   {
    "id": "R2",
    "family": "restore",
    "precedent": "default",
-   "digest": "33ec1d79b8f3d2f7",
+   "digest": "e947e5acbc22568c",
    "cases": [
     "core:lookup",
     "compat:lookup"
@@ -255,6 +304,10 @@
    "answers": [
     "default",
     "none"
+   ],
+   "expect_note": [
+    true,
+    true
    ],
    "defeats": [
     "always_newest",
@@ -267,28 +320,33 @@
    "id": "R3",
    "family": "restore",
    "precedent": "default",
-   "digest": "f5c4a2dd941c7b0a",
+   "digest": "fcf155ca16cc925a",
    "cases": [
     "compat:lookup",
-    "compat.legacy:lookup"
+    "core:lookup"
    ],
    "answers": [
     "none",
-    "default"
+    "raise"
+   ],
+   "expect_note": [
+    true,
+    false
    ],
    "defeats": [
     "always_newest",
     "always_oldest",
     "flip_on_cancel",
     "copy_existing",
-    "rollback"
+    "rollback",
+    "obligation_global"
    ]
   },
   {
    "id": "D1",
    "family": "distance",
    "precedent": "none",
-   "digest": "171d6839d482e7b6",
+   "digest": "1ee07785af3ad240",
    "cases": [
     "core:lookup",
     "compat:lookup"
@@ -296,6 +354,10 @@
    "answers": [
     "raise",
     "none"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -308,7 +370,7 @@
    "id": "D2",
    "family": "distance",
    "precedent": "raise",
-   "digest": "f2ebff39d1617196",
+   "digest": "7a178bb4ce667e90",
    "cases": [
     "core:bulk",
     "core:lookup"
@@ -316,6 +378,10 @@
    "answers": [
     "raise",
     "none"
+   ],
+   "expect_note": [
+    false,
+    false
    ],
    "defeats": [
     "always_newest",
@@ -408,6 +474,12 @@
    "C1",
    "C4"
   ],
+  "reinstate_first": [
+   "R1"
+  ],
+  "obligation_global": [
+   "R3"
+  ],
   "copy_existing": [
    "S1",
    "S2",
@@ -447,8 +519,8 @@
  },
  "precedent_counterbalance": {
   "A": 6,
-  "B": 5,
-  "neither": 5
+  "B": 4,
+  "neither": 6
  },
  "n_cases": 32,
  "baseline": "default",
@@ -515,6 +587,26 @@
   },
   {
    "block": "S1",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S1",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S1",
    "policy": "copy_existing",
    "cases": [
     true,
@@ -595,6 +687,26 @@
   },
   {
    "block": "S2",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S2",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S2",
    "policy": "copy_existing",
    "cases": [
     true,
@@ -675,6 +787,26 @@
   },
   {
    "block": "S3",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S3",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S3",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -755,6 +887,26 @@
   },
   {
    "block": "S4",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S4",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S4",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -835,6 +987,26 @@
   },
   {
    "block": "G1",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G1",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G1",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -915,6 +1087,26 @@
   },
   {
    "block": "G2",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G2",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G2",
    "policy": "copy_existing",
    "cases": [
     true,
@@ -995,6 +1187,26 @@
   },
   {
    "block": "G3",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G3",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G3",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -1075,6 +1287,26 @@
   },
   {
    "block": "C1",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C1",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C1",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -1155,6 +1387,26 @@
   },
   {
    "block": "C2",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C2",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C2",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -1235,6 +1487,26 @@
   },
   {
    "block": "C3",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C3",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C3",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -1315,6 +1587,26 @@
   },
   {
    "block": "C4",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C4",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C4",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -1347,8 +1639,8 @@
    "block": "R1",
    "policy": "always_oldest",
    "cases": [
-    true,
-    false
+    false,
+    true
    ],
    "block_pass": false,
    "claimed": true
@@ -1386,6 +1678,26 @@
   {
    "block": "R1",
    "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R1",
+   "policy": "reinstate_first",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R1",
+   "policy": "obligation_global",
    "cases": [
     true,
     true
@@ -1475,6 +1787,26 @@
   },
   {
    "block": "R2",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R2",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R2",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -1498,7 +1830,7 @@
    "policy": "always_newest",
    "cases": [
     false,
-    true
+    false
    ],
    "block_pass": false,
    "claimed": true
@@ -1508,7 +1840,7 @@
    "policy": "always_oldest",
    "cases": [
     false,
-    false
+    true
    ],
    "block_pass": false,
    "claimed": true
@@ -1518,7 +1850,7 @@
    "policy": "flip_on_cancel",
    "cases": [
     false,
-    true
+    false
    ],
    "block_pass": false,
    "claimed": true
@@ -1528,7 +1860,7 @@
    "policy": "recency_general",
    "cases": [
     false,
-    true
+    false
    ],
    "block_pass": false,
    "claimed": false
@@ -1552,6 +1884,26 @@
    ],
    "block_pass": true,
    "claimed": false
+  },
+  {
+   "block": "R3",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R3",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
   },
   {
    "block": "R3",
@@ -1635,6 +1987,26 @@
   },
   {
    "block": "D1",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "D1",
+   "policy": "obligation_global",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "D1",
    "policy": "copy_existing",
    "cases": [
     false,
@@ -1706,6 +2078,26 @@
   {
    "block": "D2",
    "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "D2",
+   "policy": "reinstate_first",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "D2",
+   "policy": "obligation_global",
    "cases": [
     true,
     true

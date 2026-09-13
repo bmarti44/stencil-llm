@@ -20,9 +20,12 @@ LOOKUP = "fetch_rate"
 BULK = "gather_rates"
 
 
-def _case(path, kind):
+def _case(path, kind, expect, note=False):
+    """`expect` and `note` are authored BY HAND from the block's message wording
+    and are what the oracle enforces; the gate checks the resolver against them."""
     return Case(name=f"{path}:{kind}", path=path, fn_kind=kind,
-                fname=LOOKUP if kind == "lookup" else BULK)
+                fname=LOOKUP if kind == "lookup" else BULK,
+                expect_value=expect, expect_note=note)
 
 
 GLOBAL_RAISE = "Across the package, a lookup for a key that isn't in the table" \
@@ -42,11 +45,12 @@ S1 = Block(
     id="S1", family="scope", precedent="none",
     history=(
         Event("s1a", GLOBAL_RAISE, "set", "*", None, "raise"),
-        Event("s1b", "Inside compat.py, missing entries should come back as None"
-                     " instead -- the old clients can't handle the exception.",
+        Event("s1b", "Inside the compat/ package, missing entries should come"
+                     " back as None instead -- the old clients can't handle the"
+                     " exception.",
               "set", "compat", None, "none"),
     ),
-    cases=(_case("compat", "lookup"), _case("core", "lookup")),
+    cases=(_case("compat", "lookup", "none"), _case("core", "lookup", "raise")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="Newest applies in compat; the fresh operation in core follows the older"
          " global rule.",
@@ -63,7 +67,7 @@ S2 = Block(
                      " everywhere else.",
               "set", "*", None, "none"),
     ),
-    cases=(_case("core", "lookup"), _case("compat", "lookup")),
+    cases=(_case("core", "lookup", "raise"), _case("compat", "lookup", "none")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="The exception is on core rather than compat, and the broad statement"
          " arrives LAST while explicitly preserving it, so the most specific"
@@ -79,7 +83,7 @@ S3 = Block(
                      " because the report sums whatever comes back.",
               "set", "*", "bulk", "raise"),
     ),
-    cases=(_case("core", "bulk"), _case("core", "lookup")),
+    cases=(_case("core", "bulk", "raise"), _case("core", "lookup", "none")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="Scope by OPERATION rather than path: same file, two operations, two"
          " answers.",
@@ -89,12 +93,12 @@ S4 = Block(
     id="S4", family="scope", precedent="none",
     history=(
         Event("s4a", GLOBAL_NONE, "set", "*", None, "none"),
-        Event("s4b", "One exception: the bulk gather in compat.py must raise"
+        Event("s4b", "One exception: the bulk gather in the compat/ package must raise"
                      " MissingEntry when a key is absent -- that path feeds the"
                      " reconciliation job and cannot skip rows.",
               "set", "compat", "bulk", "raise"),
     ),
-    cases=(_case("compat", "bulk"), _case("compat", "lookup")),
+    cases=(_case("compat", "bulk", "raise"), _case("compat", "lookup", "none")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="Path AND operation together; both cases are in the same file.",
 )
@@ -110,11 +114,12 @@ G1 = Block(
         Event("g1b", "For the bulk gather helpers a missing key should come back"
                      " as DEFAULT rather than None -- the report code sums them.",
               "set", "*", "bulk", "default"),
-        Event("g1c", "Change of plan for the whole package: a missing entry must"
-                     " raise MissingEntry now.",
+        Event("g1c", "Change of plan for the package default: a missing entry"
+                     " must raise MissingEntry now. The bulk-gather rule above"
+                     " is not affected and still stands.",
               "replace", "*", None, "raise"),
     ),
-    cases=(_case("core", "lookup"), _case("core", "bulk")),
+    cases=(_case("core", "lookup", "raise"), _case("core", "bulk", "default")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="The revision reaches the fresh lookup; the operation-scoped rule for"
          " bulk survives it.",
@@ -127,11 +132,12 @@ G2 = Block(
         Event("g2b", "For the single-key lookups, a missing entry comes back as"
                      " None instead -- callers there already branch on it.",
               "set", "*", "lookup", "none"),
-        Event("g2c", "Change of plan for the whole package: a missing entry must"
-                     " raise MissingEntry now.",
+        Event("g2c", "Change of plan for the package default: a missing entry"
+                     " must raise MissingEntry now. The single-key-lookup rule"
+                     " above is not affected and still stands.",
               "replace", "*", None, "raise"),
     ),
-    cases=(_case("core", "bulk"), _case("core", "lookup")),
+    cases=(_case("core", "bulk", "raise"), _case("core", "lookup", "none")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="Mirror of G1 with the operation scopes swapped.",
 )
@@ -140,7 +146,7 @@ G3 = Block(
     id="G3", family="global", precedent="raise",
     history=(
         Event("g3a", GLOBAL_RAISE, "set", "*", None, "raise"),
-        Event("g3b", "Inside compat.py, missing entries come back as None.",
+        Event("g3b", "Inside the compat/ package, missing entries come back as None.",
               "set", "compat", None, "none"),
         Event("g3c", "Change of plan for the whole package, compat included: a"
                      " missing entry comes back as DEFAULT everywhere now.",
@@ -149,7 +155,8 @@ G3 = Block(
                      " entry -- compat/legacy.py only, nothing else.",
               "set", "compat.legacy", None, "none"),
     ),
-    cases=(_case("compat.legacy", "lookup"), _case("compat", "lookup")),
+    cases=(_case("compat.legacy", "lookup", "none"),
+           _case("compat", "lookup", "default")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="A broad revision that explicitly clears a narrower exception, then a"
          " NEW narrower exception one level deeper.",
@@ -163,10 +170,11 @@ C1 = Block(
     id="C1", family="cancel", precedent="default",
     history=(
         Event("c1a", GLOBAL_RAISE, "set", "*", None, "raise"),
-        Event("c1b", "Inside compat.py, missing entries come back as None.",
+        Event("c1b", "Inside the compat/ package, missing entries come back as None.",
               "set", "compat", None, "none"),
-        Event("c1b2", "Actually in compat.py make a missing entry DEFAULT rather"
-                      " than None -- None was ending up in the totals.",
+        Event("c1b2", "Actually in the compat/ package make a missing entry"
+                      " DEFAULT rather than None -- None was ending up in the"
+                      " totals.",
               "replace", "compat", None, "default"),
         Event("c1c", "Drop the compat exception -- we're not keeping a special"
                      " missing-entry rule for that namespace any more.",
@@ -175,7 +183,7 @@ C1 = Block(
                      " DEFAULT.",
               "set", "*", "bulk", "default"),
     ),
-    cases=(_case("compat", "lookup"), _case("core", "bulk")),
+    cases=(_case("compat", "lookup", "raise"), _case("core", "bulk", "default")),
     defeats=("always_newest", "always_oldest", "flip_on_cancel", "copy_existing",
              "recency_general"),
     note="Cancelling the compat exception exposes the STILL-LIVE global rule --"
@@ -188,12 +196,13 @@ C2 = Block(
     history=(
         Event("c2z", NOTE_RULE, "obligate", "*", name="note"),
         Event("c2a", GLOBAL_RAISE, "set", "*", None, "raise"),
-        Event("c2b", "Inside compat.py, missing entries come back as None.",
+        Event("c2b", "Inside the compat/ package, missing entries come back as None.",
               "set", "compat", None, "none"),
         Event("c2c", "Cancel the docstring-style rule -- we're not enforcing the"
                      " one-line summary any more."),
     ),
-    cases=(_case("compat", "lookup"), _case("core", "lookup")),
+    cases=(_case("compat", "lookup", "none", note=True),
+           _case("core", "lookup", "raise", note=True)),
     defeats=("always_newest", "always_oldest", "flip_on_cancel", "copy_existing"),
     note="Cancellation LANGUAGE aimed at an unrelated rule. The missing-entry"
          " policy is untouched, and the note() obligation is untouched too.",
@@ -204,7 +213,8 @@ C3 = Block(
     history=(
         Event("c3z", NOTE_RULE, "obligate", "*", name="note"),
         Event("c3a", GLOBAL_DEFAULT, "set", "*", None, "default"),
-        Event("c3b", "Inside compat.py, a missing entry must raise MissingEntry.",
+        Event("c3b", "Inside the compat/ package, a missing entry must raise"
+                     " MissingEntry.",
               "set", "compat", None, "raise"),
         Event("c3c", "Ignore the message in the other thread about cancelling the"
                      " compat rule -- we talked it over and it stands."),
@@ -212,7 +222,7 @@ C3 = Block(
                      " the gateway. Leave the existing calls where they are.",
               "release", "*", name="note"),
     ),
-    cases=(_case("compat", "lookup"), _case("core", "lookup")),
+    cases=(_case("compat", "lookup", "raise"), _case("core", "lookup", "default")),
     defeats=("always_newest", "always_oldest", "flip_on_cancel", "copy_existing"),
     note="QUOTED cancellation changes nothing. Separately, an obligation is"
          " released prospectively: new code omits note(), existing code keeps it.",
@@ -229,10 +239,10 @@ C4 = Block(
                      " missing-entry behaviour globally any more; fall back to"
                      " what the package documents.",
               "cancel", "*"),
-        Event("c4d", "compat.py keeps returning None for a missing entry.",
+        Event("c4d", "The compat/ package keeps returning None for a missing entry.",
               "set", "compat", None, "none"),
     ),
-    cases=(_case("core", "lookup"), _case("compat", "bulk")),
+    cases=(_case("core", "lookup", "default"), _case("compat", "bulk", "none")),
     defeats=("always_newest", "always_oldest", "flip_on_cancel", "copy_existing",
              "recency_general"),
     note="Cancelling a REPLACEMENT does not revive what it replaced: core falls to"
@@ -246,23 +256,31 @@ C4 = Block(
 R1 = Block(
     id="R1", family="restore", precedent="none",
     history=(
-        Event("r1a", GLOBAL_RAISE, "set", "*", None, "raise"),
+        Event("r1z", GLOBAL_DEFAULT, "set", "*", None, "default"),
+        Event("r1a", "New rule, replacing the DEFAULT one: across the package, a"
+                     " lookup for a key that isn't in the table must raise"
+                     " MissingEntry.",
+              "replace", "*", None, "raise"),
         Event("r1b", "Change of plan: missing entries come back as None across the"
                      " package.",
               "replace", "*", None, "none"),
         Event("r1c", NOTE_RULE, "obligate", "*", name="note"),
-        Event("r1d", "Go back to the missing-entry behaviour we had before that"
-                     " change.",
+        Event("r1d", "Go back to the missing-entry behaviour we had immediately"
+                     " before we switched to None -- not the older one before"
+                     " that.",
               "reinstate", ref="r1a"),
         Event("r1e", "The legacy corner of compat is the exception: a missing"
                      " entry there comes back as DEFAULT.",
               "set", "compat.legacy", None, "default"),
     ),
-    cases=(_case("core", "lookup"), _case("compat.legacy", "lookup")),
+    cases=(_case("core", "lookup", "raise", note=True),
+           _case("compat.legacy", "lookup", "default", note=True)),
     defeats=("always_newest", "always_oldest", "copy_existing", "rollback",
-             "recency_general"),
-    note="Reinstatement names no value. The note() obligation added in between"
-         " has independent support and survives the restoration.",
+             "recency_general", "reinstate_first"),
+    note="Reinstatement names no value, and it refers to the SECOND statement at"
+         " this scope, so restoring the first one ever stated is wrong. The"
+         " note() obligation added in between has independent support and"
+         " survives the restoration.",
 )
 
 R2 = Block(
@@ -272,14 +290,15 @@ R2 = Block(
         Event("r2b", "Change of plan: a missing entry must raise MissingEntry"
                      " across the package.",
               "replace", "*", None, "raise"),
-        Event("r2c", "Inside compat.py a missing entry comes back as None.",
+        Event("r2c", "Inside the compat/ package a missing entry comes back as None.",
               "set", "compat", None, "none"),
         Event("r2d", NOTE_RULE, "obligate", "*", name="note"),
         Event("r2e", "Put the package-wide missing-entry rule back to what it was"
                      " before we switched to raising.",
               "reinstate", ref="r2a"),
     ),
-    cases=(_case("core", "lookup"), _case("compat", "lookup")),
+    cases=(_case("core", "lookup", "default", note=True),
+           _case("compat", "lookup", "none", note=True)),
     defeats=("always_newest", "always_oldest", "copy_existing", "rollback"),
     note="Restoring the GLOBAL rule leaves the narrower compat rule, established"
          " after it, in force.",
@@ -289,9 +308,13 @@ R3 = Block(
     id="R3", family="restore", precedent="default",
     history=(
         Event("r3a", GLOBAL_RAISE, "set", "*", None, "raise"),
-        Event("r3b", "Inside compat.py a missing entry comes back as None.",
+        Event("r3b", "Inside the compat/ package a missing entry comes back as None.",
               "set", "compat", None, "none"),
-        Event("r3c", NOTE_RULE, "obligate", "compat", name="note"),
+        Event("r3c", "Every public function in the compat/ package calls note()"
+                     " with its own name before it touches the table, so the"
+                     " audit log stays complete. This is a compat/ rule only --"
+                     " core.py does not need it.",
+              "obligate", "compat", name="note"),
         Event("r3d", "Drop the compat exception.", "cancel", "compat"),
         Event("r3e", "The legacy corner of compat needs its own rule: a missing"
                      " entry there comes back as DEFAULT.",
@@ -299,11 +322,14 @@ R3 = Block(
         Event("r3f", "Bring back the compat missing-entry rule we dropped.",
               "reinstate", ref="r3b"),
     ),
-    cases=(_case("compat", "lookup"), _case("compat.legacy", "lookup")),
+    cases=(_case("compat", "lookup", "none", note=True),
+           _case("core", "lookup", "raise")),
     defeats=("always_newest", "always_oldest", "flip_on_cancel", "copy_existing",
-             "rollback"),
-    note="Cancelling the compat POLICY never dropped the compat OBLIGATION;"
-         " reinstating the policy does not disturb the deeper legacy rule.",
+             "rollback", "obligation_global"),
+    note="Cancelling the compat POLICY never dropped the compat OBLIGATION, and"
+         " the obligation is scoped to compat/, so a fresh function in core.py"
+         " must NOT log. Reinstating the policy does not disturb the deeper"
+         " legacy rule.",
 )
 
 # --------------------------------------------------------------- family D
@@ -317,18 +343,19 @@ DOCS_DECOY = "In the docs, describe the fallback as DEFAULT so the table in the"
 D1 = Block(
     id="D1", family="distance", precedent="none",
     history=(
-        Event("d1a", "Inside compat.py, missing entries come back as None.",
+        Event("d1a", "Inside the compat/ package, missing entries come back as None.",
               "set", "compat", None, "none"),
         Event("d1b", "Across the package a lookup for a key that isn't in the"
-                     " table must raise MissingEntry. compat.py keeps the rule it"
-                     " already has; this is for the rest of the package.",
+                     " table must raise MissingEntry. The compat/ package keeps"
+                     " the rule it already has; this is for the rest of the"
+                     " package.",
               "set", "*", None, "raise"),
         Event("d1c", "Keep the commit subject lines under seventy characters."),
         Event("d1d", "We're standardising on double quotes in this package."),
         Event("d1e", DOCS_DECOY),
         Event("d1f", "The changelog entry goes in the pull request body."),
     ),
-    cases=(_case("core", "lookup"), _case("compat", "lookup")),
+    cases=(_case("core", "lookup", "raise"), _case("compat", "lookup", "none")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="The decoy is the nearest missing-entry sentence and belongs to the docs.",
 )
@@ -348,7 +375,7 @@ D2 = Block(
         Event("d2e", CLI_DECOY),
         Event("d2f", "The release notes live in the milestone, not the repo."),
     ),
-    cases=(_case("core", "bulk"), _case("core", "lookup")),
+    cases=(_case("core", "bulk", "raise"), _case("core", "lookup", "none")),
     defeats=("always_newest", "always_oldest", "copy_existing", "recency_general"),
     note="Both applicable rules predate four unrelated messages; the CLI decoy is"
          " the most recent sentence about something being missing.",

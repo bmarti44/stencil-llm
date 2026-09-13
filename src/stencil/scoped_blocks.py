@@ -72,12 +72,26 @@ class Event:
 
 @dataclass(frozen=True)
 class Case:
-    """One applicability case: add one function at one path."""
+    """One applicability case: add one function at one path.
+
+    `expect_value` and `expect_note` are FROZEN BY HAND from the block's public
+    message wording.  The oracle reads them; it never asks the resolver.  Astra
+    found that `gold_candidate()` and `evaluate()` both took their expectation
+    from `resolve()`, so agreement between them validated nothing -- a wrong
+    resolver was simply believed twice.  The gate asserts that `resolve()`
+    reproduces these authored values, which is a real check in the direction
+    that matters.
+    """
 
     name: str
     path: str  # "core" | "compat" | "compat.legacy"
     fn_kind: str  # lookup | bulk
     fname: str
+    expect_value: str = ""
+    expect_note: bool = False
+
+    def __post_init__(self):
+        assert self.expect_value in VALUES, (self.name, self.expect_value)
 
 
 @dataclass(frozen=True)
@@ -106,10 +120,16 @@ def _matches(scope: str, fn_kind: str | None, path: str, kind: str) -> bool:
     return fn_kind is None or fn_kind == kind
 
 
-def live_state(history) -> tuple[dict, set]:
-    """Fold the history into (live policies, live obligations).  SEMANTICS.md."""
+def live_state(history) -> tuple[dict, dict]:
+    """Fold the history into (live policies, live obligation supports).
+
+    Obligations are keyed by (name, scope) and map to the EVENT that supports
+    them, so a name with two supports keeps them apart: releasing one leaves the
+    other standing.  Astra's finding 8 -- selecting supports by name alone let a
+    released package-wide statement keep appearing next to a live compat one.
+    """
     live: dict[tuple[str, str | None], Event] = {}
-    obligations: set[tuple[str, str]] = set()
+    obligations: dict[tuple[str, str], Event] = {}
     by_id = {e.id: e for e in history}
     for e in history:
         key = (e.scope, e.fn_kind)
@@ -125,9 +145,9 @@ def live_state(history) -> tuple[dict, set]:
             assert ref.kind in ("set", "replace"), (e.id, e.ref)
             live[(ref.scope, ref.fn_kind)] = ref
         elif e.kind == "obligate":
-            obligations.add((e.name, e.scope))
+            obligations[(e.name, e.scope)] = e
         elif e.kind == "release":
-            obligations.discard((e.name, e.scope))
+            obligations.pop((e.name, e.scope), None)
     return live, obligations
 
 
@@ -146,8 +166,8 @@ def resolve(history, path: str, kind: str) -> tuple[str, tuple[str, ...], bool]:
         value = top[-1].value
     else:
         value = BASELINE
-    obs = tuple(sorted(n for n, scope in obligations
-                       if _matches(scope, None, path, kind)))
+    obs = tuple(sorted({n for (n, scope) in obligations
+                        if _matches(scope, None, path, kind)}))
     return value, obs, ambiguous
 
 
@@ -386,21 +406,51 @@ def build(project: dict[str, str]):
     return pkg, mods
 
 
-def observe(fn, kind: str, support) -> str:
-    """Which of the three policy values does this function actually implement?
+MIXED = ("beta", MISSING, "alpha")
 
-    Independently observed by RUNNING it, never read off the source.
+
+class _Probe(dict):
+    """A table that records every access on the SAME timeline as note().
+
+    Astra's finding 2: the obligation suite checked only membership in CALLS on
+    a present-key call, so a function that logged after reading the table, or
+    never logged on a failed lookup, passed.  Sharing one timeline makes
+    "logs before it touches the table" observable.
     """
-    try:
-        if kind == "lookup":
-            got = fn(dict(PRESENT), MISSING)
-        else:
-            got = fn(dict(PRESENT), [MISSING])
-            got = got[0] if isinstance(got, list) and got else object()
-    except support.MissingEntry:
-        return "raise"
-    except Exception as exc:  # noqa: BLE001 - any other failure is not a policy
-        return f"error:{type(exc).__name__}"
+
+    def __init__(self, data, log):
+        super().__init__(data)
+        self._log = log
+
+    def _seen(self, key):
+        self._log.append(("access", key))
+
+    def __getitem__(self, key):
+        self._seen(key)
+        return super().__getitem__(key)
+
+    def get(self, key, *default):
+        self._seen(key)
+        return super().get(key, *default)
+
+    def __contains__(self, key):
+        self._seen(key)
+        return super().__contains__(key)
+
+    def __iter__(self):
+        self._seen("*")
+        return super().__iter__()
+
+    def items(self):
+        self._seen("*")
+        return super().items()
+
+    def keys(self):
+        self._seen("*")
+        return super().keys()
+
+
+def _classify(got, support) -> str:
     if got is None:
         return "none"
     if got == support.DEFAULT:
@@ -408,21 +458,94 @@ def observe(fn, kind: str, support) -> str:
     return f"other:{got!r}"
 
 
+def observe(fn, kind: str, support) -> str:
+    """Which of the three policy values does this function actually implement?
+
+    Observed by RUNNING it.  The bulk case uses a MIXED batch and checks the
+    present entries, their order and the result length, because Astra showed a
+    function returning `[None]` for a three-key batch -- losing two present
+    entries -- classified as `none` and passed every suite.  A raise is only a
+    raise if it names the key that was missing.
+    """
+    try:
+        if kind == "lookup":
+            got = fn(_dict(), MISSING)
+        else:
+            got = fn(_dict(), list(MIXED))
+    except support.MissingEntry as exc:
+        if not exc.args or exc.args[0] != MISSING:
+            return f"raise:wrong-key:{exc.args[:1]}"
+        return "raise"
+    except Exception as exc:  # noqa: BLE001 - any other failure is not a policy
+        return f"error:{type(exc).__name__}"
+    if kind == "lookup":
+        return _classify(got, support)
+    if not isinstance(got, list):
+        return f"other:not-a-list:{type(got).__name__}"
+    if len(got) != len(MIXED):
+        return f"other:length-{len(got)}"
+    if got[0] != PRESENT["beta"] or got[2] != PRESENT["alpha"]:
+        return f"other:present-entries-lost:{got!r}"
+    return _classify(got[1], support)
+
+
+def _dict():
+    return dict(PRESENT)
+
+
+def present_behaviour_ok(fn, kind: str) -> bool:
+    """Present keys come back correctly -- checked for NEW and EXISTING functions.
+
+    Astra's finding 2: preservation compared only missing-entry classifications,
+    so a new function that rebound an existing one to a broken lambda passed.
+    """
+    try:
+        if kind == "lookup":
+            return (fn(_dict(), "alpha") == PRESENT["alpha"]
+                    and fn(_dict(), "beta") == PRESENT["beta"])
+        empty = fn(_dict(), [])
+        got = fn(_dict(), ["beta", "alpha"])
+        return (isinstance(empty, list) and empty == []
+                and isinstance(got, list) and got == [PRESENT["beta"],
+                                                      PRESENT["alpha"]])
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def note_timeline(fn, kind: str, support, fname: str, key):
+    """(logged, logged before any table access) for one invocation."""
+    del support.CALLS[:]
+    probe = _Probe(PRESENT, support.CALLS)
+    try:
+        fn(probe, key if kind == "lookup" else [key])
+    except Exception:  # noqa: BLE001 - a raising policy still has to have logged
+        pass
+    timeline = list(support.CALLS)
+    logged = fname in timeline
+    if not logged:
+        return False, False
+    first_access = next((i for i, e in enumerate(timeline)
+                         if isinstance(e, tuple)), len(timeline))
+    return True, timeline.index(fname) < first_access
+
+
 SUITES = ("functional", "contract", "preservation", "obligation")
 
 
 def evaluate(block: Block, case: Case, candidate: Candidate) -> dict[str, bool]:
-    """The hidden acceptance oracle: four executable suites, independently written.
+    """The hidden acceptance oracle: four executable suites.
 
-    It never consults `render_impl`, the history, or the candidate's source text
-    -- only observed behaviour of the built package.
+    Its requirement is the case's HAND-FROZEN `expect_value` / `expect_note`, not
+    anything the resolver computes, and it reads only observed behaviour of the
+    built package -- never `render_impl`, the history, or the candidate's source
+    text.
     """
-    want_value, want_obs, _ = resolve(block.history, case.path, case.fn_kind)
+    want_value, want_note = case.expect_value, case.expect_note
     project = apply_candidate(entering_project(block), candidate)
     scores = dict.fromkeys(SUITES, False)
     try:
         _pkg, mods = build(project)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return scores
     support = mods["_support"]
     fn = getattr(mods[case.path], case.fname, None)
@@ -430,54 +553,41 @@ def evaluate(block: Block, case: Case, candidate: Candidate) -> dict[str, bool]:
         return scores
 
     # 1. functional: present keys come back, whatever the missing-entry policy is
-    try:
-        if case.fn_kind == "lookup":
-            scores["functional"] = fn(dict(PRESENT), "alpha") == PRESENT["alpha"]
-        else:
-            scores["functional"] = list(fn(dict(PRESENT), ["beta", "alpha"])) == [
-                PRESENT["beta"], PRESENT["alpha"]
-            ]
-    except Exception:  # noqa: BLE001
-        scores["functional"] = False
+    scores["functional"] = present_behaviour_ok(fn, case.fn_kind)
 
-    # 2. applicable contract: the missing-entry behaviour the history requires
+    # 2. applicable contract: the missing-entry behaviour the instructions require
     scores["contract"] = observe(fn, case.fn_kind, support) == want_value
 
-    # 3. preservation: the ENTERING repository still behaves as it entered.
-    #    Fresh unaffected operations, and a whole-state rollback, are caught here.
+    # 3. preservation: the ENTERING repository still behaves as it entered, in
+    #    its present-key behaviour as well as its missing-entry policy.
     ok = True
     for path in CODE_PATHS:
         mod = mods[path]
         for fname, kind in ENTERING_FUNCS:
             existing = getattr(mod, fname, None)
-            if existing is None or observe(existing, kind, support) != block.precedent:
+            if existing is None:
                 ok = False
-            elif ("note" in block.entering_obligations) != _calls_note(
-                    existing, kind, support, fname):
+                continue
+            if not present_behaviour_ok(existing, kind):
+                ok = False
+            if observe(existing, kind, support) != block.precedent:
+                ok = False
+            logged, _order = note_timeline(existing, kind, support, fname, "alpha")
+            if logged != ("note" in block.entering_obligations):
                 ok = False
     scores["preservation"] = ok
 
-    # 4. obligations with independent support (note() calls)
-    del support.CALLS[:]
-    try:
-        if case.fn_kind == "lookup":
-            fn(dict(PRESENT), "alpha")
-        else:
-            fn(dict(PRESENT), ["alpha"])
-    except Exception:  # noqa: BLE001
-        pass
-    called = case.fname in support.CALLS
-    scores["obligation"] = called == ("note" in want_obs)
+    # 4. the obligation, on BOTH paths and in the right order.  "First statement"
+    #    is syntactic and this oracle cannot see syntax, so the observable
+    #    requirement is: it logs, before it touches the table, on a successful
+    #    lookup AND on a missing one.
+    hit = note_timeline(fn, case.fn_kind, support, case.fname, "alpha")
+    miss = note_timeline(fn, case.fn_kind, support, case.fname, MISSING)
+    if want_note:
+        scores["obligation"] = all(hit) and all(miss)
+    else:
+        scores["obligation"] = not hit[0] and not miss[0]
     return scores
-
-
-def _calls_note(fn, kind: str, support, fname: str) -> bool:
-    del support.CALLS[:]
-    try:
-        fn(dict(PRESENT), "alpha" if kind == "lookup" else ["alpha"])
-    except Exception:  # noqa: BLE001
-        pass
-    return fname in support.CALLS
 
 
 def passes(block: Block, case: Case, candidate: Candidate) -> bool:
@@ -487,8 +597,12 @@ def passes(block: Block, case: Case, candidate: Candidate) -> bool:
 # ----------------------------------------------------- candidates and policies
 
 
+def _expected(case: Case) -> tuple[str, tuple[str, ...]]:
+    return case.expect_value, (("note",) if case.expect_note else ())
+
+
 def gold_candidate(block: Block, case: Case, style: str = "gold") -> Candidate:
-    value, obs, _ = resolve(block.history, case.path, case.fn_kind)
+    value, obs = _expected(case)
     project = entering_project(block)
     src = render_impl(case.fname, case.fn_kind, value, obs, style)
     return Candidate(append_function(project, case.path, src), f"gold/{style}")
@@ -623,17 +737,62 @@ def p_cancel_revives(block: Block, case: Case) -> str:
     return [e for e in hits if _specificity(e.scope, e.fn_kind) == best][-1].value
 
 
+def p_reinstate_first(block: Block, case: Case) -> str:
+    """Correct in every respect except that reinstatement restores the FIRST
+    policy ever stated at that scope, ignoring which statement was referenced."""
+    live: dict[tuple[str, str | None], Event] = {}
+    first: dict[tuple[str, str | None], Event] = {}
+    by_id = {e.id: e for e in block.history}
+    for e in block.history:
+        key = (e.scope, e.fn_kind)
+        for scope in e.clears:
+            for k in [k for k in live if k[0] == scope]:
+                live.pop(k)
+        if e.kind in ("set", "replace"):
+            first.setdefault(key, e)
+            live[key] = e
+        elif e.kind == "cancel":
+            live.pop(key, None)
+        elif e.kind == "reinstate":
+            ref = by_id[e.ref]
+            rkey = (ref.scope, ref.fn_kind)
+            live[rkey] = first.get(rkey, ref)  # the mistake
+    hits = [e for (scope, fk), e in live.items()
+            if _matches(scope, fk, case.path, case.fn_kind)]
+    if not hits:
+        return BASELINE
+    best = max(_specificity(e.scope, e.fn_kind) for e in hits)
+    return [e for e in hits if _specificity(e.scope, e.fn_kind) == best][-1].value
+
+
 RIVALS = {
     "scoped_recency": p_scoped_recency,
     "cancel_revives": p_cancel_revives,
+    "reinstate_first": p_reinstate_first,
 }
 SHORTCUTS.update(RIVALS)
+
+# `obligation_global` gets the POLICY right and the obligation's SCOPE wrong, so
+# it is handled where obligations are chosen rather than where values are.
+OBLIGATION_POLICIES = ("obligation_global",)
+
+
+def _policy_result(block: Block, case: Case, policy: str):
+    """(value, obligations) for one policy.  Every policy answers both, because
+    a shortcut can be wrong about either."""
+    value, obs = _expected(case)
+    if policy in ("copy_existing", "rollback"):
+        return value, obs
+    if policy == "obligation_global":
+        names = {name for (name, _scope) in live_state(block.history)[1]}
+        return value, tuple(sorted(names))
+    return SHORTCUTS[policy](block, case), obs
 
 
 def shortcut_candidate(block: Block, case: Case, policy: str) -> Candidate:
     """`copy_existing` and `rollback` are structural, the rest choose a value."""
     project = entering_project(block)
-    value, obs, _ = resolve(block.history, case.path, case.fn_kind)
+    value, obs = _policy_result(block, case, policy)
     if policy == "copy_existing":
         # Copy the entering implementation in this very module, obligations and all.
         src = render_impl(case.fname, case.fn_kind, block.precedent,
@@ -650,12 +809,11 @@ def shortcut_candidate(block: Block, case: Case, policy: str) -> Candidate:
         edits = dict(project)
         edits.update(append_function(project, case.path, src))
         return Candidate(edits, policy)
-    value = SHORTCUTS[policy](block, case)
     src = render_impl(case.fname, case.fn_kind, value, obs)
     return Candidate(append_function(project, case.path, src), policy)
 
 
-POLICIES = (*SHORTCUTS, "copy_existing", "rollback")
+POLICIES = (*SHORTCUTS, *OBLIGATION_POLICIES, "copy_existing", "rollback")
 TRIVIAL = ("always_newest", "always_oldest", "flip_on_cancel", "recency_general",
            "copy_existing", "rollback")
 REQUIRED_FIVE = ("always_newest", "always_oldest", "flip_on_cancel",
@@ -693,8 +851,23 @@ def _request_text(case: Case) -> str:
     if case.fn_kind == "lookup":
         return (f"Add {case.fname}(table, key) to {where}: it returns the entry "
                 f"for key from table.")
-    return (f"Add {case.fname}(table, keys) to {where}: it returns the entries "
-            f"for keys from table, in order.")
+    # The container is part of the public contract: Astra found a correct
+    # tuple-returning answer failing an unstated list requirement.
+    return (f"Add {case.fname}(table, keys) to {where}: it returns a list of the "
+            f"entries for keys from table, in the same order as keys.")
+
+
+CONVENTIONS = """How instructions work in this project:
+- An instruction governs work done after it. Existing code is not rewritten
+  unless the instruction says so.
+- When two instructions could both apply, the more specific one wins: a rule for
+  one package or file beats a package-wide rule, and a rule naming one kind of
+  operation beats one that names none.
+- Cancelling an instruction removes it. It does not bring back whatever that
+  instruction replaced: what applies next is the next rule that still covers this
+  code, or the package default if there is none.
+- An instruction can explicitly put an earlier one back into force.
+"""
 
 
 def history_variant(block: Block, variant: str):
@@ -781,9 +954,9 @@ def resolve_events(history, path: str, kind: str):
     if hits:
         best = max(_specificity(e.scope, e.fn_kind) for e in hits)
         winner = [e for e in hits if _specificity(e.scope, e.fn_kind) == best][-1]
-    live_names = {n for n, scope in obligations if _matches(scope, None, path, kind)}
-    ob_events = [e for e in history
-                 if e.kind == "obligate" and e.name in live_names]
+    ob_events = [e for (_name, scope), e in obligations.items()
+                 if _matches(scope, None, path, kind)]
+    ob_events.sort(key=lambda e: [x.id for x in history].index(e.id))
     return winner, ob_events
 
 
@@ -818,8 +991,15 @@ def rescue_prompts(block: Block, case: Case, token_len, budget: int,
     """
     history = list(history_variant(block, variant))
     request = _request_text(case)
+    project = entering_project(block)
+    # The package docstring carries the documented default, and the conventions
+    # state the protocol the hidden oracle enforces.  Astra's finding 3: without
+    # the docstring, C4/core asks the model to follow documentation it was never
+    # shown.  Both are task specification and go to BOTH conditions identically.
     head = (f"You are editing the `rates` package.\n\n"
-            f"{FILES[case.path]}:\n```python\n{entering_project(block)[case.path]}```\n")
+            f"__init__.py:\n```python\n{project['__init__']}```\n\n"
+            f"{CONVENTIONS}\n"
+            f"{FILES[case.path]}:\n```python\n{project[case.path]}```\n")
     tail = f"\n{request}\nReply with the single new function and nothing else.\n"
     reminder = oracle_reminder(block, case, history)
 
