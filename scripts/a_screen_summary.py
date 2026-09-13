@@ -17,12 +17,40 @@ ARMS = ("off", "sft", "cf")
 
 
 def load(path: Path) -> dict[str, dict]:
-    out = {}
+    """Astra F12: keep BOTH requests per session, reject duplicates and mixed identities,
+    and recompute the session outcome from the stored suite results."""
+    per: dict[tuple[str, int], dict] = {}
+    identities = set()
     for line in path.read_text().splitlines():
-        if line.strip():
-            r = json.loads(line)
-            if r["request"] == 2:
-                out[r["session"]] = r
+        if not line.strip():
+            continue
+        r = json.loads(line)
+        key = (r["session"], r["request"])
+        if key in per:
+            raise SystemExit(f"{path.name}: duplicate record for {key}")
+        per[key] = r
+        identities.add(json.dumps(r.get("identity", {}), sort_keys=True))
+    if len(identities) > 1:
+        raise SystemExit(
+            f"{path.name}: records from {len(identities)} different identities"
+        )
+    out: dict[str, dict] = {}
+    for (session, request), r in per.items():
+        if request != 2:
+            continue
+        first = per.get((session, 1))
+        if first is None:
+            raise SystemExit(f"{path.name}: {session} has request 2 but no request 1")
+        s1, s2 = first["scores"], r["scores"]
+        rec = dict(r)
+        rec["requests"] = [first, r]
+        rec["J"] = bool(s1["all"] and s2["all"])
+        rec["function_only"] = bool(s1["function_only"] and s2["function_only"])
+        if rec["J"] != r["J"] or rec["function_only"] != r["function_only"]:
+            raise SystemExit(
+                f"{path.name}: {session} stored outcome disagrees with its suites"
+            )
+        out[session] = rec
     return out
 
 
@@ -62,8 +90,9 @@ def paired(a: dict[str, dict], b: dict[str, dict], key: str, ids: list[str]) -> 
     l_ = sum(1 for s in ids if b[s][key] and not a[s][key])
     t = len(ids) - w - l_
     n = len(ids)
-    wl, wu = clopper_pearson(w, n, 0.05)
-    ll, lu = clopper_pearson(l_, n, 0.05)
+    # Astra F11: the registration's union bound uses two 97.5% component intervals
+    wl, wu = clopper_pearson(w, n, 0.025)
+    ll, lu = clopper_pearson(l_, n, 0.025)
     return {
         "n": n,
         "wins": w,
@@ -93,17 +122,25 @@ def main() -> None:
     a = ap.parse_args()
     runs = {arm: load(Path(a.runs) / f"{arm}.jsonl") for arm in ARMS}
     ids = sorted(set.intersection(*(set(r) for r in runs.values())))
+    manifest = json.loads(
+        (
+            Path(__file__).resolve().parents[1] / "results/a-screen/manifest.json"
+        ).read_text()
+    )
+    expected = sorted(r["session"] for r in manifest["sessions"])
+    missing = sorted(set(expected) - set(ids))
     lines = [f"# Candidate-A screen: gate tables (N = {len(ids)} complete sessions)\n"]
     lines.append(
-        "| arm | J | function-only | truncated | timeouts | parse failures | mean s/request |"
+        "| arm | J | function-only | truncated | deadline | not applied | mean s/request |"
     )
     lines.append("|---|---|---|---|---|---|---|")
     for arm in ARMS:
         recs = [runs[arm][s] for s in ids]
+        both = [q for r in recs for q in r["requests"]]
         lines.append(
             f"| {arm} | {sum(r['J'] for r in recs)}/{len(ids)} | {sum(r['function_only'] for r in recs)}/{len(ids)} | "
-            f"{sum(r['truncated'] for r in recs)} | {sum(r['timed_out'] for r in recs)} | "
-            f"{sum(r['terminal_reason'] == 'parse_failure' for r in recs)} | {sum(r['seconds'] for r in recs) / len(recs):.1f} |"
+            f"{sum(q['truncated'] for q in both)} | {sum(q['timed_out'] for q in both)} | "
+            f"{sum(q['terminal_reason'] not in ('applied',) for q in both)} | {sum(q['seconds'] for q in both) / len(both):.1f} |"
         )
     cf, sft, off = runs["cf"], runs["sft"], runs["off"]
     changing = [s for s in ids if cf[s]["lifecycle"] != "stable"]
@@ -155,8 +192,11 @@ def main() -> None:
     for g, ok in gates.items():
         lines.append(f"- {g}: {'PASS' if ok else 'FAIL'}")
     verdict = "GATE PASSED" if gates and all(gates.values()) else "GATE FAILED"
-    if len(ids) < 48:
-        verdict = f"INCOMPLETE ({len(ids)}/48 sessions); provisional: {verdict}"
+    if missing:
+        verdict = (
+            f"INCOMPLETE ({len(ids)}/{len(expected)} manifest sessions complete in all "
+            f"three arms; missing {', '.join(missing)}); provisional: {verdict}"
+        )
     lines.append(
         f"\n**Verdict: {verdict}** (a passed gate authorises only the CONFIRM registration; no efficacy claim)."
     )

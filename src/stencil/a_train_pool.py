@@ -486,6 +486,19 @@ def _store(backend=None):
     s.add({Entity}("x1", "alpha"))
     s.add({Entity}("x2", "beta", status="archived"))
     return s
+
+
+def _snapshot(store):
+    ids = sorted(k for k in vars(store) if not k.startswith("__"))
+    rows = {{}}
+    for name in ids:
+        value = getattr(store, name)
+        if isinstance(value, dict):
+            rows[name] = sorted(
+                (k, repr(v)) for k, v in value.items()
+            )
+    assert rows, "no record mapping found on the store"
+    return rows
 """
 
 
@@ -605,7 +618,9 @@ def test_{op.verb}_validation_lives_in_the_lower_layer():
 
 def test_{op.verb}_unknown_id_returns_none_without_change():
     s = _store()
+    before = _snapshot(s)
     assert _op(s, "{op.verb}")("zz", {op.valid}) is None
+    assert _snapshot(s) == before
     assert s.find("zz") is None
 '''
         else:
@@ -613,8 +628,10 @@ def test_{op.verb}_unknown_id_returns_none_without_change():
 
 def test_{op.verb}_unknown_id_raises_keyerror():
     s = _store()
+    before = _snapshot(s)
     with pytest.raises(KeyError):
         _op(s, "{op.verb}")("zz", {op.valid})
+    assert _snapshot(s) == before
 '''
     else:
         raise ValueError(family)
@@ -684,7 +701,7 @@ def test_{op.verb}_on_archived_record_warns_exactly_once(caplog):
 def test_{op.verb}_on_active_record_is_quiet(caplog):
     caplog.set_level(logging.DEBUG)
     _op(_store(), "{op.verb}")("x1", {op.valid})
-    assert not [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert caplog.records == [], [(r.levelname, r.getMessage()) for r in caplog.records]
 '''
         else:
             body = f'''

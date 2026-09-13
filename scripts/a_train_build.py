@@ -76,23 +76,32 @@ def check_packing(s: A.Session, count) -> list[str]:
     if len(surv1) >= 16:
         problems.append("no compaction @1")
     f1 = A.gold_files(s, 1)
-    m2 = A.session_messages(s, 2, f1, A.gold_reply(s, 1), {s.requests[0].target})
-    kept2, idx2 = A.pack(m2, count)
+    m2 = A.session_messages(s, 2, dict(s.files), A.gold_reply(s, 1), f1)
+    kept2, idx2 = A.pack(m2, count, drop_first=A.drop_first_order(2))
     surv2 = A.surviving_prefix_turns(idx2)
     if not set(s.rule_turns) <= surv2:
         problems.append(f"rule turn dropped @2 {sorted(surv2)}")
-    if len(surv2) >= len(surv1):
+    # Astra F1: the superseded request/reply pair is evicted before any prefix turn, so the
+    # check is "more messages dropped than at request 1, index 17 among them" (the old
+    # surviving-prefix-count test contradicted that eviction order).
+    dropped1 = set(range(len(m1))) - set(idx1)
+    dropped2 = set(range(len(m2))) - set(idx2)
+    if len(dropped2) <= len(dropped1):
         problems.append("no further compaction @2")
+    if 17 not in dropped2:
+        problems.append("superseded request not evicted first @2")
+    if not A.required_indices(s, 2) <= set(idx2):
+        problems.append("required message dropped @2")
     if s.irrelevant_event:
         m3 = A.session_messages(
             s,
             2,
-            f1,
+            dict(s.files),
             A.gold_reply(s, 1),
-            {s.requests[0].target},
+            f1,
             event=s.irrelevant_event,
         )
-        _, idx3 = A.pack(m3, count)
+        _, idx3 = A.pack(m3, count, drop_first=A.drop_first_order(2))
         if not set(s.rule_turns) <= A.surviving_prefix_turns(idx3):
             problems.append("rule turn dropped @2 (irrelevant variant)")
     return problems
@@ -156,6 +165,9 @@ def main() -> None:
             "".join(session_hash(s) for s in sessions).encode()
         ).hexdigest()[:16],
     }
+    if problems:
+        print(f"NOT FROZEN: {len(problems)} sessions have problems; pool not written")
+        sys.exit(1)
     Path(a.out).write_text(json.dumps(out, indent=1, sort_keys=True) + "\n")
     print(
         f"sessions={out['n']} cells={out['cells']} per_cell={out['per_cell']} "

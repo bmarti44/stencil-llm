@@ -406,7 +406,7 @@ _PREFIX = [
     Turn(
         "user",
         "Two conventions before the real features. First, return shape: public MarkBook "
-        "methods always return Enrolment dataclass instances, never dicts, tuples or bare "
+        "methods that create or change a record return Enrolment dataclass instances, never dicts, tuples or bare "
         "values. The sheet and the tests should only ever handle one type.",
     ),
     Turn(

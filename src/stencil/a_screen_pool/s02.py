@@ -415,7 +415,7 @@ _PREFIX = [
         "user",
         "Agreed, actions raise KeyError on unknown ids. Two conventions I want to fix now "
         "so the code stays uniform. First: public TicketStore methods always return Ticket "
-        "dataclass instances, never dicts or tuples, even for convenience. I got burned on "
+        "dataclass instances, never dicts or tuples, even for convenience (find may return None and count() stays an int). I got burned on "
         "the last project where half the API returned dicts and every caller had a "
         "`.get('status')` sprinkled around.",
     ),

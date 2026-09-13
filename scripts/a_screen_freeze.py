@@ -1,9 +1,16 @@
 # ruff: noqa: E501
 """Freeze the candidate-A SCREEN pool (registration §1-§2): per-slot content hashes,
-module file hashes, manifest agreement, cell/lifecycle counts, and disjointness from the
-TRAIN pool, the pre-check projects and the development projects (package names, module
-paths, function names).  Writes ``results/a-screen/screen-pool.json``.  Refuses to write
-if any slot is missing or any check fails.
+module file hashes, manifest agreement, and cell/lifecycle counts.
+
+Astra F10 -- what the disjointness check DOES and DOES NOT establish.  VERIFIED here:
+SCREEN package names are unique and share nothing with the TRAIN, pre-check or development
+pools; no module path is shared with TRAIN; no public class or function name is shared with
+TRAIN outside a fixed generic allowlist.  NOT verified and NOT claimed: disjoint solution
+*constructions*.  The pools deliberately share a coding idiom, and the ``overlap`` block of
+the record measures it (shared module basenames, the dataclass-record-plus-private-mapping
+count, identical normalised test files) so the registration can state the measurement rather
+than a stronger claim.  Writes ``results/a-screen/screen-pool.json``; refuses to write if
+any slot is missing or any verified check fails.
 
 Usage: ``uv run python scripts/a_screen_freeze.py``
 """
@@ -92,10 +99,68 @@ def main() -> None:
             )
     cells = Counter((s.target_family, s.support_family) for s in sessions)
     lifec = Counter(s.lifecycle for s in sessions)
+    # Astra F10: measure the construction overlap instead of claiming there is none
+    train_base = {p.split("/")[-1] for s in train for p in s.files}
+    train_bodies = {
+        " ".join(t.split())
+        for s in train
+        for r in s.requests
+        for g in (
+            r.functional_tests,
+            r.regression_tests,
+            r.support_tests,
+            *r.contract_tests.values(),
+        )
+        for t in g.values()
+    }
+    screen_bodies = {
+        " ".join(t.split())
+        for s in sessions
+        for r in s.requests
+        for g in (
+            r.functional_tests,
+            r.regression_tests,
+            r.support_tests,
+            *r.contract_tests.values(),
+        )
+        for t in g.values()
+    }
+    overlap = {
+        "verified_disjoint": [
+            "package names (SCREEN vs TRAIN/pre-check/dev)",
+            "module paths (SCREEN vs TRAIN)",
+            "public class and function names (SCREEN vs TRAIN, generic allowlist excepted)",
+        ],
+        "not_claimed_disjoint": "solution constructions; the pools share a coding idiom by design",
+        "slots_sharing_a_module_basename_with_train": sum(
+            1 for s in sessions if {p.split("/")[-1] for p in s.files} & train_base
+        ),
+        "shared_module_basenames": sorted(
+            {
+                b
+                for s in sessions
+                for b in ({p.split("/")[-1] for p in s.files} & train_base)
+            }
+        ),
+        "slots_with_full_train_module_shape": sorted(
+            s.id
+            for s in sessions
+            if {"store.py", "backend.py", "errors.py", "model.py"}
+            <= {p.split("/")[-1] for p in s.files}
+        ),
+        "slots_sharing_the_dataclass_record_mapping_idiom": sum(
+            1
+            for s in sessions
+            if any("@dataclass" in v for v in s.files.values())
+            and any("self._" in v for v in s.files.values())
+        ),
+        "identical_normalised_test_files": len(train_bodies & screen_bodies),
+    }
     out = {
         "n": len(sessions),
         "cells": {f"{t}|{u}": n for (t, u), n in sorted(cells.items())},
         "lifecycle": dict(sorted(lifec.items())),
+        "overlap": overlap,
         "support_states": dict(
             Counter(
                 f"{s.support_family}={s.tags.get('support_state', '?')}"

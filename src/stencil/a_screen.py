@@ -1,20 +1,33 @@
 # ruff: noqa: E501
 """Six-family candidate-A screen: stateful contract sessions, packing policy, scoring.
 
-Registered in ``results/a-screen/REGISTRATION-A-SCREEN.md`` (2026-09-13).  A
-:class:`Session` is a small Python package, a frozen 16-turn prefix, a lifecycle event
-message and two live coding :class:`Request` objects.  The target contract family has two
-states; ``state_at`` says which is in force at each live checkpoint.  A supporting
-contract is stated once in the prefix and never changes.
+Registered in ``results/a-screen/REGISTRATION-A-SCREEN.md`` (2026-09-13; amendment 1 after
+the Astra implementation review of the same day).  A :class:`Session` is a small Python
+package, a frozen 16-turn prefix, a lifecycle event message and two live coding
+:class:`Request` objects.  The target contract family has two states; ``state_at`` says
+which is in force at each live checkpoint.  A supporting contract is stated once in the
+prefix and never changes.
 
-Prompt packing (registration §5): system line + the newest whole turns that fit in
-``PROMPT_BUDGET`` tokens, dropped from the oldest turn first; the live request message is
-never dropped.  Nothing is summarised and no current-rule answer is inserted.
+Prompt packing (registration §5, amendment 1): system line + the newest whole turns that
+fit in ``PROMPT_BUDGET`` tokens.  Compaction evicts a superseded request and its reply
+first (their result is already carried by the live request's file listing), then the oldest
+remaining turns; the system line and the live request are never evicted.  Nothing is summarised and no current-rule answer is inserted.  The
+history at request 2 is the ORIGINAL request-1 message (the files exactly as that request
+showed them, Astra F2), the arm's verbatim first reply, the lifecycle event, and a
+request-2 message carrying the CURRENT content of the files changed since request 1.
+:func:`required_indices` names what must survive packing: every rule turn, the event and
+the live request.  The earlier request and reply are ordinary history and may be evicted
+when a reply is long; because the current repository state travels in the request-2
+message, nothing the model needs to extend is lost (Astra F1).
+``tests/test_a_screen.py`` qualifies every session at the permitted maximum reply length.
 
-Outcome (registration §6): at each checkpoint the functional, regression, applicable
-target-contract and support-contract suites run independently in a sandbox
-(:func:`stencil.contracts.run_tests`); the session's ``J`` is 1 only if every suite passes
-at both checkpoints.
+Outcome (registration §6, amendment 1 for Astra F7): at each checkpoint the functional,
+regression, applicable target-contract and support-contract suites run independently in
+a sandbox (:func:`stencil.contracts.run_tests`); at checkpoint 2 the request-1 suites
+(functional, its contract under the state then in force, support) run again as the
+PROTECTED suite, so an earlier operation that is renamed, re-validated or otherwise
+altered by the second edit fails.  The session's ``J`` is 1 only if every suite passes at
+both checkpoints.
 """
 
 from __future__ import annotations
@@ -24,8 +37,8 @@ from dataclasses import dataclass, field
 
 from stencil.contracts import extract_file, run_tests
 
-PROMPT_BUDGET = 2560  # 4096 - 1536 reserved for the answer
-MAX_NEW_TOKENS = 1536
+MAX_NEW_TOKENS = 1536  # registered cap
+PROMPT_BUDGET = 2560  # 4096 - MAX_NEW_TOKENS
 SYSTEM = (
     "You are a careful software engineer maintaining a small Python package with "
     "the user. Follow the project's conventions as the user has stated them in this "
@@ -34,6 +47,7 @@ SYSTEM = (
 LIFECYCLES = ("stable", "replacement", "scope", "reinstatement")
 TARGET_FAMILIES = ("naming", "validation", "missing_record")
 SUPPORT_FAMILIES = ("return_shape", "error_surface", "logging")
+SUITES = ("functional", "regression", "contract", "support", "protected")
 
 
 @dataclass(frozen=True)
@@ -106,21 +120,38 @@ def _fenced(files: dict[str, str]) -> str:
     )
 
 
-def render_request_message(
-    request: Request, files: dict[str, str], changed: set[str] | None = None
-) -> str:
-    """The live request as one user message.  Checkpoint 1 shows every file; checkpoint 2
-    shows only the files changed since checkpoint 1 plus the request's target, and says
-    the rest are unchanged."""
-    if changed is None:
-        shown = files
-        note = ""
-    else:
-        keys = set(changed) | {request.target}
-        shown = {k: files[k] for k in keys if k in files}
-        note = "All other files are unchanged from what you saw earlier.\n"
+def render_request_message(request: Request, files: dict[str, str]) -> str:
+    """Live request 1 as one user message: every file, the task, the output format."""
     return (
-        f"{FILES_HEADER}{_fenced(shown)}{note}\nTask: {request.text}\n\n"
+        f"{FILES_HEADER}{_fenced(files)}\nTask: {request.text}\n\n"
+        f"Reply with the complete new content of `{request.target}` in a single "
+        "```python fenced block and nothing else. Keep existing behaviour that the task "
+        "does not change."
+    )
+
+
+def render_request2_message(
+    request: Request,
+    files0: dict[str, str],
+    files1: dict[str, str],
+) -> str:
+    """Live request 2, self-contained with respect to the repository: the CURRENT content
+    of every file changed since request 1 (normally the file the first reply produced),
+    and a line saying the rest are unchanged.  Because the current state is carried here,
+    packing may evict the earlier request and reply for a long first reply without the
+    model losing the code it must extend (Astra F1)."""
+    changed = sorted(p for p in files1 if files1[p] != files0.get(p))
+    parts = []
+    if changed:
+        parts.append(f"{FILES_HEADER}{_fenced({p: files1[p] for p in changed})}")
+        parts.append("All other files are unchanged from the earlier request.\n")
+    else:
+        parts.append(
+            "The repository is unchanged from the earlier request (the last reply was "
+            "not applied).\n"
+        )
+    return (
+        "".join(parts) + f"\nTask: {request.text}\n\n"
         f"Reply with the complete new content of `{request.target}` in a single "
         "```python fenced block and nothing else. Keep existing behaviour that the task "
         "does not change."
@@ -130,25 +161,28 @@ def render_request_message(
 def session_messages(
     session: Session,
     checkpoint: int,
-    files: dict[str, str],
+    files0: dict[str, str],
     reply1: str | None = None,
-    changed: set[str] | None = None,
+    files1: dict[str, str] | None = None,
     event: str | None = None,
 ) -> list[dict[str, str]]:
-    """Unpacked message list for the live request at ``checkpoint`` (1 or 2), given the
-    arm's own repository ``files`` and, for checkpoint 2, its verbatim first reply."""
+    """Unpacked message list for the live request at ``checkpoint`` (1 or 2).  ``files0``
+    is the repository as request 1 saw it; ``files1`` the arm's own repository after its
+    first reply (equal to ``files0`` when the reply was not applied)."""
     msgs = [{"role": "system", "content": SYSTEM}]
     msgs += [{"role": t.role, "content": t.content} for t in session.prefix]
     r1, r2 = session.requests
-    msgs.append({"role": "user", "content": render_request_message(r1, files)})
+    msgs.append({"role": "user", "content": render_request_message(r1, files0)})
     if checkpoint == 1:
         return msgs
-    assert reply1 is not None
+    assert reply1 is not None and files1 is not None
     msgs.append({"role": "assistant", "content": reply1})
     msgs.append(
         {"role": "user", "content": event if event is not None else session.event}
     )
-    msgs.append({"role": "user", "content": render_request_message(r2, files, changed)})
+    msgs.append(
+        {"role": "user", "content": render_request2_message(r2, files0, files1)}
+    )
     return msgs
 
 
@@ -156,16 +190,28 @@ def pack(
     messages: list[dict[str, str]],
     count_tokens: Callable[[list[dict[str, str]]], int],
     budget: int = PROMPT_BUDGET,
+    drop_first: tuple[int, ...] = (),
 ) -> tuple[list[dict[str, str]], list[int]]:
-    """Drop the oldest non-system, non-final turns until the rendered prompt fits.
-    Returns the kept messages and the kept indices into ``messages``."""
+    """Compact to ``budget`` tokens: evict the messages in ``drop_first`` (a superseded
+    request and its reply, whose result the live request already carries), then the oldest
+    remaining turns.  The system line and the live request are never evicted.  Returns the
+    kept messages and their indices into ``messages``."""
     keep = list(range(len(messages)))
+    last = len(messages) - 1
+    order = [i for i in drop_first if 0 < i < last]
+    order += [i for i in range(1, last) if i not in order]
     while count_tokens([messages[i] for i in keep]) > budget:
-        droppable = [i for i in keep if i != 0 and i != len(messages) - 1]
+        droppable = [i for i in order if i in keep]
         if not droppable:
             break
         keep.remove(droppable[0])
     return [messages[i] for i in keep], keep
+
+
+def drop_first_order(checkpoint: int) -> tuple[int, ...]:
+    """Indices evicted before conversation turns: at checkpoint 2 the earlier request (17)
+    and the first reply (18), in that order."""
+    return (17, 18) if checkpoint == 2 else ()
 
 
 def surviving_prefix_turns(kept: list[int]) -> set[int]:
@@ -173,27 +219,113 @@ def surviving_prefix_turns(kept: list[int]) -> set[int]:
     return {i - 1 for i in kept if 1 <= i <= 16}
 
 
+def required_indices(session: Session, checkpoint: int) -> set[int]:
+    """Message indices that must survive packing (Astra F1): every rule turn, and at
+    checkpoint 2 the lifecycle event (19) and the live request (20).  The earlier request
+    (17) and the first reply (18) are ordinary history and may be compacted away; the
+    request-2 message carries the current repository state, so nothing the model needs is
+    lost when they are."""
+    req = {i + 1 for i in session.rule_turns}
+    if checkpoint == 2:
+        req |= {19, 20}
+    else:
+        req |= {17}
+    return req
+
+
+def synthetic_reply(tok, n_tokens: int, request: Request, state: str) -> str:
+    """A syntactically valid reply of at least ``n_tokens`` tokens (the gold file plus
+    trailing comment lines inside the fence), used to qualify rule survival at the
+    permitted maximum reply length."""
+    body = f"```python\n{request.gold[state].rstrip()}\n"
+    line = "# note: reviewed line by line against the conventions stated above\n"
+    while len(tok(body + "```", add_special_tokens=False)["input_ids"]) < n_tokens:
+        body += line
+    return body + "```"
+
+
 # ------------------------------------------------------------------ scoring
 
 
+def public_api(content: str) -> set[str]:
+    """Public top-level functions/classes and public methods, as qualified names."""
+    import ast
+
+    names: set[str] = set()
+    try:
+        tree = ast.parse(content)
+    except SyntaxError:
+        return names
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if not node.name.startswith("_"):
+                names.add(node.name)
+        elif isinstance(node, ast.ClassDef):
+            if node.name.startswith("_"):
+                continue
+            names.add(node.name)
+            for sub in node.body:
+                if isinstance(sub, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if not sub.name.startswith("_"):
+                        names.add(f"{node.name}.{sub.name}")
+    return names
+
+
+def api_preserved(session: Session, files: dict[str, str]) -> tuple[bool, str]:
+    """Every public name that existed before the live requests still exists in the files
+    the model may rewrite (Astra F7: renaming or deleting a pre-existing operation must
+    not pass).  New names are allowed; disappearing ones are not."""
+    targets = {r.target for r in session.requests}
+    missing: list[str] = []
+    for path in sorted(targets):
+        before = public_api(session.files.get(path, ""))
+        after = public_api(files.get(path, ""))
+        missing += [f"{path}:{n}" for n in sorted(before - after)]
+    return (not missing), (
+        "ok" if not missing else "removed/renamed " + ", ".join(missing)
+    )
+
+
 def score_checkpoint(session: Session, k: int, files: dict[str, str]) -> dict:
-    """Run every applicable suite at checkpoint ``k`` (1 or 2) on ``files``."""
+    """Run every applicable suite at checkpoint ``k`` (1 or 2) on ``files``.  At
+    checkpoint 2 the PROTECTED suite re-runs request 1's functional, contract (under the
+    state in force at checkpoint 1) and support tests."""
     r = session.requests[k - 1]
     state = session.state_at[k - 1]
     out: dict = {"state": state}
-    for name, tests in (
+    suites = [
         ("functional", r.functional_tests),
         ("regression", r.regression_tests),
         ("contract", r.contract_tests[state]),
         ("support", r.support_tests),
-    ):
+    ]
+    if k == 2:
+        r1 = session.requests[0]
+        s1 = session.state_at[0]
+        protected = {}
+        for group in (r1.functional_tests, r1.contract_tests[s1], r1.support_tests):
+            for name, content in group.items():
+                protected[f"protected_{name}"] = content
+        suites.append(("protected", protected))
+    else:
+        out["protected"] = True
+        out["protected_msg"] = "n/a"
+    for name, tests in suites:
         ok, msg = run_tests(files, tests)
         out[name] = ok
         out[f"{name}_msg"] = msg
-    out["all"] = all(
-        out[n] for n in ("functional", "regression", "contract", "support")
+    api_ok, api_msg = api_preserved(session, files)
+    out["api_preserved"] = api_ok
+    out["api_msg"] = api_msg
+    if not api_ok:
+        out["protected"] = False
+        out["protected_msg"] = f"{out.get('protected_msg', '')} | api: {api_msg}".strip(
+            " |"
+        )
+    out["all"] = all(out[n] for n in SUITES)
+    out["function_only"] = bool(
+        out["functional"] and out["regression"] and out["protected"]
     )
-    out["function_only"] = out["functional"] and out["regression"]
     return out
 
 
@@ -207,6 +339,10 @@ def apply_reply(
         return None, "parse_failure"
     if not content.strip():
         return None, "empty"
+    try:
+        compile(content, request.target, "exec")
+    except SyntaxError:
+        return None, "syntax_error"
     return {**files, request.target: content}, "applied"
 
 
@@ -247,12 +383,12 @@ def pairs_from_session(session: Session) -> list[Pair]:
     the stale state) and the irrelevant-history variant (chosen = gold under the unchanged
     state, rejected = gold under the other state).  Both directions are executable gold."""
     s1, s2 = session.state_at
+    files0 = dict(session.files)
     files1 = gold_files(session, 1)
     reply1 = gold_reply(session, 1)
-    changed = {session.requests[0].target}
     r2 = session.requests[1]
     out = []
-    ev = session_messages(session, 2, files1, reply1, changed)
+    ev = session_messages(session, 2, files0, reply1, files1)
     stale2 = s1 if s2 != s1 else session.other(s2)
     out.append(
         Pair(
@@ -267,7 +403,7 @@ def pairs_from_session(session: Session) -> list[Pair]:
     )
     if session.irrelevant_event:
         ir = session_messages(
-            session, 2, files1, reply1, changed, event=session.irrelevant_event
+            session, 2, files0, reply1, files1, event=session.irrelevant_event
         )
         out.append(
             Pair(

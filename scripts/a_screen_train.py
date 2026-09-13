@@ -28,6 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import stencil.determinism  # noqa: E402, F401  (sets CUBLAS workspace before torch)
 from stencil import a_screen as A  # noqa: E402
 from stencil.a_train_pool import train_sessions  # noqa: E402
 
@@ -44,6 +45,25 @@ TARGET_MODULES = [
 ]
 
 
+def verify_frozen_train(sessions) -> str:
+    """Astra F15: refuse to train unless the generated pool matches the frozen record."""
+    import hashlib
+    from dataclasses import asdict
+
+    frozen = json.loads((ROOT / "results/a-screen/train-pool.json").read_text())
+    assert not frozen["problems"], f"frozen pool records problems: {frozen['problems']}"
+    assert len(sessions) == frozen["n"], (
+        f"{len(sessions)} sessions, frozen {frozen['n']}"
+    )
+    for s in sessions:
+        want = frozen["hashes"][s.id]
+        got = hashlib.sha256(
+            json.dumps(asdict(s), sort_keys=True).encode()
+        ).hexdigest()[:16]
+        assert got == want, f"{s.id}: content {got}, frozen {want}"
+    return frozen["pool_sha256"]
+
+
 def build_examples(tok, limit: int = 0) -> list[dict]:
     """One example per (prompt, chosen, rejected) triple, prompts packed exactly as the
     harness packs them."""
@@ -53,9 +73,13 @@ def build_examples(tok, limit: int = 0) -> list[dict]:
     sessions = train_sessions()
     if limit:
         sessions = sessions[:limit]
+    else:
+        verify_frozen_train(sessions)
     for s in sessions:
         for p in A.pairs_from_session(s):
-            packed, kept = A.pack(list(p.messages), count)
+            packed, kept = A.pack(
+                list(p.messages), count, drop_first=A.drop_first_order(2)
+            )
             prompt = A.render_prompt(tok, packed)
             pid = tok(prompt, add_special_tokens=False)["input_ids"]
             ch = tok(p.chosen, add_special_tokens=False)["input_ids"] + [im_end]
@@ -133,17 +157,31 @@ def main() -> None:
         return lp[-n:].sum(), n
 
     # ---- reference log-probs (cf only), adapter absent, counted in the allocation
+    prep_seconds = time.time() - t_start
     ref: dict[int, tuple[float, float]] = {}
+    ref_tokens = 0
+    t_ref = time.time()
     if a.objective == "cf":
         model.eval()
         with torch.no_grad():
             for i, e in enumerate(examples):
+                # Astra F13: reference scoring lives inside the allocation and must not
+                # consume all of it; a run that cannot fit it is cost-ineligible.
+                if time.time() - t_start >= budget_s:
+                    print("COST-INELIGIBLE: reference scoring exhausted the allocation")
+                    sys.exit(3)
                 c, _ = seq_logprobs(model, e["prompt_ids"], e["chosen_ids"])
                 r, _ = seq_logprobs(model, e["prompt_ids"], e["rejected_ids"])
                 ref[i] = (c.item(), r.item())
+                ref_tokens += (
+                    2 * len(e["prompt_ids"])
+                    + len(e["chosen_ids"])
+                    + len(e["rejected_ids"])
+                )
                 if i % 100 == 0:
                     print(f"ref {i}/{len(examples)} {time.time() - t_start:.0f}s")
-        print(f"reference scoring done in {time.time() - t_start:.0f}s")
+        print(f"reference scoring done in {time.time() - t_ref:.0f}s")
+    reference_seconds = time.time() - t_ref
 
     cfg = LoraConfig(
         r=a.rank,
@@ -164,8 +202,25 @@ def main() -> None:
 
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
+    import hashlib
+
+    def _sha(text: str) -> str:
+        return hashlib.sha256(text.encode()).hexdigest()[:16]
+
     log: dict = {
         "objective": a.objective,
+        "identity": {
+            "train_pool_sha256": json.loads(
+                (ROOT / "results/a-screen/train-pool.json").read_text()
+            )["pool_sha256"],
+            "a_screen_sha256": _sha((ROOT / "src/stencil/a_screen.py").read_text()),
+            "a_train_pool_sha256": _sha(
+                (ROOT / "src/stencil/a_train_pool.py").read_text()
+            ),
+            "trainer_sha256": _sha(Path(__file__).read_text()),
+            "hub": str(a.hub),
+            "limit": a.limit,
+        },
         "seed": a.seed,
         "lr": a.lr,
         "rank": a.rank,
@@ -175,19 +230,29 @@ def main() -> None:
         "accum": a.accum,
         "examples": len(examples),
         "budget_seconds": budget_s,
-        "reference_seconds": time.time() - t_start,
+        "prep_seconds": prep_seconds,
+        "reference_seconds": reference_seconds,
+        "reference_tokens": ref_tokens,
         "steps": 0,
         "micro_steps": 0,
+        "discarded_micro_steps": 0,
         "epochs_completed": 0,
         "completion_tokens_seen": 0,
+        "chosen_tokens_seen": 0,
+        "rejected_tokens_seen": 0,
         "sequence_tokens_seen": 0,
+        "final_update_loss": None,
         "loss_history": [],
+        "status": "running",
     }
 
     def save(final: bool) -> None:
+        t_save = time.time()
         model.save_pretrained(str(out))
         log["seconds"] = time.time() - t_start
+        log["save_seconds"] = log.get("save_seconds", 0.0) + (time.time() - t_save)
         log["final"] = final
+        log["status"] = "complete" if final else "running"
         (out / "train-log.json").write_text(json.dumps(log, indent=1) + "\n")
 
     model.train()
@@ -196,13 +261,19 @@ def main() -> None:
     micro = 0
     last_save = time.time()
     window: list[float] = []
+    micro_times: list[float] = []
     stop = False
+    t_train = time.time()
     while not stop:
         rng.shuffle(order)
         for i in order:
-            if time.time() - t_start >= budget_s:
+            # Astra F13: stop BEFORE a micro-step that would cross the allocation
+            elapsed = time.time() - t_start
+            est = max(micro_times[-20:], default=0.0)
+            if elapsed + est >= budget_s:
                 stop = True
                 break
+            t_micro = time.time()
             e = examples[i]
             with torch.autocast("cuda", dtype=torch.bfloat16):
                 lp_c, n_c = seq_logprobs(model, e["prompt_ids"], e["chosen_ids"])
@@ -214,15 +285,24 @@ def main() -> None:
                     loss = loss + a.dpo_weight * (-F.logsigmoid(margin))
             (loss / a.accum).backward()
             micro += 1
+            micro_times.append(time.time() - t_micro)
             log["micro_steps"] = micro
             log["completion_tokens_seen"] += n_c
-            log["sequence_tokens_seen"] += len(e["prompt_ids"]) + n_c
+            log["chosen_tokens_seen"] += len(e["prompt_ids"]) + n_c
+            if a.objective == "cf":
+                log["rejected_tokens_seen"] += len(e["prompt_ids"]) + len(
+                    e["rejected_ids"]
+                )
+            log["sequence_tokens_seen"] = (
+                log["chosen_tokens_seen"] + log["rejected_tokens_seen"]
+            )
             window.append(loss.item())
             if micro % a.accum == 0:
                 torch.nn.utils.clip_grad_norm_(params, 1.0)
                 opt.step()
                 opt.zero_grad(set_to_none=True)
                 log["steps"] += 1
+                log["final_update_loss"] = sum(window) / len(window)
                 if log["steps"] % 10 == 0:
                     avg = sum(window) / len(window)
                     log["loss_history"].append([log["steps"], avg])
@@ -237,11 +317,14 @@ def main() -> None:
         else:
             log["epochs_completed"] += 1
     # discard any partial accumulation: the FINAL COMPLETED update is the adapter
+    log["discarded_micro_steps"] = micro % a.accum
+    log["train_seconds"] = time.time() - t_train
     opt.zero_grad(set_to_none=True)
     save(final=True)
     print(
         f"DONE objective={a.objective} steps={log['steps']} epochs={log['epochs_completed']} "
-        f"tokens={log['sequence_tokens_seen']} seconds={log['seconds']:.0f}"
+        f"discarded={log['discarded_micro_steps']} tokens={log['sequence_tokens_seen']} "
+        f"final_loss={log['final_update_loss']} seconds={log['seconds']:.0f}"
     )
 
 

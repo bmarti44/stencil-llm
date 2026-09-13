@@ -424,7 +424,7 @@ _PREFIX = [
         "user",
         "Agreed, actions raise KeyError on unknown ids. Two conventions I want to fix now "
         "so the code stays uniform. First: public RecipeBook methods always return Recipe "
-        "dataclass instances, never dicts or tuples, even for convenience. The spreadsheet "
+        "dataclass instances, never dicts or tuples, even for convenience (lookups may return None and count() stays an int). The spreadsheet "
         "importer I wrote last year returned dicts and every caller ended up with "
         "`.get('servings')` sprinkled around.",
     ),

@@ -22,8 +22,9 @@ below amends it.
 - Three disjoint project pools with disjoint solution constructions: TRAIN (authored for the
   576 pairs), SCREEN (48 projects, one session each, this document), CONFIRM (reserved,
   authored only if the gate passes, disjoint from both). Disjointness is by project name,
-  package layout, function names and test bodies; a hash list per pool is committed before
-  the pool is used.
+  module path and public class/function name, VERIFIED by `scripts/a_screen_freeze.py`; a hash
+  list per pool is committed before the pool is used. Disjoint solution *constructions* are
+  NOT claimed and the measured idiom overlap is recorded -- see §13.3 (amendment 1).
 - Data lineage: everything is authored 2026-09-13+ for this program; fit-on = TRAIN only;
   evaluated-on = SCREEN only; nothing from `data/bench/`, MemoryCode, the dev16 tasks or the
   32 pre-check tasks enters any pool. No prompt, threshold or checkpoint is tuned on SCREEN.
@@ -173,8 +174,106 @@ series as this screen's RESULTS.
 | SCREEN | `results/a-screen/screen-pool.json` | `c0e623f4942e47af` | 48 hand-authored sessions (`src/stencil/a_screen_pool/s01.py`–`s48.py`), manifest agreement checked, 12 per lifecycle class, 6/5 per cell, no package/module/class/function name shared with TRAIN, the pre-check projects or the development projects |
 | TRAIN | `results/a-screen/train-pool.json` | `6a39f66e0510a509` | 576 generated sessions (`src/stencil/a_train_pool.py`), 36 cells × 16, precedent counterbalanced 8/8 per cell, 1,152 (prompt, chosen, rejected) triples, every executable and packing check passes |
 
-Self-checks: `tests/test_a_screen.py`, 241 passed (48 screen slots and 12 sampled train
-sessions × 4 checks, plus a packing unit test). Measured smoke: trainer ~6.5 s per `cf`
+Both pools were RE-FROZEN by amendment 1 (§13.7); the hashes in the table above are
+superseded by SCREEN `e0867688b60e1071` and TRAIN `f6b3d63e941e1d70`, and the name-disjointness
+wording is narrowed by §13.3.
+
+Self-checks: `tests/test_a_screen.py`, 241 passed at the time of this section, 301 after
+amendment 1 (48 screen slots and 12 sampled train sessions × 5 checks, plus a packing unit test). Measured smoke: trainer ~6.5 s per `cf`
 micro-step and ~1.2 s per reference example; harness ~15 s per request. Astra
 implementation review (`results/reviews/2026-09-13-a-screen-implementation-review-astra.md`)
 precedes the timing pilot; findings are verified and resolved first (owner, 2026-09-13).
+
+## 13. Amendment 1 (2026-09-13, after the Astra implementation review, before any pilot, training or evaluation generation)
+
+The review read **REJECT for launch** on 15 findings
+(`results/reviews/2026-09-13-a-screen-implementation-review-astra.md`): "The scorer can award
+false session successes, and permitted first replies can remove every governing rule from
+request 2." Every finding was reproduced before it was changed, and the two that did not
+reproduce as written are recorded as such. **No arm, model, benchmark, outcome, gate or
+ceiling changes.** The screened quantity is unchanged; what changes is that the apparatus now
+measures it.
+
+### 13.1 Scoring and protocol (what a session success now requires)
+
+| # | Defect, as verified | Resolution |
+|---|---|---|
+| F7 | A checkpoint-2 reply could delete request 1's work, or rename a pre-existing public method, and still score J. | Checkpoint 2 adds a **PROTECTED** suite: request 1's functional, contract-under-state-1 and support tests re-run on the checkpoint-2 repository (test names prefixed `protected_`), ANDed with an AST check that every pre-existing public top-level def/class and public method name still exists (`public_api`, `api_preserved`). A session's J now requires all five suites at both checkpoints. |
+| F1 | A permitted first reply at the 1,536-token cap could evict every governing rule from request 2's window. | Request 2 always renders the CURRENT content of each changed file, so it is self-contained; the superseded request/reply pair is evicted **before** any prefix turn (`drop_first_order`); `required_indices` (rule turns, lifecycle event, live request) is asserted at run time; the self-check qualifies every session against a synthetic reply at the permitted maximum. |
+| F2 | Request 1's history message was re-rendered from the post-reply files, retrospectively rewriting what the model had been shown. | Request 1 renders from the ORIGINAL repository (`files0`). |
+| F8 | The return-shape wording in three slots collided with protected behaviour. | S01/S02/S33 wording exempts counts and `None` lookups. |
+
+### 13.2 Pool checkers (F9, mutation-verified)
+
+Both claims were tested by mutating gold and re-running the suite. **Confirmed:** the
+missing-record "returns None and changes nothing" test asserted only `find("zz") is None`, so
+an implementation that **cleared the entire store** passed; it now snapshots the complete
+record mapping before and after the unknown-id call, and the `raise` state does the same.
+**Confirmed with a correction:** Astra located the logging defect in the `silent` state, where
+`assert caplog.records == []` is in fact airtight at every level; the defect is in the **`warn`**
+state's "active records produce no log record" test, which checked only `levelno >= WARNING`, so
+an implementation logging at INFO on every call passed. It now asserts zero captured records.
+
+### 13.3 What the disjointness check establishes (F10)
+
+§1 said "disjoint solution constructions … by project name, package layout, function names and
+test bodies". That overstated the verification. **Verified and enforced** by
+`scripts/a_screen_freeze.py`: SCREEN package names are unique and shared with no other pool; no
+module path is shared with TRAIN; no public class or function name is shared with TRAIN outside a
+fixed generic allowlist. **Not claimed:** disjoint constructions. The pools deliberately share a
+coding idiom, and the freeze record's `overlap` block now measures it: all 48 slots share at
+least one module basename with TRAIN (`__init__.py`, `model.py`, `store.py`, `errors.py`), 0
+slots reproduce TRAIN's full four-module shape, 44/48 use the same dataclass-record plus
+private-mapping idiom, and 0 normalised test files are identical. The screen therefore tests
+generalisation across projects and wording, not across program architecture, and the §6 outcome
+is read that way.
+
+### 13.4 Statistics (F11, F12)
+
+`paired()` uses **alpha = 0.025** per component interval, as §7 registered; the zero-discordance
+width recomputes to 8.72 points. The summary now loads **both** requests per session, refuses
+duplicate records and records from more than one `identity`, refuses a request 2 with no request
+1, **recomputes** each session outcome from the stored suites and fails if the stored outcome
+disagrees, aggregates diagnostics over both requests, and reads INCOMPLETE against the frozen
+48-slot manifest by name.
+
+### 13.5 Allocation chunking and resumption (F13)
+
+The GPU protocol's 50-minute chunk rule exists so an exclusive lock is never held long. This
+screen runs under `STENCIL_GPU_SHARE=1`, where a long run slows the peer but never blocks it, so
+the rule does not apply and **each 4-hour training allocation runs as one uninterrupted
+process**, with the peer session notified at start and end. **There is no resumption.** The
+registered quantity is the adapter at the final completed optimizer step of one allocation;
+resuming would change the optimizer-state and data-order trajectory and would not be that
+quantity. The trainer's periodic saves are crash diagnostics only, marked `final: false`,
+`status: "running"`, and the harness now **refuses** any adapter whose `train-log.json` is
+missing, non-final, or trained under a different objective than the arm (checked before the
+model loads). If an allocation dies before its final save it is recorded INCOMPLETE and its
+intermediate checkpoints are never evaluated; **at most one** allocation may be re-run from
+scratch (9.9 + 4 = 13.9 h against the 16 GPU-h ceiling), and a second failure ends the screen
+INCOMPLETE.
+
+### 13.6 Apparatus hardening (F3, F4, F5, F6, F14, F15)
+
+Per-request persistence with flush and identity-filtered resume (F3); the EOS set is the union
+of `GenerationConfig`, `model.config` and `<|im_end|>`, and a late EOS past the deadline still
+fails (F4); the determinism import precedes torch in both entrypoints (F5); split training
+telemetry and the final update loss are logged (F6); `--longest N` runs the pilot on the longest
+packed prompts (F14); both pools are verified against their freeze records before any training or
+evaluation, every record carries an `identity` block, and the builders exit non-zero without
+writing when any session has a problem (F15). Aligning the TRAIN builder's packing check with
+the new eviction order was itself caught by that non-zero exit.
+
+### 13.7 Re-frozen pools and self-checks
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `e0867688b60e1071` | `c0e623f4942e47af` |
+| TRAIN | `results/a-screen/train-pool.json` | `f6b3d63e941e1d70` | `6a39f66e0510a509` |
+
+Session content changed (request rendering, the PROTECTED suite, the tightened checkers), so both
+hashes move; the manifest, the 48 slots, the 36 cells and the counterbalance are unchanged.
+`tests/test_a_screen.py`: **301 passed** (48 screen slots and 12 sampled TRAIN sessions × 5
+checks, plus a packing unit test). Known record gap, not a gate: 37 SCREEN slots omit
+`support_state` from `tags`, so the freeze record's support-state balance is partly `?`; the
+support suite is scored from the session's own `support_tests` and never looks that tag up.

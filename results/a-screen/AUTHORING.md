@@ -45,19 +45,35 @@ either grandfathers it explicitly or the test covers the migration.
 
 ## Session shape and sizes (measured with `uv run python scripts/a_screen_tokens.py SNN`)
 
+AMENDMENT 1 (2026-09-13, after the Astra implementation review; the registered caps are
+UNCHANGED at 1,536 new tokens and a 2,560-token prompt budget -- `stencil.a_screen.MAX_NEW_TOKENS`,
+`PROMPT_BUDGET`). An earlier draft of this block raised them to 1,024/3,072; that was reverted
+because a larger budget removed the compaction pressure the screen depends on, so the sizes below
+still govern. What DID change: request 2 always renders the CURRENT content of every changed file
+so it is self-contained; the request-1 message stays in history rendered from the ORIGINAL files;
+the superseded request/reply pair is evicted before any prefix turn. The self-check now also
+qualifies each session with a synthetic reply at the permitted maximum length (every rule turn,
+the lifecycle event and the live request must survive packing) and runs a PROTECTED suite at
+checkpoint 2 (request 1's functional, contract-under-state-1 and support tests re-run on the
+checkpoint-2 repository, plus an AST check that no pre-existing public API name disappeared).
+
 - `files`: 3–4 small modules (≤ ~60 lines total) with an `__init__.py`; existing code follows the
   initial state (that is the stale precedent the screen is about).
 - `prefix`: exactly 16 alternating user/assistant turns of realistic work on THIS project (README,
-  design questions, pasted test drafts, tracebacks, snippets). Turns 0–7: 150–250 tokens each;
+  design questions, pasted test drafts, tracebacks, snippets). Turns 0–7: 200–330 tokens each;
   turns 8–15: 50–150 each, with the support statement at turn 8 (assistant ack at 9) and the
   target statement at turn 10 (ack at 11). Prefix total MUST be ≥ 2,450 tokens so that the
   packing policy drops at least one turn before request 1 (the test enforces it), and turns 8–15
-  must total ≤ ~1,300 so the rule turns survive request 2.
+  must total ≤ ~900 so the rule turns survive request 2 with a maximum-length first reply.
 - Two `Request`s, same or different target file; request 2's gold builds on request 1's gold UNDER
-  THE STATE IN FORCE AT CHECKPOINT 1 (see `_gold2` in the exemplar). Gold for both states at both
+  THE STATE IN FORCE AT CHECKPOINT 1 (see `_gold2` in the exemplar) and must keep request 1's
+  operation intact (the PROTECTED suite re-runs request 1's tests). Gold for both states at both
   checkpoints; functional tests name-agnostic (getattr helper) and state-agnostic; regression tests
   pin existing behaviour; `contract_tests` keyed by state; `support_tests` for the support state.
 - Request texts never mention the contract states (the history carries them).
+- Contract statements must not contradict protected behaviour: if an existing method returns a
+  count or a lookup returns None, the statement says so ("lookups may return None and count()
+  stays an int"), per registration §10.
 - Start the module with `# ruff: noqa: E501` and a one-line docstring naming slot, domain, families.
 
 ## Verification (must pass before you report done)
