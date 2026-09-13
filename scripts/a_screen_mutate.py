@@ -1,24 +1,41 @@
 """Mutation-audit the candidate-A scorer (registration section 14.8).
 
 Answers the question the Astra re-review called the whole issue: can a
-session score J = 1 while the repository is actually wrong?  Every dict
-``.get`` lookup and every store write-back in BOTH target files of every
-SCREEN slot is broken one at a time in the checkpoint-2 gold, and each
-mutation must be caught by some suite.  The audit found 12 undetected
-mutations in pre-existing operations that no regression test pinned; after
-those were pinned it runs at 0.  A new slot or a changed regression test
-must keep it at 0.
+session score J = 1 while the repository is actually wrong?  Seven classes of
+plausible reply damage are applied one at a time to the gold of BOTH
+checkpoints of every SCREEN slot, and each mutation must be caught by some
+suite of that checkpoint.  The audit found 12 undetected mutations in
+pre-existing operations that no regression test pinned, then 65 more as
+classes were added; after those were pinned it runs at 0.  A new slot or a
+changed regression test must keep it at 0.
+
+Round 5, F1: the update-site classes (4-6) resolved a site's record type from
+the first argument's VARIABLE NAME and silently skipped what it could not
+resolve, so 13 sites across eight slots were never mutated and 11 more -- the
+``replace(self._entries[entry_id], ...)`` and ``replace(table.get_shift(id),
+...)`` forms -- were never even matched.  One of the skipped sites hid an
+undetected identity corruption.  Sites are now found in the AST and typed by
+local inference (assignment, mapping annotation, method return annotation,
+parameter annotation, naming convention), every resolution is validated
+against the keywords the call already passes, and an UNRESOLVED site is a
+visible failure, never a silent skip.
+
+Round 5, F2: only checkpoint 2 was mutated, so a wrong FIRST repository that
+the ordinary second gold repairs scored J = 1 (S01's allocator reset in
+``scale_recipe``).  Both checkpoints are mutated and scored now.
 
 Usage: ``uv run python scripts/a_screen_mutate.py``; exit 1 if any mutation
-is undetected.
+is undetected or any update site cannot be typed.
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import re
 import sys
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 
 from stencil import a_screen as A
 from stencil.a_screen_pool import available_slots, load
@@ -49,10 +66,15 @@ def record_classes(files: dict[str, str]) -> dict[str, dict[str, str | None]]:
     return out
 
 
-def class_of(var: str, classes: dict[str, dict[str, str | None]]) -> str | None:
+def class_of(
+    var: str, classes: dict[str, dict[str, str | None]] | set[str]
+) -> str | None:
     """The record class a local variable holds, by this pool's naming convention
-    (``hold`` -> ``Hold``, ``recipe`` -> ``Recipe``).  ``None`` when it cannot be
-    resolved; the caller then labels the mutation type-unverified rather than guess."""
+    (``hold`` -> ``Hold``, ``recipe`` -> ``Recipe``).  The weakest of the resolution
+    rules in ``_Types``, used only when no assignment, annotation or return type
+    types the name; a resolution it produces is still validated against the keywords
+    the call passes, so a wrong guess surfaces as UNRESOLVED rather than as a mutant
+    naming a foreign field."""
     for name in classes:
         if var.lower() == name.lower() or var.lower().endswith("_" + name.lower()):
             return name
@@ -64,9 +86,9 @@ def defaulted_fields(files: dict[str, str]) -> list[tuple[str, str]]:
     Resetting one of these is how a reply silently erases an unrelated attribute."""
     out = []
     for cls in record_classes(files).values():
-        for field, default in cls.items():
+        for fname, default in cls.items():
             if default is not None:
-                out.append((field, default))
+                out.append((fname, default))
     return out
 
 
@@ -95,8 +117,313 @@ def counters(src: str) -> list[str]:
     return sorted({m.group(1) for m in re.finditer(r"self\.(_\w+) \+= 1", src)})
 
 
+# ------------------------------------------------------- round 5 F1: site typing
+
+
+@dataclass
+class Types:
+    """Everything needed to type an update site's first argument, collected from ALL
+    project files so a call can be typed across module boundaries.
+
+    ``names`` is every class in the project (records and storage classes alike, because
+    ``self`` and a storage handle must resolve before their attributes can).  ``attrs``
+    maps (class, attribute) to the class the attribute CONTAINS (``self._shifts:
+    dict[str, Shift]`` -> ``Shift``), which is what both ``self._shifts[k]`` and
+    ``self._shifts.get(k)`` evaluate to.  ``returns`` maps (class, method) to its return
+    annotation's class, which types the ``replace(table.get_shift(id), ...)`` form."""
+
+    names: set[str] = field(default_factory=set)
+    attrs: dict[tuple[str, str], str] = field(default_factory=dict)
+    returns: dict[tuple[str, str], str] = field(default_factory=dict)
+
+
+def _ann_type(node: ast.AST | None, names: set[str]) -> str | None:
+    """The project class an annotation denotes: ``Shift``, ``Shift | None`` and
+    ``dict[str, Shift]`` all denote ``Shift``."""
+    if node is None:
+        return None
+    for sub in ast.walk(node):
+        if isinstance(sub, ast.Name) and sub.id in names:
+            return sub.id
+        if isinstance(sub, ast.Constant) and sub.value in names:
+            return str(sub.value)  # a string annotation: "Shift"
+    return None
+
+
+def build_types(files: dict[str, str]) -> Types:
+    """Collect class names, attribute types and method return types from every file."""
+    trees = {p: ast.parse(src) for p, src in files.items() if p.endswith(".py")}
+    t = Types()
+    for tree in trees.values():
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                t.names.add(node.name)
+    for tree in trees.values():
+        for cls in [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]:
+            for node in ast.walk(cls):
+                if isinstance(node, ast.AnnAssign):
+                    a = _self_attr(node.target)
+                    got = _ann_type(node.annotation, t.names)
+                    if a and got:
+                        t.attrs[(cls.name, a)] = got
+            for fn in cls.body:
+                if isinstance(fn, ast.FunctionDef):
+                    got = _ann_type(fn.returns, t.names)
+                    if got:
+                        t.returns[(cls.name, fn.name)] = got
+    # A slot with no type hints at all (S33) annotates neither its mapping nor its
+    # methods, so the only evidence of what ``self._rows`` holds is what the class
+    # STORES in it.  Three passes because an env needs the attribute types that a
+    # later pass infers.
+    for _ in range(3):
+        for tree in trees.values():
+            for cls_name, fn in _scopes(tree):
+                if cls_name is None:
+                    continue
+                env = _env(fn, cls_name, t)
+                for node in ast.walk(fn):
+                    if not isinstance(node, ast.Assign):
+                        continue
+                    for tgt in node.targets:
+                        if not isinstance(tgt, ast.Subscript):
+                            continue
+                        attr = _self_attr(tgt.value)
+                        got = _expr_type(node.value, t, env)
+                        if attr and got and (cls_name, attr) not in t.attrs:
+                            t.attrs[(cls_name, attr)] = got
+    return t
+
+
+def writable_fields(
+    files: dict[str, str], classes: dict[str, dict[str, str | None]]
+) -> dict[str, set[str]]:
+    """{ClassName: {defaulted fields some code here can actually set}}.
+
+    Round 5 F2 asks for the corruption checks at both checkpoints "where they change
+    publicly reachable behavior".  A DEFAULTED field that nothing in the project assigns
+    is at its default on every record that can exist, so resetting it to that default
+    leaves the repository behaving identically: no public suite can detect it, and
+    demanding detection would force a fixture to seed state through private storage or
+    force the project source to grow a writer it has no use for.  S32's ``Loan.status``
+    and ``Loan.condition`` are only written by the operation request 2 adds, so at
+    checkpoint 1 they are not writable; at checkpoint 2 they are, and the mutants are
+    emitted and must be caught.
+
+    A field counts as writable if any code passes it by keyword (``status=``, including
+    through a ``with_status``/``with_changes`` helper) or constructs the record with
+    enough positional arguments to reach it.
+    """
+    out = {cls: set() for cls in classes}
+    for src in files.values():
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            for kw in node.keywords:
+                if kw.arg:
+                    for cls, fields in classes.items():
+                        if kw.arg in fields and fields[kw.arg] is not None:
+                            out[cls].add(kw.arg)
+            if isinstance(node.func, ast.Name) and node.func.id in classes:
+                names = list(classes[node.func.id])
+                for field_name in names[: len(node.args)]:
+                    if classes[node.func.id][field_name] is not None:
+                        out[node.func.id].add(field_name)
+    return out
+
+
+def _self_attr(node: ast.AST) -> str | None:
+    """``self._tools`` -> ``_tools``, anything else -> ``None``."""
+    if (
+        isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "self"
+    ):
+        return node.attr
+    return None
+
+
+def _expr_type(node: ast.AST | None, t: Types, env: dict[str, str]) -> str | None:
+    """The project class an expression evaluates to, or ``None``."""
+    if node is None:
+        return None
+    if isinstance(node, ast.Name):
+        return env.get(node.id) or class_of(node.id, t.names)
+    if isinstance(node, ast.Attribute):
+        base = _expr_type(node.value, t, env)
+        return t.attrs.get((base, node.attr)) if base else None
+    if isinstance(node, ast.Subscript):  # self._shifts[k] -> the contained class
+        return _expr_type(node.value, t, env)
+    if isinstance(node, ast.Call):
+        fn = node.func
+        if isinstance(fn, ast.Name):
+            if fn.id in t.names:
+                return fn.id
+            if fn.id == "replace" and node.args:
+                return _expr_type(node.args[0], t, env)
+            return None
+        if isinstance(fn, ast.Attribute):
+            if fn.attr.startswith("with_") or fn.attr == "get":
+                return _expr_type(fn.value, t, env)
+            if fn.attr == "replace" and node.args:  # dataclasses.replace(...)
+                return _expr_type(node.args[0], t, env)
+            base = _expr_type(fn.value, t, env)
+            return t.returns.get((base, fn.attr)) if base else None
+    return None
+
+
+def _scopes(tree: ast.Module) -> list[tuple[str | None, ast.FunctionDef]]:
+    """(enclosing class or None, function) for every function in the module."""
+    out, seen = [], set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            for fn in node.body:
+                if isinstance(fn, ast.FunctionDef):
+                    out.append((node.name, fn))
+                    seen.add(id(fn))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and id(node) not in seen:
+            out.append((None, node))
+    return out
+
+
+def _env(fn: ast.FunctionDef, cls: str | None, t: Types) -> dict[str, str]:
+    """Types of the locals and parameters of one function.  Three passes because
+    ``ast.walk`` is breadth-first: a name assigned inside an ``if`` can be read by a
+    statement the walk reaches first."""
+    env: dict[str, str] = {}
+    if cls:
+        env["self"] = cls
+    for arg in list(fn.args.args) + list(fn.args.kwonlyargs):
+        got = _ann_type(arg.annotation, t.names)
+        if got:
+            env[arg.arg] = got
+    for _ in range(3):
+        for node in ast.walk(fn):
+            target = value = None
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                target = node.target.id
+                got = _ann_type(node.annotation, t.names)
+                if got:
+                    env[target] = got
+                    continue
+                value = node.value
+            elif (
+                isinstance(node, ast.Assign)
+                and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+            ):
+                target, value = node.targets[0].id, node.value
+            if target is None:
+                continue
+            got = _expr_type(value, t, env)
+            if got:
+                env[target] = got
+    return env
+
+
+@dataclass
+class Site:
+    """One update call in the source: ``replace(rec, ...)`` or ``rec.with_X(...)``."""
+
+    start: int  # offset of the call
+    end: int  # offset just past the call
+    insert_at: int  # offset just past the first argument
+    text: str  # the call's source
+    helper: bool  # a with_X(...) site, which is mutated by wrapping
+    cls: str | None  # the record class being updated, None = UNRESOLVED
+    already: set[str]  # fields this call sets on purpose
+    why: str  # the reason a resolution was rejected, for the report
+    where: str  # the function the call is in, so a report names the operation
+
+
+def _line_offsets(src: str) -> list[int]:
+    offs, pos = [0], 0
+    for line in src.splitlines(keepends=True):
+        pos += len(line)
+        offs.append(pos)
+    return offs
+
+
+def update_sites(
+    src: str, classes: dict[str, dict[str, str | None]], t: Types
+) -> list[Site]:
+    """Every record-update call in ``src``, each typed or explicitly unresolved.
+
+    A ``replace`` whose first argument is a literal is ``str.replace`` and is not a
+    record update at all, so it is dropped rather than reported.  A resolution is
+    REJECTED when the call already passes a keyword the resolved class does not have:
+    that is the signature of a mis-resolution, and emitting its fields would produce
+    mutants that fail with "unexpected keyword argument" -- a detected wrong keyword
+    rather than an erased attribute."""
+    if not src.isascii():
+        raise ValueError("non-ASCII source: byte and character offsets diverge")
+    tree = ast.parse(src)
+    offs = _line_offsets(src)
+
+    def off(node: ast.AST, end: bool = False) -> int:
+        line = node.end_lineno if end else node.lineno
+        col = node.end_col_offset if end else node.col_offset
+        return offs[line - 1] + col
+
+    sites: list[Site] = []
+    for cls_name, fn in _scopes(tree):
+        env = _env(fn, cls_name, t)
+        for node in ast.walk(fn):
+            if not isinstance(node, ast.Call):
+                continue
+            f = node.func
+            first: ast.AST | None = None
+            helper = False
+            suffix = ""
+            if isinstance(f, ast.Name) and f.id == "replace" and node.args:
+                first = node.args[0]
+            elif isinstance(f, ast.Attribute) and f.attr == "replace" and node.args:
+                first = node.args[0]
+            elif isinstance(f, ast.Attribute) and f.attr.startswith("with_"):
+                first, helper = f.value, True
+                suffix = f.attr[len("with_") :]
+            if first is None:
+                continue
+            if isinstance(first, ast.Constant):
+                continue  # str.replace(" ", "-"), not a record update
+            already = {kw.arg for kw in node.keywords if kw.arg}
+            cls = _expr_type(first, t, env)
+            why = ""
+            if cls is None:
+                why = f"cannot type {ast.get_source_segment(src, first)!r}"
+            elif cls not in classes:
+                why = f"{cls} is not a record class"
+                cls = None
+            elif not already <= set(classes[cls]):
+                why = f"{cls} has none of {sorted(already - set(classes[cls]))}"
+                cls = None
+            elif helper and suffix in classes[cls]:
+                already.add(suffix)  # ``with_status(...)`` sets ``status`` on purpose
+            sites.append(
+                Site(
+                    start=off(node),
+                    end=off(node, end=True),
+                    insert_at=off(first, end=True),
+                    text=ast.get_source_segment(src, node) or "",
+                    helper=helper,
+                    cls=cls,
+                    already=already,
+                    why=why,
+                    where=fn.name,
+                )
+            )
+    return sites
+
+
 def mutants(
-    src: str, classes: dict[str, dict[str, str | None]]
+    src: str,
+    classes: dict[str, dict[str, str | None]],
+    t: Types,
+    writable: dict[str, set[str]] | None = None,
 ) -> Iterator[tuple[str, str]]:
     """Each (label, mutated source).  Seven classes a plausible reply can produce, all
     of which leave the repository wrong: a lookup that starts raising; a write-back that
@@ -123,44 +450,41 @@ def mutants(
             + f"\n{indent}self._{mapping} = {{{key}: {val}}}\n"
             + src[m.end() :],
         )
-    # Classes 4-6: an update that keeps the visible change but additionally resets
-    # an unrelated DEFAULTED attribute, or replaces a REQUIRED one (typically the
-    # record's own id -- round 4's S01 escape).  Each call site's record type is
-    # resolved first, so every emitted mutant names a field that type actually has: a
-    # mutant naming a foreign field fails with "unexpected keyword argument", which is
-    # a wrong keyword rather than an erased attribute, and pytest's short summary hides
-    # the difference.
-    sites: list[tuple[int, int, str, str, str]] = []
-    for m in re.finditer(r"replace\((\w+), ", src):
-        sites.append((m.start(), m.end(), m.group(1), "", ""))
-    # A target that updates through a record helper (``rec.with_status(...)``) has no
-    # ``replace(var, `` call site at all, so it needs its own form: wrap the helper's
-    # result, same visible update, one extra field changed.  An explicit import is
-    # prepended so the mutant always compiles and a failure means the suites caught the
-    # change, not a NameError (group-8 agent report, round 3).
-    for m in re.finditer(r"(\w+)\.with_\w+\([^()]*\)", src):
-        sites.append((m.start(), m.end(), m.group(1), "helper ", m.group(0)))
-
-    for start, end, var, kind, call in sites:
-        cls = class_of(var, classes)
-        if cls is None:
-            continue  # unresolved type: a guessed field would be false coverage
-        already = call if call else src[end : end + 200]
-        for fname, default in classes[cls].items():
-            if f"{fname}=" in already:
+    # Classes 4-6: an update that keeps the visible change but additionally resets an
+    # unrelated DEFAULTED attribute, or replaces a REQUIRED one (typically the record's
+    # own id -- round 4's S01 escape).  A ``replace(`` site takes the extra keyword
+    # directly; a ``rec.with_X(...)`` helper site has no keyword list, so the call is
+    # WRAPPED, with an explicit import prepended so the mutant always compiles and a
+    # failure means the suites caught the change, not a NameError (group-8 agent report,
+    # round 3).  Unresolved sites are reported by main(), never skipped silently.
+    for site in update_sites(src, classes, t):
+        if site.cls is None:
+            continue
+        can_set = (writable or {}).get(site.cls)
+        for fname, default in classes[site.cls].items():
+            if fname in site.already:
                 continue  # the call already sets this field on purpose
+            if default is not None and can_set is not None and fname not in can_set:
+                continue  # nothing at this checkpoint can make it non-default
             value = default if default is not None else '"_audit"'
             what = "reset" if default is not None else "set required"
-            if call:
+            kind = "helper " if site.helper else ""
+            if site.helper:
                 mutated = (
                     "import dataclasses as _audit_dc\n"
-                    + src[:start]
-                    + f"_audit_dc.replace({call}, {fname}={value})"
-                    + src[end:]
+                    + src[: site.start]
+                    + f"_audit_dc.replace({site.text}, {fname}={value})"
+                    + src[site.end :]
                 )
             else:
-                mutated = src[:end] + f"{fname}={value}, " + src[end:]
-            yield (f"{kind}{what} {cls}.{fname} to {value} @{start}", mutated)
+                mutated = (
+                    src[: site.insert_at] + f", {fname}={value}" + src[site.insert_at :]
+                )
+            yield (
+                f"{kind}{what} {site.cls}.{fname} to {value} "
+                f"in {site.where} @{site.start}",
+                mutated,
+            )
 
     # Class 7 (round 4): reset the id allocator at the top of a method that is not
     # itself the allocator.  Nothing already stored changes, so only a fixture that
@@ -193,33 +517,57 @@ def main() -> None:
     a = ap.parse_args()
     slots = a.slots.split(",") if a.slots else available_slots()
     undetected: list[tuple[str, str, str]] = []
+    unresolved: list[str] = []
     total = 0
     for slot in slots:
         s = load(slot)
-        f2 = A.gold_files(s, 2)
-        base = A.score_checkpoint(s, 2, f2)
-        if not base["all"]:
-            print(f"{slot}: GOLD FAILS, cannot audit")
-            undetected.append((slot, "-", "gold fails"))
-            continue
-        classes = record_classes(s.files)
-        for path in sorted({r.target for r in s.requests}):
-            for label, mut in mutants(f2[path], classes):
-                if mut == f2[path]:
-                    continue
-                total += 1
-                try:
-                    res = A.score_checkpoint(s, 2, {**f2, path: mut})
-                except Exception as exc:  # a crash is a detection, but say so
-                    print(f"{slot} {path} {label}: scorer raised {type(exc).__name__}")
-                    continue
-                if res["all"]:
-                    undetected.append((slot, path, label))
+        for k in (1, 2):
+            # at checkpoint 1 only request 1's target has been written by the model;
+            # at checkpoint 2 both targets carry a reply (round 5 F2)
+            paths = (
+                [s.requests[0].target]
+                if k == 1
+                else sorted({r.target for r in s.requests})
+            )
+            fk = A.gold_files(s, k)
+            base = A.score_checkpoint(s, k, fk)
+            if not base["all"]:
+                print(f"{slot}@{k}: GOLD FAILS, cannot audit")
+                undetected.append((f"{slot}@{k}", "-", "gold fails"))
+                continue
+            classes = record_classes(fk)
+            types = build_types(fk)
+            writable = writable_fields(fk, classes)
+            for path in paths:
+                for site in update_sites(fk[path], classes, types):
+                    if site.cls is None:
+                        unresolved.append(
+                            f"{slot}@{k} {path}: {site.text} -- {site.why}"
+                        )
+                for label, mut in mutants(fk[path], classes, types, writable):
+                    if mut == fk[path]:
+                        continue
+                    total += 1
+                    try:
+                        res = A.score_checkpoint(s, k, {**fk, path: mut})
+                    except Exception as exc:  # a crash is a detection, but say so
+                        print(
+                            f"{slot}@{k} {path} {label}: scorer raised "
+                            f"{type(exc).__name__}"
+                        )
+                        continue
+                    if res["all"]:
+                        undetected.append((f"{slot}@{k}", path, label))
         print(f"{slot}: done ({total} mutations so far)")
-    print(f"\nmutations applied: {total}   UNDETECTED: {len(undetected)}")
+    print(
+        f"\nmutations applied: {total}   UNDETECTED: {len(undetected)}   "
+        f"UNRESOLVED SITES: {len(unresolved)}"
+    )
     for slot, path, label in undetected:
         print(f"   UNDETECTED {slot} {path} {label}")
-    if undetected:
+    for line in unresolved:
+        print(f"   UNRESOLVED {line}")
+    if undetected or unresolved:
         sys.exit(1)
 
 

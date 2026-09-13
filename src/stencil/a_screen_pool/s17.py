@@ -109,6 +109,30 @@ def test_record_mark_unknown_student_raises_keyerror():
     b = AttendanceBook()
     with pytest.raises(KeyError):
         record_mark(b, "S99", "2026-09-14", "present")
+
+
+def test_enrolling_after_a_mark_mints_a_fresh_student_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    b = AttendanceBook()
+    first = enroll(b, "Aisha Khan")
+    second = enroll(b, "Ben Ortiz")
+    record_mark(b, first.student_id, "2026-09-14", "present")
+    third = enroll(b, "Cara Diaz")
+    # put_student MINTS before it increments, so a counter reset first mints an id nothing
+    # holds ("S0") and only the enrolment AFTER that collides -- four students are needed
+    fourth = enroll(b, "Dev Patel")
+    ids = {first.student_id, second.student_id, third.student_id, fourth.student_id}
+    assert len(ids) == 4, "a live student id was reused"
+    assert b.student_count() == 4, "a new student overwrote an earlier one"
+    kept = b.get_student(first.student_id)
+    assert kept is not None and kept.name == "Aisha Khan"
+    other = b.get_student(second.student_id)
+    assert other is not None and other.name == "Ben Ortiz"
+    assert b.get_student(third.student_id).name == "Cara Diaz"
+    assert b.get_student(fourth.student_id).name == "Dev Patel"
+    assert b.get_mark(first.student_id, "2026-09-14").status == "present"
 """
 }
 
@@ -132,6 +156,17 @@ def test_put_student_stores_without_checking():
     b = AttendanceBook()
     s = b.put_student("")
     assert s.name == "" and b.get_student(s.student_id) is s
+
+
+def test_get_student_returns_none_for_an_unknown_id():
+    # Round 5 F2: a reader that stops returning None and starts raising is a change of
+    # contract the suites have to see at checkpoint 1 too
+    b = AttendanceBook()
+    s = enroll(b, "Ben Ortiz")
+    assert b.get_student(s.student_id) is s
+    assert b.get_student("S99") is None
+    assert b.get_student("") is None
+    assert b.student_count() == 1
 """
 }
 

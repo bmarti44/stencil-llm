@@ -33,6 +33,8 @@ both checkpoints.
 from __future__ import annotations
 
 import hashlib
+import json
+import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -57,6 +59,8 @@ SUITES = (
     "protected_function",
     "protected_contract",
 )
+SUITE_TIMEOUT_S = 90.0  # passed to run_tests, so the spend bound below is enforceable
+LOAD_BOUND_S = 600.0  # bound on import + tokenizer + weight load; the pilot measures it
 
 
 @dataclass(frozen=True)
@@ -389,7 +393,7 @@ def score_checkpoint(session: Session, k: int, files: dict[str, str]) -> dict:
         out["protected_contract"] = True
         out["protected_contract_msg"] = "n/a"
     for name, tests in suites:
-        ok, msg = run_tests(files, tests)
+        ok, msg = run_tests(files, tests, timeout=SUITE_TIMEOUT_S)
         out[name] = ok
         out[f"{name}_msg"] = msg
     out["protected"] = bool(out["protected_function"] and out["protected_contract"])
@@ -538,3 +542,135 @@ def dir_sha(d: Path) -> str:
             if p.is_file()
         ).encode()
     ).hexdigest()[:16]
+
+
+# ---------------------------------------------------------------- launch spend ledger
+# Round 4 F13: a record's ``resident_s`` only accounts for work that produced a record, so
+# a launch that dies after its last record, or before writing any, contributed GPU time no
+# record carries.  The sidecar below is a launch-level ledger: one line per checkpoint of a
+# process, independent of the record file.
+#
+# Round 5 F13: the first version charged an unfinished launch its last checkpoint plus a
+# 300 s grace, which is NOT an upper bound -- a checkpoint follows generation AND scoring,
+# so the work after a mark can be a whole 300 s generation plus up to six 90 s suites, and
+# a model load is bounded by neither.  An unfinished launch is now charged the smaller of
+# its real lifetime (now minus its first mark) and its last mark plus a bound on the work
+# that can follow a mark without producing one.  Both are upper bounds on what it can have
+# spent, so the smaller is too, and neither can be escaped by dying quietly.
+#
+# Round 5 F13 also: a process killed mid-write leaves a torn final line, and the next
+# launch's ``start`` line appended to it became ONE malformed line that the reader skipped
+# -- so a launch that then died during loading was charged nothing.  ``ledger_repair``
+# truncates a torn tail before anything is appended, and a malformed line anywhere else is
+# refused rather than skipped.
+
+
+def work_bound_s(deadline_s: float) -> float:
+    """Upper bound on the work that can follow a ledger mark without producing one: one
+    generation at the registered deadline plus one scoring of every suite at its
+    timeout."""
+    return float(deadline_s) + len(SUITES) * SUITE_TIMEOUT_S
+
+
+def ledger_repair(path: Path) -> str | None:
+    """Truncate a torn final line (a process killed mid-write) so the next append cannot
+    be swallowed by it.  Returns the discarded text, or ``None`` if the tail was clean.
+    Nothing is lost by discarding it: the launch that wrote it has no ``end`` line, so it
+    is charged its lifetime, not its marks."""
+    if not path.exists():
+        return None
+    data = path.read_bytes()
+    if not data or data.endswith(b"\n"):
+        return None
+    cut = data.rfind(b"\n") + 1
+    torn = data[cut:].decode("utf-8", "replace")
+    path.write_bytes(data[:cut])
+    return torn
+
+
+def ledger_mark(
+    path: Path, launch: str, event: str, t0: float, **extra: object
+) -> None:
+    """Append one launch-level checkpoint."""
+    now = time.time()
+    rec = {"launch": launch, "event": event, "t": now, "elapsed_s": now - t0, **extra}
+    with path.open("a") as fh:
+        fh.write(json.dumps(rec) + "\n")
+        fh.flush()
+
+
+def ledger_charges(
+    path: Path,
+    exclude: str,
+    now: float,
+    bound_s: float,
+    load_bound_s: float = LOAD_BOUND_S,
+) -> tuple[dict[str, float], int]:
+    """``({launch: seconds charged}, malformed line count)`` for every launch but
+    ``exclude``.  A finished launch is charged its real elapsed time; an unfinished one
+    the smaller of its lifetime and its last mark plus the bound on unfinished work
+    (``load_bound_s`` before the model is loaded, ``bound_s`` after), and never less than
+    a mark it actually wrote."""
+    if not path.exists():
+        return {}, 0
+    by: dict[str, dict] = {}
+    malformed = 0
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            r = json.loads(line)
+        except json.JSONDecodeError:
+            malformed += 1
+            continue
+        if not isinstance(r, dict) or "launch" not in r:
+            malformed += 1
+            continue
+        if r["launch"] == exclude:
+            continue
+        cur = by.setdefault(
+            r["launch"],
+            {"first": float(r.get("t", now)), "max": 0.0, "end": False, "load": False},
+        )
+        cur["first"] = min(cur["first"], float(r.get("t", now)))
+        cur["max"] = max(cur["max"], float(r.get("elapsed_s", 0.0)))
+        cur["end"] = cur["end"] or r.get("event") == "end"
+        cur["load"] = cur["load"] or r.get("event") == "model_loaded"
+    out = {}
+    for lid, i in by.items():
+        if i["end"]:
+            out[lid] = i["max"]
+        else:
+            bound = bound_s if i["load"] else load_bound_s
+            lifetime = now - i["first"]
+            # a clock that went backwards must not erase a launch: fall back to the bound
+            out[lid] = (
+                i["max"] + bound
+                if lifetime < 0
+                else max(i["max"], min(lifetime, i["max"] + bound))
+            )
+    return out, malformed
+
+
+def may_start(budget_min: float | None, spent_min: float, margin_min: float) -> bool:
+    """Whether a request may START.  Round 5 F13: the harness guarded only the session
+    start, so a session admitted with two minutes left ran a whole second request past the
+    budget; every request start asks this now.  Work is admitted only while MORE than the
+    margin remains, so the margin is what an admitted request may overrun by without the
+    run being over budget."""
+    if not budget_min:
+        return True
+    return budget_min - spent_min > margin_min
+
+
+def run_status(
+    not_started: list[str],
+    request2_not_started: list[str],
+    budget_min: float | None,
+    spent_min: float,
+) -> str:
+    """``COMPLETE`` only when every session ran both requests AND the run stayed inside its
+    budget.  Round 5 F13: the status used to consider only unstarted sessions, so an
+    evaluation that exhausted its budget mid-session reported COMPLETE."""
+    over = bool(budget_min) and spent_min > budget_min
+    return "INCOMPLETE" if (not_started or request2_not_started or over) else "COMPLETE"

@@ -144,6 +144,25 @@ def test_a_claim_survives_a_later_relocate():
     assert kept is not None, "relocating one item dropped the other"
     assert kept == other and kept.location == "pool"
     assert kept.status == "held" and kept.claimant is None
+
+
+def test_registering_after_a_claim_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    s = ItemStore()
+    first = s.register_item("blue umbrella", "front desk")
+    second = s.register_item("keys on a red lanyard", "gym")
+    _claim(s)(first.item_id, "priya")
+    third = s.register_item("grey scarf", "lobby")
+    assert third.item_id not in (first.item_id, second.item_id), "a live item id was reused"
+    assert s.count() == 3, "the new item overwrote an earlier one"
+    kept = s.find(first.item_id)
+    assert kept is not None and kept.description == "blue umbrella"
+    assert kept.status == "claimed" and kept.claimant == "priya"
+    other = s.find(second.item_id)
+    assert other is not None and other.description == "keys on a red lanyard"
+    assert other.status == "held" and other.claimant is None
+    assert s.find(third.item_id).description == "grey scarf"
 """
 }
 

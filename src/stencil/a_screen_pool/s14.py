@@ -130,6 +130,24 @@ def test_move_leaves_other_bottles_untouched():
     assert c.bottle_find(second.bottle_id) == second
     assert c.bottle_find(second.bottle_id).status == "stored"
     assert c.bottle_find(third.bottle_id) == out
+
+
+def test_adding_a_bottle_after_a_move_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    c = Cellar()
+    first = c.bottle_add("Ridge Zinfandel", 2018)
+    second = c.bottle_add("Sancerre", 2019)
+    _move(c)(first.bottle_id, "A3")
+    third = c.bottle_add("Riesling", 2021)
+    assert third.bottle_id not in (first.bottle_id, second.bottle_id), "a live id was reused"
+    assert c.bottle_count() == 3, "the new bottle overwrote an earlier one"
+    kept = c.bottle_find(first.bottle_id)
+    assert kept is not None and kept.label == "Ridge Zinfandel" and kept.rack == "A3"
+    other = c.bottle_find(second.bottle_id)
+    assert other is not None and other.label == "Sancerre" and other.rack == "unsorted"
+    assert c.bottle_find(third.bottle_id).label == "Riesling"
 """
 }
 

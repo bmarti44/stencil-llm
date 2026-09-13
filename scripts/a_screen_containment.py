@@ -7,7 +7,9 @@ repair round silently altered the evaluation itself — the project files, the r
 text, the target, the gold, a contract or support suite, a prefix turn or a family
 label — which would make the screen's result incomparable with its registration.  A
 slot whose file differs without any suite body changing is also reported, so a stray
-edit cannot hide.
+edit cannot hide.  ``--allow`` names the exceptions one at a time, per request
+(``S26:1:contract_tests``) or for the session itself (``S45:session:files``), and an
+entry that matches no change is reported as a stale authorisation.
 
 Usage: ``uv run python scripts/a_screen_containment.py [--ref HEAD]``; exit 1 on any
 violation.
@@ -44,9 +46,13 @@ def main() -> None:
     ap.add_argument(
         "--allow",
         default="",
-        help="comma-separated SLOT:REQUEST:field changes authorised for this run, e.g. "
-        "S26:1:contract_tests -- each must be named explicitly and recorded in the "
-        "registration; anything not listed is still a violation",
+        help="comma-separated SLOT:REQUEST:field changes authorised for this run "
+        "(S26:1:contract_tests), or SLOT:session:field for a session-level change "
+        "(S45:session:files).  Each must be named explicitly and recorded in the "
+        "registration; anything not listed is still a violation.  A `files` entry "
+        "changes the project the model is shown and is the heaviest kind: the "
+        "registration has to say which public behaviour it made reachable and why "
+        "no suite could reach it otherwise (round 5 F3).",
     )
     a = ap.parse_args()
     allow = {x.strip() for x in a.allow.split(",") if x.strip()}
@@ -66,7 +72,12 @@ def main() -> None:
             if f.name == "requests":
                 continue
             if getattr(old, f.name) != getattr(new, f.name):
-                bad.append(f"{slot}: Session.{f.name} changed")
+                key = f"{slot}:session:{f.name}"
+                if key in allow:
+                    used.add(key)
+                    print(f"   authorised: {key}")
+                else:
+                    bad.append(f"{slot}: Session.{f.name} changed")
         if len(old.requests) != len(new.requests):
             bad.append(f"{slot}: request count changed")
             continue

@@ -397,6 +397,24 @@ def test_schedule_keeps_other_talks_rooms_and_count():
     assert kept.title == other.title and kept.minutes == other.minutes
     assert t.get_talk(talk.talk_id).hour == 14
     assert len(t.rooms()) == 2 and t.next_id("X") == "X5"
+
+
+def test_schedule_keeps_the_talks_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression, which the old audit never matched).  An update that keeps the
+    # visible change but replaces a REQUIRED field leaves a record that is no longer the
+    # record it claims to be, under the key the caller asked for.
+    t, talk, room = _setup()
+    out = schedule_talk(t, talk.talk_id, room.room_id, 11)
+    for rec in (out, t.get_talk(talk.talk_id)):
+        assert rec.talk_id == talk.talk_id, "scheduling changed the talk id"
+        assert rec.title == "Sorting in practice", "scheduling changed the title"
+        assert rec.speaker == "Mina", "scheduling changed the speaker"
+        assert rec.minutes == 30, "scheduling changed the length"
+        assert rec.room_id == room.room_id and rec.hour == 11
+    with pytest.raises(KeyError):
+        t.get_talk("_audit")
+    assert t.get_room(room.room_id).name == "Main hall"
 """
 }
 

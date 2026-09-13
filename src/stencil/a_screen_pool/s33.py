@@ -107,6 +107,23 @@ def test_record_mark_leaves_other_rows_untouched():
     assert book.find(first.enrolment_id).student == "Priya Nair"
     assert book.find(second.enrolment_id).marks == (58,)
     assert book.find(second.enrolment_id).course == "HIST2041"
+
+
+def test_enrolling_after_a_mark_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    book = MarkBook()
+    first = book.enrol("Priya Nair", "HIST2041")
+    second = book.enrol("Tomasz Wolak", "HIST2041")
+    book.record_mark(first.enrolment_id, 68)
+    third = book.enrol("Ada Oyelaran", "HIST2041")
+    assert third.enrolment_id not in (first.enrolment_id, second.enrolment_id), "id reused"
+    assert book.count() == 3, "the new enrolment overwrote an earlier one"
+    kept = book.find(first.enrolment_id)
+    assert kept is not None and kept.student == "Priya Nair" and kept.marks == (68,)
+    other = book.find(second.enrolment_id)
+    assert other is not None and other.student == "Tomasz Wolak" and other.marks == ()
+    assert book.find(third.enrolment_id).student == "Ada Oyelaran"
 """
 }
 

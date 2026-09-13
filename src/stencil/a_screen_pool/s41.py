@@ -135,6 +135,58 @@ def test_assign_crew_leaves_other_reports_alone(tmp_path):
     _assign(b)(a.report_id, "saturday crew")
     assert b.get(c.report_id).status == "open" and b.get(c.report_id).crew is None
     assert b.count() == 2
+
+
+def test_assign_crew_preserves_the_reports_own_identity(tmp_path):
+    # Round 5 F2: the same identity pin as request 2 carries, at checkpoint 1
+    b, _ = _board(tmp_path)
+    r = b.file_report("ridge loop", "ines", "tree down at km 3")
+    out = _assign(b)(r.report_id, "saturday crew")
+    for rec in (out, b.get(r.report_id)):
+        assert rec is not None, "assigning a crew dropped the report"
+        assert rec.report_id == r.report_id, "assign_crew changed the report id"
+        assert rec.trail == "ridge loop", "assign_crew changed the trail"
+        assert rec.reporter == "ines", "assign_crew changed the reporter"
+        assert rec.condition == "tree down at km 3", "assign_crew changed it"
+    assert b.get("_audit") is None, "the board holds a report under a changed field"
+    assert b.count() == 1
+
+
+def test_close_keeps_the_crew_and_the_other_report(tmp_path):
+    # assign_crew is the only public writer of `crew`, so closing a report that HAS a
+    # crew is only reachable at checkpoint 1 through the new method
+    b, path = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    assert _assign(b)(a.report_id, "saturday crew").crew == "saturday crew"
+    assert _assign(b)(c.report_id, "sunday crew").crew == "sunday crew"
+    b.close(a.report_id)
+    kept = b.get(a.report_id)
+    assert kept is not None, "closing the report dropped it from the board"
+    assert kept.status == "closed"
+    assert kept.crew == "saturday crew", "closing the report dropped its crew"
+    other = b.get(c.report_id)
+    assert other is not None, "closing one report dropped the other"
+    assert other.status == "assigned" and other.crew == "sunday crew"
+    assert b.count() == 2, "closing a report changed the stored count"
+    assert path.read_text().splitlines()[-1] == f"closed {a.report_id}"
+
+
+def test_file_report_after_assign_crew_mints_a_fresh_id(tmp_path):
+    b, _ = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    _assign(b)(a.report_id, "saturday crew")
+    third = b.file_report("summit spur", "pia", "loose rock")
+    assert third.report_id not in (a.report_id, c.report_id), "a live id was reused"
+    assert b.count() == 3, "the new report overwrote an earlier one"
+    kept = b.get(a.report_id)
+    assert kept is not None and kept.crew == "saturday crew"
+    assert kept.trail == "ridge loop" and kept.status == "assigned"
+    other = b.get(c.report_id)
+    assert other is not None and other.trail == "creek path"
+    assert other.crew is None and other.status == "open"
+    assert b.get(third.report_id).trail == "summit spur"
 """
 }
 
@@ -152,6 +204,56 @@ def test_file_close_get_count_unchanged(tmp_path):
     assert b.get("R1").status == "closed"
     assert b.count() == 1
     assert path.read_text().splitlines() == ["new R1 ridge loop: tree down", "closed R1"]
+
+
+def test_close_preserves_the_reports_own_identity(tmp_path):
+    # Round 5 F2: checkpoint 1 is audited now.  An update that keeps status, crew and
+    # neighbours but replaces a REQUIRED field leaves the board storing a report that is
+    # no longer that report -- and `close` is a pre-existing operation, so this pin has to
+    # exist at checkpoint 1 as well as checkpoint 2.
+    b, _ = _board(tmp_path)
+    r = b.file_report("ridge loop", "ines", "tree down at km 3")
+    out = b.close(r.report_id)
+    for rec in (out, b.get(r.report_id)):
+        assert rec is not None, "closing the report dropped it from the board"
+        assert rec.report_id == r.report_id, "close changed the report id"
+        assert rec.trail == "ridge loop", "close changed the trail"
+        assert rec.reporter == "ines", "close changed the reporter"
+        assert rec.condition == "tree down at km 3", "close changed the condition"
+    assert b.get("_audit") is None, "the board holds a report under a changed field"
+    assert b.count() == 1
+
+
+def test_close_leaves_the_other_report_on_the_board(tmp_path):
+    # a write-back that REPLACES the whole mapping keeps the updated report and deletes
+    # every other one, which only a second report can see
+    b, _ = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    b.close(a.report_id)
+    other = b.get(c.report_id)
+    assert other is not None, "closing one report dropped the other"
+    assert other.trail == "creek path" and other.status == "open"
+    assert b.count() == 2, "closing a report changed the stored count"
+
+
+def test_file_report_after_close_mints_a_fresh_id(tmp_path):
+    # Round 4 class 7, at checkpoint 1: a reset id allocator leaves every stored report
+    # intact and corrupts the NEXT insertion, which reuses a live id.
+    b, _ = _board(tmp_path)
+    a = b.file_report("ridge loop", "ines", "tree down")
+    c = b.file_report("creek path", "omar", "washout")
+    b.close(a.report_id)
+    third = b.file_report("summit spur", "pia", "loose rock")
+    assert third.report_id not in (a.report_id, c.report_id), "a live id was reused"
+    assert b.count() == 3, "the new report overwrote an earlier one"
+    kept = b.get(a.report_id)
+    assert kept is not None and kept.trail == "ridge loop"
+    assert kept.reporter == "ines" and kept.status == "closed"
+    other = b.get(c.report_id)
+    assert other is not None and other.trail == "creek path"
+    assert other.reporter == "omar" and other.status == "open"
+    assert b.get(third.report_id).trail == "summit spur"
 """
 }
 

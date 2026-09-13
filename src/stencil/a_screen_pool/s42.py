@@ -157,6 +157,24 @@ def test_requeen_after_treatment_keeps_note_and_other_hives(tmp_path):
     assert kept.queen_year == 2024 and kept.site == "allotment"
     assert y.count() == 2
     assert y.get(a.hive_id).note == "formic strip"
+
+
+def test_add_hive_after_record_treatment_mints_a_fresh_id(tmp_path):
+    # Round 5 F2: an allocator reset inside the new operation corrupts the NEXT add_hive
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    _treat(y)(a.hive_id, "formic strip")
+    c = y.add_hive("church", 2023)
+    assert c.hive_id not in (a.hive_id, b.hive_id), "a live hive id was reused"
+    kept_a = y.get(a.hive_id)
+    assert kept_a is not None and kept_a.note == "formic strip"
+    assert kept_a.site == "orchard" and kept_a.queen_year == 2025
+    kept_b = y.get(b.hive_id)
+    assert kept_b is not None and kept_b.site == "allotment"
+    assert kept_b.note is None and kept_b.queen_year == 2024
+    assert y.get(c.hive_id).site == "church"
+    assert y.count() == 3
 """
 }
 
@@ -190,6 +208,39 @@ def test_requeen_keeps_other_hives_and_count(tmp_path):
     assert kept.status == "active" and kept.note is None
     assert y.count() == 2 and y.get(a.hive_id).queen_year == 2026
     assert path.read_text().splitlines()[-1] == f"requeen {a.hive_id} 2026"
+
+
+def test_requeen_keeps_the_hive_id_on_record_and_in_yard(tmp_path):
+    # Round 5 F2: checkpoint 1 is audited now, and `requeen` is pre-existing
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    out = y.requeen(a.hive_id, 2026)
+    assert out.hive_id == a.hive_id and out.site == "orchard"
+    stored = y.get(a.hive_id)
+    assert stored is not None, "the requeened hive is no longer under its own id"
+    assert stored.hive_id == a.hive_id and stored.site == "orchard"
+    assert stored.queen_year == 2026 and stored.status == "active"
+    assert y.get("_audit") is None, "the hive was stored under a corrupted id"
+    assert y.get(b.hive_id).hive_id == b.hive_id
+    assert y.count() == 2
+
+
+def test_add_hive_after_requeen_mints_a_fresh_id(tmp_path):
+    y, _ = _yard(tmp_path)
+    a = y.add_hive("orchard", 2025)
+    b = y.add_hive("allotment", 2024)
+    y.requeen(a.hive_id, 2026)
+    c = y.add_hive("church", 2023)
+    assert c.hive_id not in (a.hive_id, b.hive_id), "a live hive id was reused"
+    kept_a = y.get(a.hive_id)
+    assert kept_a is not None and kept_a.site == "orchard"
+    assert kept_a.queen_year == 2026
+    kept_b = y.get(b.hive_id)
+    assert kept_b is not None and kept_b.site == "allotment"
+    assert kept_b.queen_year == 2024
+    assert y.get(c.hive_id).site == "church"
+    assert y.count() == 3
 """
 }
 

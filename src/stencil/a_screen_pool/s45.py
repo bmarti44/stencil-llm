@@ -36,9 +36,9 @@ class SingerStore:
         self._singers: dict[str, Singer] = {}
         self._counter = 0
 
-    def add_singer(self, name: str, part: str) -> Singer:
+    def add_singer(self, name: str, part: str, section_lead: bool = False) -> Singer:
         self._counter += 1
-        singer = Singer(singer_id=f"S{self._counter}", name=name, part=part)
+        singer = Singer(singer_id=f"S{self._counter}", name=name, part=part, section_lead=section_lead)
         self._singers[singer.singer_id] = singer
         return singer
 
@@ -103,22 +103,38 @@ def test_retire_keeps_name_part_and_id():
 
 
 def test_retire_leaves_other_singers_untouched():
-    # Public-API seeding only (round 4): a section_lead=True neighbour needs
-    # promote_lead, which arrives with request 2, so that pin lives in request
-    # 2's regression suite.
+    # Public-API seeding only: the section_lead neighbour is seeded through
+    # add_singer's own parameter (round 5 F3).
     s = SingerStore()
     first = s.add_singer("Maya Okafor", "alto")
-    second = s.add_singer("Jonas Lind", "bass")
+    second = s.add_singer("Jonas Lind", "bass", section_lead=True)
     kept = s.find(second.singer_id)
     before = s.count()
     out = _retire(s)(first.singer_id)
     assert out.status == "retired" and out.section_lead is False
     assert s.count() == before
     assert s.find(second.singer_id) == kept
-    assert s.find(second.singer_id).section_lead is False
+    assert s.find(second.singer_id).section_lead is True
     assert s.find(second.singer_id).status == "active"
     assert s.find(second.singer_id).part == "bass"
     assert s.find(first.singer_id) == out
+
+
+def test_adding_a_singer_after_retiring_one_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    s = SingerStore()
+    first = s.add_singer("Maya Okafor", "alto")
+    second = s.add_singer("Jonas Lind", "bass")
+    _retire(s)(first.singer_id)
+    third = s.add_singer("Rosa Quinn", "soprano")
+    assert third.singer_id not in (first.singer_id, second.singer_id), "a live id was reused"
+    assert s.count() == 3, "the new singer overwrote an earlier one"
+    kept = s.find(first.singer_id)
+    assert kept is not None and kept.name == "Maya Okafor" and kept.status == "retired"
+    other = s.find(second.singer_id)
+    assert other is not None and other.name == "Jonas Lind" and other.status == "active"
+    assert s.find(third.singer_id).name == "Rosa Quinn"
 """
 }
 
@@ -146,9 +162,20 @@ def test_add_find_count_move_unchanged():
     assert s.find("S1").part == "bass" and s.count() == 2
 
 
+def test_add_singer_seeds_the_section_lead_flag():
+    # the pre-existing parameter the support suite seeds a lead with
+    s = SingerStore()
+    lead = s.add_singer("Ines Marti", "soprano", section_lead=True)
+    ordinary = s.add_singer("Jonas Lind", "bass")
+    assert lead.section_lead is True and s.find(lead.singer_id).section_lead is True
+    assert ordinary.section_lead is False
+    assert lead.status == "active" and lead.part == "soprano"
+    assert s.count() == 2
+
+
 def test_move_keeps_status_and_other_singers():
-    # Public-API seeding only (round 4): the section_lead half of this pin needs
-    # promote_lead and lives in request 2's regression suite.
+    # Public-API seeding only: a section_lead neighbour is seeded through
+    # add_singer (round 5 F3); promote_lead's own pin lives in request 2.
     s = SingerStore()
     first = s.add_singer("a", "tenor")
     second = s.add_singer("b", "alto")
@@ -183,6 +210,22 @@ def test_move_keeps_the_singers_own_identity():
     assert s.find("_audit") is None
     assert s.count() == 2 and s.find(second.singer_id) == second
     assert s.find(second.singer_id).name == "Jonas Lind"
+
+
+def test_move_keeps_the_section_lead_flag():
+    # Round 5 F3/F2: add_singer seeds the flag publicly, so an update that silently
+    # clears it is now visible at checkpoint 1 -- in move_singer as well as in retire.
+    s = SingerStore()
+    lead = s.add_singer("Ines Marti", "soprano", section_lead=True)
+    ordinary = s.add_singer("Jonas Lind", "bass")
+    out = s.move_singer(lead.singer_id, "mezzo")
+    assert out.section_lead is True, "moving the singer cleared the section_lead flag"
+    assert out.part == "mezzo" and out.name == "Ines Marti"
+    stored = s.find(lead.singer_id)
+    assert stored is not None and stored.section_lead is True
+    assert stored.part == "mezzo" and stored.status == "active"
+    assert s.find(ordinary.singer_id).section_lead is False
+    assert s.count() == 2
 """
 }
 
@@ -226,6 +269,20 @@ def test_retire_ordinary_emits_no_log(caplog):
     with caplog.at_level(logging.DEBUG):
         _retire(s)(p.singer_id)
     assert len(caplog.records) == 0
+
+
+def test_retire_a_section_lead_emits_no_log(caplog):
+    # Round 5 F3: retiring a SECTION LEAD is the case request 1 names, so the
+    # support suite has to exercise it.  add_singer seeds the flag publicly, so
+    # the case is reachable at checkpoint 1 without touching private storage; a
+    # reply that warns only for leads fails here.
+    s = SingerStore()
+    p = s.add_singer("Ines Marti", "soprano", section_lead=True)
+    assert s.find(p.singer_id).section_lead is True, "seeded a section lead"
+    with caplog.at_level(logging.DEBUG):
+        out = _retire(s)(p.singer_id)
+    assert len(caplog.records) == 0
+    assert out.section_lead is True and out.status == "retired"
 
 
 def test_retire_a_singer_already_in_a_non_default_status_emits_no_log(caplog):

@@ -162,6 +162,45 @@ def test_assign_host_leaves_other_slots_alone():
     assert kept.show == "Lunch Jazz" and kept.status == "planned"
     assert kept.start == 720 and kept.length_min == 60
     assert g.get(a.slot_id).host == "ravi"
+
+
+def test_cancelling_keeps_the_host_and_the_other_slots(caplog):
+    # Round 5 F2: assign_host is the only public writer of `host`, so a cancel that
+    # silently clears it is only reachable at checkpoint 1 through the new method.
+    caplog.set_level(logging.DEBUG)
+    g = Grid()
+    first = g.add_slot("Morning Mix", "mon", 420, 120)
+    second = g.add_slot("Night Shift", "tue", 1320, 60)
+    assert _assign(g)(first.slot_id, "ada").host == "ada"
+    assert _assign(g)(second.slot_id, "ben").host == "ben"
+    out = g.cancel(first.slot_id)
+    assert out.status == "cancelled"
+    assert out.host == "ada", "cancelling dropped the slot's host"
+    kept = g.get(first.slot_id)
+    assert kept is not None and kept.host == "ada" and kept.status == "cancelled"
+    other = g.get(second.slot_id)
+    assert other is not None, "cancelling one slot dropped the other"
+    assert other.host == "ben" and other.status == "planned"
+    assert len(g.on_day("mon")) == 1 and len(g.on_day("tue")) == 1
+
+
+def test_adding_a_slot_after_assigning_a_host_mints_a_fresh_id(caplog):
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    caplog.set_level(logging.DEBUG)
+    g = Grid()
+    first = g.add_slot("Morning Mix", "mon", 420, 120)
+    second = g.add_slot("Night Shift", "tue", 1320, 60)
+    _assign(g)(first.slot_id, "ada")
+    third = g.add_slot("Folk Hour", "wed", 900, 30)
+    assert third.slot_id not in (first.slot_id, second.slot_id), "a live slot id was reused"
+    kept = g.get(first.slot_id)
+    assert kept is not None, "the new slot overwrote an earlier one"
+    assert kept.show == "Morning Mix" and kept.host == "ada"
+    other = g.get(second.slot_id)
+    assert other is not None and other.show == "Night Shift" and other.host is None
+    assert g.get(third.slot_id).show == "Folk Hour"
+    assert len(g.on_day("wed")) == 1
 """
 }
 
@@ -199,6 +238,24 @@ def test_cancel_keeps_the_other_slots(caplog):
     assert [x.slot_id for x in g.on_day("mon")] == ["S1"]
     assert [x.slot_id for x in g.on_day("tue")] == ["S2"]
     assert caplog.records == []
+
+
+def test_adding_a_slot_after_a_cancellation_mints_a_fresh_id(caplog):
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    caplog.set_level(logging.DEBUG)
+    g = Grid()
+    first = g.add_slot("Morning Mix", "mon", 420, 120)
+    second = g.add_slot("Night Shift", "tue", 1320, 60)
+    g.cancel(first.slot_id)
+    third = g.add_slot("Folk Hour", "wed", 900, 30)
+    assert third.slot_id not in (first.slot_id, second.slot_id), "a live slot id was reused"
+    kept = g.get(first.slot_id)
+    assert kept is not None, "the new slot overwrote an earlier one"
+    assert kept.show == "Morning Mix" and kept.status == "cancelled"
+    other = g.get(second.slot_id)
+    assert other is not None and other.show == "Night Shift" and other.status == "planned"
+    assert g.get(third.slot_id).show == "Folk Hour"
 """
 }
 

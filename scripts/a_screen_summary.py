@@ -30,6 +30,7 @@ SHARED_IDENTITY = (
     "max_new",
     "deadline_s",
     "prompt_budget",
+    "sessions",
 )
 
 
@@ -66,6 +67,13 @@ def load(path: Path, arm: str, expected: set[str]) -> dict[str, dict]:
             raise SystemExit(
                 f"{path.name}:{lineno}: record was produced with --pilot-adapter "
                 "(an adapter that is not the registered allocation); not analysable"
+            )
+        if sorted(ident.get("sessions") or []) != sorted(expected):
+            got = ident.get("sessions")
+            raise SystemExit(
+                f"{path.name}:{lineno}: record was produced by a run over "
+                f"{len(got or [])} sessions, not the frozen manifest's {len(expected)}; "
+                "a subset run is a pilot, not the screen"
             )
         identities.add(json.dumps(ident, sort_keys=True))
         key = (r["session"], r["request"])

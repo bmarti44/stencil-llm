@@ -148,6 +148,24 @@ def test_return_leaves_other_loans_untouched():
     assert d.find(second.loan_id).patron == "ben"
     assert d.find(second.loan_id).title == "Emma"
     assert d.find(third.loan_id) == out
+
+
+def test_checkout_after_returning_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    d = LoanDesk()
+    first = d.checkout_book("ana", "Dune", 30)
+    second = d.checkout_book("ben", "Emma", 12)
+    _return(d)(first.loan_id)
+    third = d.checkout_book("cal", "Ada", 7)
+    assert third.loan_id not in (first.loan_id, second.loan_id), "a live id was reused"
+    assert d.count() == 3, "the new loan overwrote an earlier one"
+    kept = d.find(first.loan_id)
+    assert kept is not None and kept.patron == "ana" and kept.status == "returned"
+    other = d.find(second.loan_id)
+    assert other is not None and other.title == "Emma" and other.status == "out"
+    assert d.find(third.loan_id).title == "Ada"
 """
 }
 

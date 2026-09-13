@@ -126,6 +126,25 @@ def test_freeze_unknown_raises_keyerror():
         assert r.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown member")
+
+
+def test_enroll_after_freezing_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    r = MemberRoll()
+    first = r.member_enroll("Priya", "annual")
+    second = r.member_enroll("Ines", "monthly")
+    _freeze(r)(first.member_id)
+    third = r.member_enroll("Tomasz", "student")
+    assert third.member_id not in (first.member_id, second.member_id), "a live id was reused"
+    assert r.count() == 3, "the new member overwrote an earlier one"
+    kept = r.find(first.member_id)
+    assert kept is not None and kept.name == "Priya" and kept.status == "frozen"
+    assert kept.plan == "annual"
+    other = r.find(second.member_id)
+    assert other is not None and other.name == "Ines" and other.status == "active"
+    assert r.find(third.member_id).plan == "student"
 """
 }
 

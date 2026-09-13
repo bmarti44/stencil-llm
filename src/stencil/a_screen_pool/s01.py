@@ -108,6 +108,24 @@ def test_scale_unknown_raises_keyerror():
         assert b.count() == 2
         return
     raise AssertionError("expected KeyError for an unknown recipe")
+
+
+def test_add_recipe_after_scaling_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    b = RecipeBook()
+    first = b.add_recipe("lentil soup", servings=6)
+    second = b.add_recipe("rye loaf", servings=9)
+    _scale(b)(first.recipe_id, 10)
+    third = b.add_recipe("flatbread", servings=2)
+    assert third.recipe_id not in (first.recipe_id, second.recipe_id), "a live id was reused"
+    assert b.count() == 3, "the new recipe overwrote an earlier one"
+    kept = b.find(first.recipe_id)
+    assert kept is not None and kept.title == "lentil soup" and kept.servings == 10
+    other = b.find(second.recipe_id)
+    assert other is not None and other.title == "rye loaf" and other.servings == 9
+    assert b.find(third.recipe_id).title == "flatbread"
 """
 }
 

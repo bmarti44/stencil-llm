@@ -139,6 +139,21 @@ def test_rate_game_unknown_raises_keyerror():
     _assert_other_intact(s)
     assert s.get_game(g.game_id) is not None
     assert s.get_game(g.game_id).rating is None
+
+
+def test_adding_a_game_after_rating_one_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    s, g = _shelf()
+    rate_game(s, g.game_id, 3)
+    third = add_game(s, "Hive", 2)
+    assert third.game_id not in (OTHER, g.game_id), "a live game id was reused"
+    assert s.get_game(third.game_id).title == "Hive"
+    assert s.get_game(third.game_id).rating is None
+    _assert_other_intact(s)
+    kept = s.get_game(g.game_id)
+    assert kept is not None and kept.title == "Carcassonne" and kept.rating == 3
 """
 }
 

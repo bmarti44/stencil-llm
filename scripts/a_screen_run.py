@@ -54,9 +54,6 @@ REGISTERED_TRAIN_CONFIG = {
 REGISTERED_DEADLINE_S = 300
 # plan section E: a run stops STARTING new work when its reservation has 5 minutes left
 START_MARGIN_MIN = 5
-# Round 4 F13: an interrupted launch is charged its last checkpoint plus this grace, the
-# longest it can have been working unrecorded (a checkpoint follows every request).
-GRACE_S = float(REGISTERED_DEADLINE_S)
 sys.path.insert(0, str(ROOT / "src"))
 
 import stencil.determinism  # noqa: E402, F401  (sets CUBLAS workspace before torch)
@@ -230,47 +227,30 @@ def main() -> None:
     # request, so it can have been at most one request past its last mark.
     spend_path = out.with_name(out.name + ".spend.jsonl")
     launch_id = f"{int(t_start)}-{os.getpid()}"
+    torn = A.ledger_repair(spend_path)
+    BOUND_S = A.work_bound_s(REGISTERED_DEADLINE_S)
 
-    def mark(event: str) -> None:
-        with spend_path.open("a") as fh:
-            fh.write(
-                json.dumps(
-                    {
-                        "launch": launch_id,
-                        "event": event,
-                        "t": time.time(),
-                        "elapsed_s": time.time() - t_start,
-                    }
-                )
-                + "\n"
-            )
-            fh.flush()
+    def mark(event: str, **extra: object) -> None:
+        A.ledger_mark(spend_path, launch_id, event, t_start, **extra)
 
     def prior_launch_minutes() -> float:
-        if not spend_path.exists():
-            return 0.0
-        by: dict[str, dict] = {}
-        for line in spend_path.read_text().splitlines():
-            if not line.strip():
-                continue
-            try:
-                r = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if r.get("launch") == launch_id:
-                continue
-            cur = by.setdefault(r["launch"], {"max": 0.0, "ended": False})
-            cur["max"] = max(cur["max"], float(r.get("elapsed_s", 0.0)))
-            cur["ended"] = cur["ended"] or r.get("event") == "end"
-        total = 0.0
-        for info in by.values():
-            total += info["max"] + (0.0 if info["ended"] else GRACE_S)
-        return total / 60
+        charges, malformed = A.ledger_charges(
+            spend_path, launch_id, time.time(), BOUND_S
+        )
+        if malformed:
+            ap.error(
+                f"{spend_path} has {malformed} malformed line(s): a launch's spend cannot "
+                "be accounted.  Repair the ledger by hand before resuming."
+            )
+        return sum(charges.values()) / 60
 
     # atexit so ANY clean exit (including a refused guard or COST-INELIGIBLE) is
     # charged its real elapsed time; only a killed process falls back to the grace.
     atexit.register(mark, "end")
     mark("start")
+    if torn is not None:
+        print(f"repaired a torn spend-ledger tail: {torn[:120]!r}")
+        mark("repaired_torn_tail", torn=torn[:200])
 
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, GenerationConfig
@@ -290,6 +270,13 @@ def main() -> None:
         adapter_id = sha(weights.read_bytes().hex()) if weights.exists() else "missing"
     model.eval()
     mark("model_loaded")
+    load_s = time.time() - t_start
+    if load_s > A.LOAD_BOUND_S:
+        print(
+            f"WARNING: model load took {load_s:.0f} s, over the {A.LOAD_BOUND_S:.0f} s "
+            "bound an interrupted launch is charged before its first checkpoint"
+        )
+        mark("load_over_bound", load_s=load_s)
 
     # Astra F4: every terminal token the shipping package declares, not just config.eos
     gen_cfg = GenerationConfig.from_pretrained(a.hub)
@@ -330,8 +317,6 @@ def main() -> None:
         ap.error(
             f"--deadline {a.deadline} is not the registered {REGISTERED_DEADLINE_S} s"
         )
-    print("identity " + json.dumps(identity))
-
     if a.slots:
         want = set(a.slots.split(","))
         sessions = [s for s in sessions if s.id in want]
@@ -348,6 +333,7 @@ def main() -> None:
 
         sessions = sorted(sessions, key=prompt_max, reverse=True)[: a.longest]
         print("pilot sessions " + ",".join(s.id for s in sessions))
+
         # Round 4, compute: resident time per request only charges the suites that actually
         # ran, and a reply that fails to parse or apply skips them -- so a pilot dominated by
         # such replies cannot establish the cost of all 1,584 registered suite invocations.
@@ -373,6 +359,13 @@ def main() -> None:
             json.dumps(suite_cost, indent=1) + "\n"
         )
         mark("suite_cost_measured")
+
+    # Post-round-4 carry: the identity omitted the session selection, so a PILOT off-arm
+    # file (4 longest sessions) was byte-compatible with a real off-arm file and resume
+    # would have accepted it.  The selection is part of what produced the records, so it
+    # belongs in the identity; the summary refuses any identity that is not the full 48.
+    identity["sessions"] = sorted(s_.id for s_ in sessions)
+    print("identity " + json.dumps(identity))
 
     # Astra F3 and its re-review: resume per request, only from records of THIS arm whose
     # COMPLETE identity matches (an `off` record still matches on adapter hash "none" even
@@ -507,8 +500,13 @@ def main() -> None:
             fh.flush()
         mark("record")  # round 4 F13: a launch-level checkpoint per request
 
+    def spent_min() -> float:
+        """This launch's elapsed minutes plus the spend of every earlier launch."""
+        return prior_min + (time.time() - t_start) / 60
+
     n = n_j = n_f = 0
-    incomplete = []
+    incomplete: list[str] = []
+    partial: list[str] = []
     for s in sessions:
         k1 = f"{s.id}:1"
         k2 = f"{s.id}:2"
@@ -517,8 +515,7 @@ def main() -> None:
         # re-review F13: the guard covers EVERY session start, including one whose request 1
         # was already saved, because request 2 still has to be generated and scored.
         # plan section E: stop STARTING sessions when the reservation has 5 minutes left
-        spent = prior_min + (time.time() - t_start) / 60
-        if a.budget_min and spent >= a.budget_min - START_MARGIN_MIN:
+        if not A.may_start(a.budget_min, spent_min(), START_MARGIN_MIN):
             incomplete.append(s.id)
             continue
         files0 = dict(s.files)
@@ -566,6 +563,13 @@ def main() -> None:
                 }
             )
         # ---- checkpoint 2 on the arm's own repository and its verbatim first reply
+        # Round 5 F13: request 2 used to be unconditional, so a session that started
+        # inside the margin could run a whole second request past the budget and still
+        # report COMPLETE.  Every request start is guarded; the saved request-1 record
+        # lets a later launch finish this session.
+        if not A.may_start(a.budget_min, spent_min(), START_MARGIN_MIN):
+            partial.append(s.id)
+            continue
         g2 = generate(A.session_messages(s, 2, files0, g1["output"], files1), 2, s)
         reason2 = terminal(g2)
         files2, apply2 = (
@@ -610,11 +614,17 @@ def main() -> None:
             f"{g2['seconds']:.0f}s, {reason2}) | running J {n_j}/{n} fo {n_f}/{n} | "
             f"{(time.time() - t_start) / 60:.0f} min"
         )
-    status = "INCOMPLETE" if incomplete else "COMPLETE"
+    # Round 5 F13: a run that exhausts its budget is INCOMPLETE even if every session
+    # started, because a started request can overrun the margin it was admitted under.
+    spent = spent_min()
+    over = bool(a.budget_min) and spent > a.budget_min
+    status = A.run_status(incomplete, partial, a.budget_min, spent)
     print(
         f"DONE arm={a.arm} new={n} J={n_j} function_only={n_f} minutes="
-        f"{(time.time() - t_start) / 60:.1f} status={status}"
+        f"{(time.time() - t_start) / 60:.1f} spent_min={spent:.1f} status={status}"
         + (f" not_started={','.join(incomplete)}" if incomplete else "")
+        + (f" request2_not_started={','.join(partial)}" if partial else "")
+        + (f" OVER_BUDGET by {spent - (a.budget_min or 0):.1f} min" if over else "")
     )
 
 

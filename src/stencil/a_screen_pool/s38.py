@@ -159,6 +159,39 @@ def test_admit_keeps_a_voided_neighbour_and_the_count(tmp_path):
         "void M2",
         "admit M1",
     ]
+
+
+def test_admit_keeps_the_ticket_identity(tmp_path):
+    # Round 5 F2: the identity pin for the operation added at THIS checkpoint
+    d, _ = _desk(tmp_path)
+    t = d.issue("ana", "bronze age")
+    out = _admit(d)(t.ticket_id)
+    assert out.ticket_id == t.ticket_id
+    assert out.holder == "ana" and out.exhibition == "bronze age"
+    stored = d.lookup(t.ticket_id)
+    assert stored is not None and stored.ticket_id == t.ticket_id
+    assert stored.holder == "ana" and stored.exhibition == "bronze age"
+    assert d.lookup("_audit") is None
+    assert d.count() == 1
+
+
+def test_issue_after_admit_mints_a_fresh_id(tmp_path):
+    # an id allocator reset inside admit changes nothing already stored: the damage lands
+    # on the NEXT issue, which reuses a live id
+    d, _ = _desk(tmp_path)
+    a = d.issue("ana", "bronze age")
+    b = d.issue("bo", "maps")
+    assert _admit(d)(b.ticket_id).status == "admitted"
+    c = d.issue("cal", "maps")
+    assert c.ticket_id not in (a.ticket_id, b.ticket_id)
+    assert d.count() == 3
+    kept_a = d.lookup(a.ticket_id)
+    assert kept_a is not None and kept_a.ticket_id == a.ticket_id
+    assert kept_a.holder == "ana" and kept_a.status == "issued"
+    kept_b = d.lookup(b.ticket_id)
+    assert kept_b is not None and kept_b.ticket_id == b.ticket_id
+    assert kept_b.holder == "bo" and kept_b.status == "admitted"
+    assert d.lookup(c.ticket_id).holder == "cal"
 """
 }
 
@@ -199,6 +232,41 @@ def test_void_keeps_the_other_tickets_and_the_count(tmp_path):
         "void M1",
         "void M2",
     ]
+
+
+def test_void_keeps_the_ticket_identity(tmp_path):
+    # Round 5 F2: checkpoint 1 is audited now, and `void` is a pre-existing operation.
+    # An update that keeps status, holder and exhibition but replaces a REQUIRED field --
+    # typically the record's own id -- leaves every other assertion in this file passing.
+    d = TicketDesk(str(tmp_path / "identity.log"))
+    t = d.issue("ana", "bronze age")
+    out = d.void(t.ticket_id)
+    assert out.ticket_id == t.ticket_id
+    assert out.holder == "ana" and out.exhibition == "bronze age"
+    stored = d.lookup(t.ticket_id)
+    assert stored is not None and stored.ticket_id == t.ticket_id
+    assert stored.holder == "ana" and stored.exhibition == "bronze age"
+    assert d.lookup("_audit") is None
+    assert d.count() == 1
+
+
+def test_issue_after_void_mints_a_fresh_id(tmp_path):
+    # an id allocator reset inside void changes nothing already stored: the damage lands
+    # on the NEXT issue, which reuses a live id
+    d = TicketDesk(str(tmp_path / "after_void.log"))
+    a = d.issue("ana", "bronze age")
+    b = d.issue("bo", "maps")
+    assert d.void(a.ticket_id).status == "void"
+    c = d.issue("cal", "maps")
+    assert c.ticket_id not in (a.ticket_id, b.ticket_id)
+    assert d.count() == 3
+    kept_a = d.lookup(a.ticket_id)
+    assert kept_a is not None and kept_a.ticket_id == a.ticket_id
+    assert kept_a.holder == "ana" and kept_a.status == "void"
+    kept_b = d.lookup(b.ticket_id)
+    assert kept_b is not None and kept_b.ticket_id == b.ticket_id
+    assert kept_b.holder == "bo" and kept_b.status == "issued"
+    assert d.lookup(c.ticket_id).holder == "cal"
 """
 }
 

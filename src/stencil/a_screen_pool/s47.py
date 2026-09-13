@@ -41,9 +41,9 @@ class ToolStore:
         self._tools: dict[str, Tool] = {}
         self._counter = 0
 
-    def add_tool(self, name: str) -> Tool:
+    def add_tool(self, name: str, status: str = "in") -> Tool:
         self._counter += 1
-        tool = Tool(tool_id=f"T{self._counter}", name=name)
+        tool = Tool(tool_id=f"T{self._counter}", name=name, status=status)
         self._tools[tool.tool_id] = tool
         return tool
 
@@ -206,6 +206,17 @@ def test_add_find_count_retire_unchanged():
         s.retire_tool("T9")
 
 
+def test_add_tool_seeds_the_status():
+    # the pre-existing parameter the support suite seeds "needs-repair" with
+    s = ToolStore()
+    broken = s.add_tool("bench grinder", status="needs-repair")
+    ordinary = s.add_tool("cordless drill")
+    assert broken.status == "needs-repair"
+    assert s.find(broken.tool_id).status == "needs-repair"
+    assert ordinary.status == "in" and broken.borrower is None
+    assert broken.name == "bench grinder" and s.count() == 2
+
+
 def test_add_keeps_every_earlier_tool():
     s = ToolStore()
     a = s.add_tool("a")
@@ -314,6 +325,20 @@ def test_lend_ordinary_emits_no_log(caplog):
     with caplog.at_level(logging.DEBUG):
         _lend(s)(t.tool_id, "kofi")
     assert len(caplog.records) == 0
+
+
+def test_lend_a_tool_needing_repair_emits_no_log(caplog):
+    # Round 5 F3: lending a tool whose status is "needs-repair" is the case
+    # request 1 names, so the support suite has to exercise it.  add_tool seeds
+    # the status publicly, so the case is reachable at checkpoint 1 without
+    # touching private storage; a reply that warns only for that status fails here.
+    s = ToolStore()
+    t = s.add_tool("bench grinder", status="needs-repair")
+    assert s.find(t.tool_id).status == "needs-repair", "seeded a tool needing repair"
+    with caplog.at_level(logging.DEBUG):
+        out = _lend(s)(t.tool_id, "kofi")
+    assert len(caplog.records) == 0
+    assert out.status == "out" and out.borrower == "kofi"
 
 
 def test_lend_a_retired_tool_emits_no_log(caplog):

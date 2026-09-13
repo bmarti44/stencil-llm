@@ -416,6 +416,22 @@ def test_queue_track_leaves_other_playlists_and_tracks_alone():
     assert t.get_playlist(q.playlist_id).track_ids == (b.track_id,)
     assert t.get_playlist(q.playlist_id).name == "Early"
     assert t.get_track(a.track_id) is a and t.get_track(b.track_id) is b
+
+
+def test_queue_keeps_the_playlists_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression, which the old audit never matched).  An update that keeps the
+    # visible change but replaces a REQUIRED field leaves a record that is no longer the
+    # record it claims to be, under the key the caller asked for.
+    t, a, _b, p, _q = _setup()
+    out = queue_track(t, p.playlist_id, a.track_id, 0)
+    for rec in (out, t.get_playlist(p.playlist_id)):
+        assert rec.playlist_id == p.playlist_id, "queueing changed the playlist id"
+        assert rec.name == "Late", "queueing changed the playlist name"
+        assert rec.track_ids == (a.track_id,)
+    with pytest.raises(KeyError):
+        t.get_playlist("_audit")
+    assert t.get_track(a.track_id).title == "Blue Train"
 """
 }
 

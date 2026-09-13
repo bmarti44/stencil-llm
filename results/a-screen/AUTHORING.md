@@ -220,3 +220,42 @@ that test verbatim and add a two-record sibling beside it rather than editing it
 changed slot from git and refuses any difference outside the two fixture fields, and it also reports
 a slot whose file changed without any fixture body changing. Run it, and the audit, before
 committing fixture work.
+
+## AMENDMENT 4 (2026-09-14, after Astra re-review round 5): named cases, and both checkpoints
+
+**A request that NAMES a notable case must have a suite that exercises that exact case.** Round 5
+rejected the substitution amendment 3 permitted: S45's request names "retiring a section lead" and
+S47's names lending a tool whose status is `"needs-repair"`, and each support suite had been moved
+to a different non-default state because the named one had no public writer. The argument for the
+substitution — the gold does not branch on the named field, so the property is the same — is not an
+argument: *the fact that the gold does not branch on a field establishes nothing about replies that
+do*. A reply that warns only for a section lead, or only for `"needs-repair"`, scored J = 1.
+
+So the order of preference is now:
+
+1. Exercise the named case through the existing public API.
+2. If no public writer can reach it, **add the seeding parameter to the project source** —
+   `add_singer(name, part, section_lead=False)`, `add_tool(name, status="in")` — pin the parameter
+   in the regression suite, and assert in the support test that the seed took effect
+   (`assert s.find(p.singer_id).section_lead is True, "seeded a section lead"`) so the test cannot
+   go vacuous if a reply drops the parameter. This changes `Session.files`, so it needs an explicit
+   `scripts/a_screen_containment.py --allow SLOT:session:files` entry and a registration paragraph
+   saying which behaviour it made reachable.
+3. Substituting a different state is allowed ONLY when the request does not name the case.
+
+Never reach into private storage for any of this; `scripts/a_screen_rename.py` still has to report
+0 rejected.
+
+**Both checkpoints are audited.** `scripts/a_screen_mutate.py` now mutates and scores the gold of
+checkpoint 1 as well as checkpoint 2, because a wrong FIRST repository that the ordinary second
+gold repairs used to score J = 1 (an allocator reset at the top of S01's `scale_recipe`). A
+checkpoint-1 suite therefore has to be able to see, at checkpoint 1, everything the checkpoint-2
+suites see: create-after-update (the allocator), an update's effect on a second record, and the
+updated record's own required fields.
+
+**Every update site is typed, and an untyped one fails the audit.** The audit resolves the record
+class of every `replace(...)`/`with_X(...)` first argument from the AST — local assignment, a
+mapping's annotation, a method's return annotation, a parameter annotation, then the naming
+convention — and validates the resolution against the keywords the call already passes. An
+unresolved site is a visible failure, so a slot must not hide an update behind a form the resolver
+cannot follow; if you write one, extend the resolver rather than let the site go unmutated.

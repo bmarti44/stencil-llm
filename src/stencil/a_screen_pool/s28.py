@@ -158,6 +158,24 @@ def test_categorize_unknown_id_raises_keyerror():
         categorize(folio, "R9", "supplies")
     _intact(folio, "R1", "Office Depot", 4599, "supplies")
     _intact(folio, "R2", "Metro Transit", 250, "travel")
+
+
+def test_adding_a_receipt_after_categorizing_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    folio = _folio()
+    categorize(folio, "R1", "stationery")
+    third = add_receipt(folio, "Cedar Cafe", 900)
+    assert third.receipt_id not in ("R1", "R2"), "a live receipt id was reused"
+    assert folio.total_cents() == 5749, "the new receipt overwrote an earlier one"
+    kept = folio.get("R1")
+    assert kept is not None and kept.vendor == "Office Depot"
+    assert kept.category == "stationery" and kept.amount_cents == 4599
+    other = folio.get("R2")
+    assert other is not None and other.vendor == "Metro Transit"
+    assert other.amount_cents == 250 and other.category == ""
+    assert folio.get(third.receipt_id).vendor == "Cedar Cafe"
 """
 }
 

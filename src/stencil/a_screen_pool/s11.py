@@ -183,6 +183,23 @@ def test_void_malformed_text_changes_nothing():
     assert s.find("INV-2026-0001").status == "issued"
     assert s.find("INV-2026-0001").customer == "Acme"
     assert s.count() == 2
+
+
+def test_add_invoice_after_voiding_mints_a_fresh_number():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    s = _store()
+    _void(s)("INV-2026-0002")
+    third = s.add_invoice("Cedar Ltd", 900)
+    assert third.number not in ("INV-2026-0001", "INV-2026-0002"), "a live number was reused"
+    assert s.count() == 3, "the new invoice overwrote an earlier one"
+    kept = s.find("INV-2026-0001")
+    assert kept is not None and kept.customer == "Acme" and kept.status == "issued"
+    voided = s.find("INV-2026-0002")
+    assert voided is not None and voided.customer == "Birch & Co"
+    assert voided.status == "void"
+    assert s.find(third.number).customer == "Cedar Ltd"
 """
 }
 

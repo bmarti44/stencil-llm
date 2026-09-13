@@ -189,6 +189,36 @@ def test_correct_odometer_unknown_id_raises_keyerror():
     with pytest.raises(KeyError):
         correct_odometer(fl, "F9", 100)
     _check_both_entries(fl)
+
+
+def test_correct_odometer_keeps_the_entrys_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression).  An update that keeps the visible change but replaces a
+    # REQUIRED field leaves a record that is no longer the record it claims to be.
+    fl = _log()
+    out = correct_odometer(fl, "F1", 118420)
+    for rec in (out, fl.get("F1")):
+        assert rec is not None, "the corrected entry is no longer under its own id"
+        assert rec.entry_id == "F1", "the correction changed the entry id"
+        assert rec.plate == "KX61 VAN", "the correction changed the plate"
+        assert rec.litres == 42.5, "the correction changed the litres"
+        assert rec.odometer_km == 118420
+    assert fl.get("_audit") is None, "an entry is filed under a corrupted id"
+    _check_both_entries(fl)
+
+
+def test_record_fill_after_a_correction_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    fl = _log()
+    correct_odometer(fl, "F1", 118420)
+    third = record_fill(fl, "LD19 VAN", 50.0, 20100)
+    assert third.entry_id not in ("F1", "F2"), "a live entry id was reused"
+    _check_both_entries(fl)
+    assert fl.get("F1").odometer_km == 118420
+    assert fl.get("F2").litres == 38.0
+    assert fl.get(third.entry_id).plate == "LD19 VAN"
+    assert fl.litres_for("LD19 VAN") == 50.0
 """
 }
 
@@ -460,6 +490,23 @@ def test_record_fill_after_set_price_mints_a_fresh_id():
     assert fl.litres_for("KX61 VAN") == 42.5
     assert fl.litres_for("LD19 VAN") == 50.0
     assert fl.litres_for("MV07 VAN") == 30.0
+
+
+def test_set_price_keeps_the_entrys_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression).  An update that keeps the visible change but replaces a
+    # REQUIRED field leaves a record that is no longer the record it claims to be.
+    fl = _log()
+    out = set_price(fl, "F1", 15000)
+    for rec in (out, fl.get("F1")):
+        assert rec is not None, "the priced entry is no longer under its own id"
+        assert rec.entry_id == "F1", "pricing changed the entry id"
+        assert rec.plate == "KX61 VAN", "pricing changed the plate"
+        assert rec.litres == 42.5, "pricing changed the litres"
+        assert rec.odometer_km == 118420, "pricing changed the odometer"
+        assert rec.price_cents == 15000
+    assert fl.get("_audit") is None, "an entry is filed under a corrupted id"
+    _check_both_entries(fl)
 """
 }
 

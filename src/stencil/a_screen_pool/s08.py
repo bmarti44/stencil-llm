@@ -166,6 +166,22 @@ def test_add_player_after_a_game_mints_a_fresh_id():
     back = b.find(third.player_id)
     assert back is not None and back.player_id == third.player_id
     assert back.name == "Di" and back.rating == 1700 and back.games == 0
+
+
+def test_recording_a_game_keeps_every_other_player():
+    # Round 5 F2: a write-back that REPLACES the whole mapping keeps the two players of
+    # the game and deletes everyone else, which only a THIRD player can see.
+    b = RatingBook()
+    white = b.add_player("Ana", 1600)
+    black = b.add_player("Bo", 1400)
+    bystander = b.add_player("Cal", 1500)
+    _record(b)(white.player_id, black.player_id, "1-0")
+    kept = b.find(bystander.player_id)
+    assert kept is not None, "recording a game dropped an uninvolved player"
+    assert kept.name == "Cal" and kept.rating == 1500 and kept.games == 0
+    assert b.count() == 3, "recording a game changed the stored count"
+    assert b.find(white.player_id).games == 1
+    assert b.find(black.player_id).games == 1
 """
 }
 

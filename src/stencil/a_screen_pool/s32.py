@@ -107,6 +107,24 @@ def test_extend_keeps_the_other_loan_in_the_register():
     assert kept.days == 90 and kept.artwork == "Harbour at Dusk"
     assert kept.borrower == "Rijksmuseum"
     assert kept.status == "out" and kept.condition == ""
+
+
+def test_lending_after_an_extension_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    reg = LoanRegister()
+    first = lend(reg, "Harbour at Dusk", "Rijksmuseum", 90)
+    second = lend(reg, "Study of Hands", "Ateneum", 60)
+    extend(reg, first.loan_id, 14)
+    third = lend(reg, "Nocturne in Grey", "Kunsthalle Bremen", 30)
+    assert third.loan_id not in (first.loan_id, second.loan_id), "a live loan id was reused"
+    kept = reg.get(first.loan_id)
+    assert kept is not None, "the new loan overwrote an earlier one"
+    assert kept.artwork == "Harbour at Dusk" and kept.days == 104
+    other = reg.get(second.loan_id)
+    assert other is not None, "the new loan overwrote an earlier one"
+    assert other.artwork == "Study of Hands" and other.days == 60
+    assert reg.get(third.loan_id).artwork == "Nocturne in Grey"
 """
 }
 

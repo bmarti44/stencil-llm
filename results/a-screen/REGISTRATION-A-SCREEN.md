@@ -815,3 +815,186 @@ is resident wall time held while the process owns the GPU, which is what §8 cou
 `uv run python scripts/a_screen_containment.py --allow <the 12 entries in §16.2>` → **0 violations**.
 `uv run pytest -q tests/test_a_screen.py` → **301 passed**.
 All four were run on a clean tree with no concurrent edits.
+
+## 17. Amendment 5 (2026-09-14, after the Astra re-review round 5, before any pilot, training or evaluation generation)
+
+Round 5 (`results/reviews/2026-09-14-a-screen-rereview4-astra.md`) read **DO NOT LAUNCH** with
+three blocking items. Every one was reproduced against the built fixtures before anything was
+changed, and each reproduction is quoted below with the measurement that closes it. Round 4's
+RESOLVED items (F12, F15, the private-rename property) were re-verified by round 5 and are not
+reopened here.
+
+### 17.1 The audit now mutates every update site, at both checkpoints (F7, two findings)
+
+Reproduced, exactly as reported:
+
+| reproduction | before |
+|---|---|
+| `replace(old, order_id=contractor, contractor=contractor)` in S30's second gold | **J = 1**; `class_of("old")` returned `None` and the caller skipped the site |
+| `self._counter = 0` at the top of S01's first-reply `scale_recipe`, then the ordinary second gold | checkpoint 1 **passes**, checkpoint 2 **passes**, **J = 1** |
+| `replace(` sites pool-wide, both checkpoints | 75 total; **17** whose first argument is not a bare name were never matched and **14** more were typed `None` and silently skipped |
+
+Two defects, one fix each.
+
+**Sites are found in the AST and typed by inference, and an unresolved site is a failure.**
+`scripts/a_screen_mutate.py` no longer guesses a record type from a variable's spelling alone.
+`build_types` collects every class name, every `self._x: dict[str, Rec]` annotation (and, for a
+slot with no type hints at all, the value type implied by what the class STORES in the mapping)
+and every method's return annotation, across all project files. `update_sites` then walks the
+AST for `replace(...)`, `dataclasses.replace(...)` and `rec.with_X(...)` calls and types each
+first argument by local assignment, mapping annotation, return annotation, parameter annotation
+and finally the naming convention. Every resolution is validated against the keywords the call
+already passes — a class that does not have them is a mis-resolution, not a type — and a literal
+first argument is recognised as `str.replace` rather than a record update. An UNRESOLVED site is
+printed and exits 1; the audit can no longer pass by omission. Sites rose from 75 matched to
+**131 found, 0 unresolved**.
+
+**Both checkpoints are mutated and scored.** `main()` audits checkpoint 1 (request 1's target)
+and checkpoint 2 (both targets). A wrong first repository that the ordinary second gold repairs
+now fails at checkpoint 1.
+
+**Mutations are emitted only where they change publicly reachable behaviour**, which is what the
+review asked for. A DEFAULTED field that nothing in the checkpoint's project can assign is at its
+default on every record that can exist, so resetting it to that default leaves the repository
+behaving identically: `writable_fields` computes, per checkpoint, which defaulted fields any code
+passes by keyword or reaches positionally, and the class-4/5 mutants are restricted to those. Nine
+mutations were retired by this rule — S32's `Loan.status`/`Loan.condition`, S29's
+`FuelEntry.price_cents`, S30's `WorkOrder.contractor` and five more are only written by the
+operation request 2 adds, so at checkpoint 1 they are unobservable and at checkpoint 2 they are
+emitted and caught (11 mutants in total are retired by the rule: 970 emitted without it, **959**
+with it). The alternative — growing the project source a writer it has no use for, or seeding
+through private storage — would have bought no coverage.
+
+Mutation labels now name the enclosing operation (`reset allocator self._counter in put_priority`),
+because "which operation" is the whole content of the repair.
+
+### 17.2 The 61 escapes this exposed, and the fixtures that close them
+
+The first run of the extended audit applied **970 mutations and left 61 undetected across 28
+slots** (52 at checkpoint 1, 9 at checkpoint 2) — all of them in the two places the old audit
+could not look: a checkpoint-1 repository, and an update site whose first argument is an indexing
+expression or a reader call. By class: 26 allocator resets, 20 required-field (identity)
+replacements, 13 defaulted-field resets (9 of which the reachability rule above retired), one
+whole-mapping write-back and one `.get` → `[]`.
+
+Every one was closed by a fixture, never by weakening an assertion, and the repair is the same
+shape as round 4's: the pins request 2 already carried, now present at checkpoint 1 as well.
+
+| slots | fixture added |
+|---|---|
+| S01 S03 S05 S10 S11 S12 S14 S15 S17 S19 S28 S29 S30 S32 S33 S37 S38 S41 S42 S43 S44 S45 | "create after the update mints a fresh id": two records, the update, a third insertion, then every earlier record checked by value |
+| S15 S17 | the same, with a FOURTH insertion: these two MINT before they increment, so a reset allocator first mints an id nobody holds and only the insertion after that collides |
+| S21 S22 S23 S25 S29 S30 S38 S41 S42 | "the update keeps the record's own identity": every required field checked on the returned record AND on the record read back, plus the corrupted key absent |
+| S08 S41 | a THIRD, uninvolved record, which is the only thing a whole-mapping write-back destroys |
+| S17 | the pre-existing reader still returns `None` for an unknown id |
+| S43 S45 | a defaulted field that the request-1 operation is the only public writer of (`Slot.host`, `Singer.section_lead`) survives a pre-existing update |
+
+### 17.3 S45 and S47 exercise the case their request names (F7, authorized support edits)
+
+Reproduced: a request-1 reply that warns **only** when `singer.section_lead` is true scored
+**J = 1**, and so did one that warns **only** for a tool whose status is `"needs-repair"`. Amendment
+4 had substituted a different non-default status in each support suite because the named state had
+no public writer, and argued that the gold does not branch on the named field. The review's answer
+is the correct one: *the fact that the gold does not branch on a field establishes nothing about
+replies that do*.
+
+The named cases are restored, and reachable through the public API at the checkpoint whose request
+names them:
+
+- S45's `add_singer(name, part, section_lead=False)` and S47's `add_tool(name, status="in")` gain
+  the seeding parameter in the PROJECT SOURCE. Each is pinned by a new regression test, and each
+  support test asserts the seed took effect (`assert s.find(p.singer_id).section_lead is True,
+  "seeded a section lead"`) so it cannot go vacuous if a reply drops the parameter.
+- `test_retire_a_section_lead_emits_no_log` and `test_lend_a_tool_needing_repair_emits_no_log`
+  join the existing ordinary and non-default-status cases; nothing was removed.
+- No suite touches private storage: `scripts/a_screen_rename.py` still reports 0 rejected.
+
+Both reproductions now score **J = 0** at checkpoint 1, on the support suite.
+
+These are the first authorized changes to a slot's `Session.files`. `scripts/a_screen_containment.py`
+gained the `SLOT:session:field` form so a session-level change has to be named explicitly like any
+other, and its help now states that a `files` entry is the heaviest kind and must be justified here.
+The authorizations for this round are exactly seven: `S45:session:files`, `S45:1:support_tests`,
+`S45:1:gold`, `S45:2:gold`, `S47:session:files`, `S47:1:support_tests`, `S47:1:gold`. The three
+`gold` entries are the seed change propagating: each gold is built from the project source plus the
+new method, so the two changed seed lines appear in it as well. That was verified line by line —
+every changed gold line is one of the two seed lines, and no gold's own method changed — rather than
+asserted. `results/a-screen/AUTHORING.md` AMENDMENT 4 replaces the
+substitution rule that produced this defect.
+
+### 17.4 Interrupted spend is durable and conservative (F13)
+
+Reproduced by executing the accounting: a launch whose last checkpoint was at 600 s and which died
+at 1,200 s was charged **900 s**; and a torn final JSON line followed by the next launch's appended
+`start` became one malformed line that the reader skipped, so a launch that then died during model
+loading was charged **0 s**.
+
+The ledger moved into `src/stencil/a_screen.py` so it can be tested without a GPU:
+
+- `work_bound_s(deadline)` = one generation at the registered deadline plus one scoring of every
+  suite at its timeout = 300 + 6 × 90 = **840 s**, and `score_checkpoint` now passes
+  `SUITE_TIMEOUT_S` explicitly, so the bound is the timeout the scorer actually enforces.
+- An unfinished launch is charged `max(last mark, min(lifetime, last mark + bound))`, where the
+  bound is `LOAD_BOUND_S` (600 s) before the model is loaded and 840 s after. Both terms are upper
+  bounds on what it can have spent, so the smaller is too; the 600/1,200 case is now charged
+  **1,300 s** when read 1,300 s after its start, and **1,440 s** when read a day later. A clock that
+  ran backwards charges the bound rather than zero.
+- `ledger_repair` truncates a torn tail before anything is appended and the repair is itself
+  recorded as an event of the repairing launch; a malformed line anywhere else is refused, not
+  skipped, because one can only come from two launches writing at once.
+- The harness warns and records an event if a model load ever exceeds `LOAD_BOUND_S`.
+
+### 17.5 Every request start is guarded, and an over-budget evaluation reports INCOMPLETE (F13)
+
+Reproduced: with a 2,700 s budget, request 1 starting at 2,399 s was admitted, request 2 started
+unconditionally at 2,698 s with two seconds left, the run finished at 2,997 s and reported
+**COMPLETE**.
+
+`A.may_start(budget, spent, margin)` is now asked before request 1 AND before request 2; a session
+whose second request is refused is reported as `request2_not_started` and is finished by a later
+launch from its saved request-1 record. `A.run_status` returns INCOMPLETE when any session was not
+started, any request 2 was not started, OR the run's total spend exceeded its budget — a request
+admitted inside the margin can still overrun it, and that is no longer reported as a complete
+evaluation. `tests/test_a_screen_spend.py` (9 tests) carries every case above, including the
+review's exact numbers.
+
+### 17.6 The session selection is part of the run identity (carried from round 4)
+
+The identity omitted `--slots`/`--longest`, so a pilot `off`-arm file was byte-compatible with a
+real `off`-arm file and resume would have accepted it. `identity["sessions"]` is now the sorted
+session list, and `a_screen_summary.load` refuses any record whose identity does not name the
+frozen manifest's 48 sessions ("a subset run is a pilot, not the screen"); `sessions` joins
+`SHARED_IDENTITY`, so the three arms must cover the same set.
+
+### 17.7 What round 5 accepted
+
+Unchanged and re-verified by the review: all 48 SCREEN and 576 TRAIN content hashes; containment
+against `69cedb54` with round 4's twelve authorizations at zero violations; the private-rename
+property (108 renames, its executable subset reproduced); the five gates and every statistic
+(McNemar 0.0625 at 5–0, 0.25 at 3–0, the ±0.087249 zero-discordance interval at N = 48); the
+trainer's `over_budget` refusal; the shared `dir_sha`; and the seven mutation classes as a
+sufficient set — the review states an eighth class is unnecessary and the restriction to
+state-writing methods should be kept. The suite-cost arithmetic was confirmed with one correction
+adopted here: including the pilot's own 264 suite invocations, evaluation costs **≈ 0.146 h** with
+§8's 1.5 factor, against the 2.1 h the ceiling allows.
+
+### 17.8 Re-frozen pool and self-checks
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `fa633cceefe47562` | `9168d17a9fbf2939` |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | unchanged; no TRAIN file was touched |
+
+`uv run python scripts/a_screen_mutate.py` → **959 mutations, 0 undetected, 0 unresolved sites**
+(both checkpoints; 131 update sites typed).
+`uv run python scripts/a_screen_rename.py` → **108 renames, 0 rejected**.
+`uv run python scripts/a_screen_containment.py --allow <the seven entries in §17.3>` → **0
+violations** (28 slot modules differ from `38e9c350`, 20 untouched).
+`uv run pytest -q tests/test_a_screen.py tests/test_a_screen_spend.py
+tests/test_no_side_effect_imports.py tests/test_contracts.py` → **458 passed, 1 xfailed**
+(`tests/test_a_screen.py` alone collects **301**).
+`uv run ruff check .` and `ruff format --check .` → clean, 897 files.
+All of them were run on a clean tree with no concurrent edits; the audit, the rename check and the
+self-checks read the slot modules, so nothing was edited while they ran.
+
+No arm, model, outcome unit, gate, statistic or ceiling changed in this amendment.

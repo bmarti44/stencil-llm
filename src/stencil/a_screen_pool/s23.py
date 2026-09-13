@@ -442,6 +442,22 @@ def test_table_has_remove_stock():
     kept = t.get_bin(other.bin_id)
     assert kept.quantity == 12 and kept.capacity == 50
     assert t.next_id() == "B3"
+
+
+def test_pick_keeps_the_bins_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression, which the old audit never matched).  An update that keeps the
+    # visible change but replaces a REQUIRED field leaves a record that is no longer the
+    # record it claims to be, under the key the caller asked for.
+    t, b = _setup()
+    out = pick_stock(t, b.bin_id, 15)
+    for rec in (out, t.get_bin(b.bin_id)):
+        assert rec.bin_id == b.bin_id, "picking changed the bin id"
+        assert rec.aisle == "A1", "picking changed the aisle"
+        assert rec.capacity == 100, "picking changed the capacity"
+        assert rec.quantity == 25
+    with pytest.raises(KeyError):
+        t.get_bin("_audit")
 """
 }
 

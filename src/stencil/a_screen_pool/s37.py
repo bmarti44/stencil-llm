@@ -98,6 +98,26 @@ def test_install_find_add_reading_unchanged():
     assert above_threshold(gauge) is False
     with pytest.raises(KeyError):
         net.add_reading("G9", 0.5)
+
+
+def test_installing_after_a_reading_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    # add_reading is a pre-existing operation, so this pin belongs with the regression
+    # tests at this checkpoint.
+    net = GaugeNetwork()
+    first = net.install("Wharfe", "Otley bridge")
+    second = net.install("Aire", "Kildwick")
+    net.add_reading(first["gauge_id"], 1.1)
+    third = net.install("Calder", "Mytholmroyd")
+    ids = {first["gauge_id"], second["gauge_id"], third["gauge_id"]}
+    assert len(ids) == 3, "a live gauge id was reused"
+    kept = net.find(first["gauge_id"])
+    assert kept is not None, "installing a gauge overwrote an earlier one"
+    assert kept["site"] == "Otley bridge" and kept["readings"] == [1.1]
+    other = net.find(second["gauge_id"])
+    assert other is not None and other["site"] == "Kildwick" and other["readings"] == []
+    assert net.find(third["gauge_id"])["site"] == "Mytholmroyd"
 """
 }
 

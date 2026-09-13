@@ -400,6 +400,23 @@ def test_table_has_update_shift():
     assert t.get_shift(s.shift_id).day == "sun"
     with pytest.raises(KeyError):
         t.update_shift(replace(s, shift_id="S99"))
+
+
+def test_move_shift_keeps_the_shifts_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression, which the old audit never matched).  An update that keeps the
+    # visible change but replaces a REQUIRED field leaves a record that is no longer the
+    # record it claims to be, under the key the caller asked for.
+    t, s = _setup()
+    out = move_shift(t, s.shift_id, "thu")
+    for rec in (out, t.get_shift(s.shift_id)):
+        assert rec.shift_id == s.shift_id, "the move changed the shift id"
+        assert rec.worker == "ann", "the move changed the worker"
+        assert rec.hours == 8, "the move changed the hours"
+        assert rec.day == "thu"
+    with pytest.raises(KeyError):
+        t.get_shift("_audit")
+    assert t.get_worker("ann").max_hours == 40
 """
 }
 

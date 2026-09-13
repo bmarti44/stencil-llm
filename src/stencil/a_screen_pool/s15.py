@@ -133,6 +133,30 @@ def test_start_noop_keeps_the_other_job_and_every_field():
     back = w.find(other.job_id)
     assert back is not None and back == other
     assert back.status == "queued" and back.mechanic is None
+
+
+def test_opening_a_job_after_starting_one_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    w = Workshop()
+    first = w.open_job("red Brompton", "brake cable frayed")
+    second = w.open_job("blue Surly", "true rear wheel")
+    _start(w)(first.job_id, "priya")
+    third = w.open_job("green Dawes", "new chain")
+    # open_job MINTS before it increments, so a counter reset first mints an id nothing
+    # holds ("J0") and only the insertion AFTER that collides -- four jobs are needed
+    fourth = w.open_job("yellow Raleigh", "bottom bracket")
+    ids = {first.job_id, second.job_id, third.job_id, fourth.job_id}
+    assert len(ids) == 4, "a live job id was reused"
+    assert w.count() == 4, "a new job overwrote an earlier one"
+    kept = w.find(first.job_id)
+    assert kept is not None and kept.bike == "red Brompton"
+    assert kept.status == "in_progress" and kept.mechanic == "priya"
+    other = w.find(second.job_id)
+    assert other is not None and other.bike == "blue Surly" and other.status == "queued"
+    assert w.find(third.job_id).bike == "green Dawes"
+    assert w.find(fourth.job_id).bike == "yellow Raleigh"
 """
 }
 

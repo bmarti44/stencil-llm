@@ -155,6 +155,25 @@ def test_refresh_keeps_other_feeds_and_count():
     assert kept.title == "Daily" and kept.url == "v"
     assert s.count() == 2
     assert s.find(f.feed_id).episodes == out.episodes
+
+
+def test_add_feed_after_refreshing_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    s = FeedStore()
+    first = s.add_feed("Weekly", "u")
+    second = s.add_feed("Daily", "v")
+    _refresh(s)(first.feed_id, DOC)
+    third = s.add_feed("Monthly", "w")
+    assert third.feed_id not in (first.feed_id, second.feed_id), "a live id was reused"
+    assert s.count() == 3, "the new feed overwrote an earlier one"
+    kept = s.find(first.feed_id)
+    assert kept is not None and kept.title == "Weekly"
+    assert kept.episodes == ("Pilot", "The Second One", "Listener Mail")
+    other = s.find(second.feed_id)
+    assert other is not None and other.title == "Daily" and other.episodes == ()
+    assert s.find(third.feed_id).title == "Monthly"
 """
 }
 

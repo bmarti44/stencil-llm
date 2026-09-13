@@ -155,6 +155,40 @@ def test_set_priority_keeps_other_orders_and_fields():
     assert kept.description == "hallway light out" and kept.contractor == ""
     assert book.get("W1").priority == "low"
     assert len(book.for_unit("4B")) == 1 and len(book.for_unit("2A")) == 1
+
+
+def test_set_priority_keeps_the_orders_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression).  An update that keeps the visible change but replaces a
+    # REQUIRED field leaves a record that is no longer the record it claims to be.
+    book = _book()
+    out = set_priority(book, "W1", "low")
+    for rec in (out, book.get("W1")):
+        assert rec is not None, "the updated order is no longer under its own id"
+        assert rec.order_id == "W1", "the priority change changed the order id"
+        assert rec.unit == "4B", "the priority change changed the unit"
+        assert rec.description == "kitchen tap drips", "it changed the description"
+        assert rec.priority == "low"
+    assert book.get("_audit") is None, "an order is filed under a corrupted id"
+    other = book.get("W2")
+    assert other is not None and other.unit == "2A" and other.priority == "normal"
+    assert len(book.for_unit("4B")) == 1
+
+
+def test_open_order_after_a_priority_change_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset changes nothing
+    # already stored -- the damage lands on the NEXT insertion, which reuses a live id.
+    book = _book()
+    set_priority(book, "W1", "low")
+    third = open_order(book, "3C", "radiator cold")
+    assert third.order_id not in ("W1", "W2"), "a live order id was reused"
+    kept = book.get("W1")
+    assert kept is not None, "the new order overwrote an earlier one"
+    assert kept.unit == "4B" and kept.priority == "low"
+    other = book.get("W2")
+    assert other is not None and other.unit == "2A" and other.priority == "normal"
+    assert book.get(third.order_id).unit == "3C"
+    assert len(book.for_unit("3C")) == 1
 """
 }
 
@@ -407,6 +441,23 @@ def test_assign_contractor_then_open_gets_a_fresh_order_id():
     assert book.get(third.order_id).unit == "1C"
     assert len(book.for_unit("4B")) == 1 and len(book.for_unit("2A")) == 1
     assert len(book.for_unit("1C")) == 1
+
+
+def test_assign_contractor_keeps_the_orders_own_identity():
+    # Round 5 F1: this update site is typed and mutated now (its first argument is an
+    # indexing expression).  An update that keeps the visible change but replaces a
+    # REQUIRED field leaves a record that is no longer the record it claims to be.
+    book = _book()
+    out = assign_contractor(book, "W1", "Reyes Plumbing")
+    for rec in (out, book.get("W1")):
+        assert rec is not None, "the assigned order is no longer under its own id"
+        assert rec.order_id == "W1", "the assignment changed the order id"
+        assert rec.unit == "4B", "the assignment changed the unit"
+        assert rec.description == "kitchen tap drips", "it changed the description"
+        assert rec.priority == "low" and rec.contractor == "Reyes Plumbing"
+    assert book.get("_audit") is None, "an order is filed under a corrupted id"
+    other = book.get("W2")
+    assert other is not None and other.unit == "2A" and other.contractor == ""
 """
 }
 

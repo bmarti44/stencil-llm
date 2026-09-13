@@ -138,6 +138,25 @@ def test_book_keeps_the_other_rooms_booking():
     assert total == 2, "booking changed the number of bookings stored"
     assert d.find_room("R1") is not None
     assert d.find_room("R2") is not None
+
+
+def test_booking_after_a_booking_and_a_new_room_mints_a_fresh_id():
+    # Round 5 F2: checkpoint 1 is audited now.  An id allocator reset inside the new
+    # operation changes nothing already stored -- the damage lands on the NEXT insertion,
+    # which reuses a live id and overwrites an earlier record.
+    d = _desk()
+    first = _book(d)("R1", "mon", 9, "ana")
+    assert first is not None
+    d.add_room("Cedar", 4)
+    second = _book(d)("R2", "mon", 10, "ben")
+    assert second is not None
+    assert second.booking_id != first.booking_id, "a live booking id was reused"
+    kept = d.list_bookings("R1")
+    assert len(kept) == 1 and kept[0].booking_id == first.booking_id
+    assert kept[0].who == "ana" and kept[0].hour == 9
+    held = d.list_bookings("R2")
+    assert len(held) == 1 and held[0].who == "ben"
+    assert d.find_room("R3").name == "Cedar"
 """
 }
 
