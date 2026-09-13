@@ -1,0 +1,1739 @@
+{
+ "blocks": [
+  {
+   "id": "S1",
+   "family": "scope",
+   "precedent": "none",
+   "digest": "23d1189307727f69",
+   "cases": [
+    "compat:lookup",
+    "core:lookup"
+   ],
+   "answers": [
+    "none",
+    "raise"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "S2",
+   "family": "scope",
+   "precedent": "raise",
+   "digest": "9b0efe04c06440bf",
+   "cases": [
+    "core:lookup",
+    "compat:lookup"
+   ],
+   "answers": [
+    "raise",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "S3",
+   "family": "scope",
+   "precedent": "default",
+   "digest": "04a8f3901b373655",
+   "cases": [
+    "core:bulk",
+    "core:lookup"
+   ],
+   "answers": [
+    "raise",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "S4",
+   "family": "scope",
+   "precedent": "none",
+   "digest": "d54f5fb0c0edec41",
+   "cases": [
+    "compat:bulk",
+    "compat:lookup"
+   ],
+   "answers": [
+    "raise",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "G1",
+   "family": "global",
+   "precedent": "none",
+   "digest": "0f52b44e9f895892",
+   "cases": [
+    "core:lookup",
+    "core:bulk"
+   ],
+   "answers": [
+    "raise",
+    "default"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "G2",
+   "family": "global",
+   "precedent": "raise",
+   "digest": "ca49ec9ce156f9f3",
+   "cases": [
+    "core:bulk",
+    "core:lookup"
+   ],
+   "answers": [
+    "raise",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "G3",
+   "family": "global",
+   "precedent": "raise",
+   "digest": "3a798c313278b8a3",
+   "cases": [
+    "compat.legacy:lookup",
+    "compat:lookup"
+   ],
+   "answers": [
+    "none",
+    "default"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "C1",
+   "family": "cancel",
+   "precedent": "default",
+   "digest": "a66b72ef79a6e18c",
+   "cases": [
+    "compat:lookup",
+    "core:bulk"
+   ],
+   "answers": [
+    "raise",
+    "default"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "flip_on_cancel",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "C2",
+   "family": "cancel",
+   "precedent": "raise",
+   "digest": "8d8e6c3a096da977",
+   "cases": [
+    "compat:lookup",
+    "core:lookup"
+   ],
+   "answers": [
+    "none",
+    "raise"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "flip_on_cancel",
+    "copy_existing"
+   ]
+  },
+  {
+   "id": "C3",
+   "family": "cancel",
+   "precedent": "raise",
+   "digest": "04305930b32fcc02",
+   "cases": [
+    "compat:lookup",
+    "core:lookup"
+   ],
+   "answers": [
+    "raise",
+    "default"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "flip_on_cancel",
+    "copy_existing"
+   ]
+  },
+  {
+   "id": "C4",
+   "family": "cancel",
+   "precedent": "raise",
+   "digest": "d814a5260175ec93",
+   "cases": [
+    "core:lookup",
+    "compat:bulk"
+   ],
+   "answers": [
+    "default",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "flip_on_cancel",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "R1",
+   "family": "restore",
+   "precedent": "none",
+   "digest": "8a585d47287461ea",
+   "cases": [
+    "core:lookup",
+    "compat.legacy:lookup"
+   ],
+   "answers": [
+    "raise",
+    "default"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "rollback",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "R2",
+   "family": "restore",
+   "precedent": "default",
+   "digest": "33ec1d79b8f3d2f7",
+   "cases": [
+    "core:lookup",
+    "compat:lookup"
+   ],
+   "answers": [
+    "default",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "rollback"
+   ]
+  },
+  {
+   "id": "R3",
+   "family": "restore",
+   "precedent": "default",
+   "digest": "f5c4a2dd941c7b0a",
+   "cases": [
+    "compat:lookup",
+    "compat.legacy:lookup"
+   ],
+   "answers": [
+    "none",
+    "default"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "flip_on_cancel",
+    "copy_existing",
+    "rollback"
+   ]
+  },
+  {
+   "id": "D1",
+   "family": "distance",
+   "precedent": "none",
+   "digest": "171d6839d482e7b6",
+   "cases": [
+    "core:lookup",
+    "compat:lookup"
+   ],
+   "answers": [
+    "raise",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  },
+  {
+   "id": "D2",
+   "family": "distance",
+   "precedent": "raise",
+   "digest": "f2ebff39d1617196",
+   "cases": [
+    "core:bulk",
+    "core:lookup"
+   ],
+   "answers": [
+    "raise",
+    "none"
+   ],
+   "defeats": [
+    "always_newest",
+    "always_oldest",
+    "copy_existing",
+    "recency_general"
+   ]
+  }
+ ],
+ "defeated_by": {
+  "always_newest": [
+   "S1",
+   "S2",
+   "S3",
+   "S4",
+   "G1",
+   "G2",
+   "G3",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "R1",
+   "R2",
+   "R3",
+   "D1",
+   "D2"
+  ],
+  "always_oldest": [
+   "S1",
+   "S2",
+   "S3",
+   "S4",
+   "G1",
+   "G2",
+   "G3",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "R1",
+   "R2",
+   "R3",
+   "D1",
+   "D2"
+  ],
+  "flip_on_cancel": [
+   "S1",
+   "S2",
+   "S3",
+   "S4",
+   "G1",
+   "G2",
+   "G3",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "R1",
+   "R2",
+   "R3",
+   "D1",
+   "D2"
+  ],
+  "recency_general": [
+   "S1",
+   "S2",
+   "S3",
+   "S4",
+   "G1",
+   "G2",
+   "G3",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "R1",
+   "R2",
+   "R3",
+   "D1",
+   "D2"
+  ],
+  "scoped_recency": [
+   "S2",
+   "G1",
+   "G2",
+   "D1"
+  ],
+  "cancel_revives": [
+   "C1",
+   "C4"
+  ],
+  "copy_existing": [
+   "S1",
+   "S2",
+   "S3",
+   "S4",
+   "G1",
+   "G2",
+   "G3",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "R1",
+   "R2",
+   "R3",
+   "D1",
+   "D2"
+  ],
+  "rollback": [
+   "S1",
+   "S2",
+   "S3",
+   "S4",
+   "G1",
+   "G2",
+   "G3",
+   "C1",
+   "C2",
+   "C3",
+   "C4",
+   "R1",
+   "R2",
+   "R3",
+   "D1",
+   "D2"
+  ]
+ },
+ "precedent_counterbalance": {
+  "A": 6,
+  "B": 5,
+  "neither": 5
+ },
+ "n_cases": 32,
+ "baseline": "default",
+ "rows": [
+  {
+   "block": "S1",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S1",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S1",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S1",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S1",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S1",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S1",
+   "policy": "copy_existing",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S1",
+   "policy": "rollback",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S2",
+   "policy": "always_newest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S2",
+   "policy": "always_oldest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S2",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S2",
+   "policy": "recency_general",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S2",
+   "policy": "scoped_recency",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S2",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S2",
+   "policy": "copy_existing",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S2",
+   "policy": "rollback",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S3",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S3",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S3",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S3",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S3",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S3",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S3",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S3",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S4",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S4",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S4",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "S4",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S4",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S4",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "S4",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "S4",
+   "policy": "rollback",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G1",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G1",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G1",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G1",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G1",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G1",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G1",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G1",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G2",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G2",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G2",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G2",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G2",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G2",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G2",
+   "policy": "copy_existing",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G2",
+   "policy": "rollback",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G3",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G3",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G3",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "G3",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G3",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G3",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "G3",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "G3",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C1",
+   "policy": "always_newest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C1",
+   "policy": "always_oldest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C1",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C1",
+   "policy": "recency_general",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C1",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C1",
+   "policy": "cancel_revives",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C1",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C1",
+   "policy": "rollback",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C2",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C2",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C2",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C2",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C2",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C2",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C2",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C2",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C3",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C3",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C3",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C3",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C3",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C3",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C3",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C3",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C4",
+   "policy": "always_newest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C4",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C4",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C4",
+   "policy": "recency_general",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C4",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "C4",
+   "policy": "cancel_revives",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "C4",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "C4",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "R1",
+   "policy": "always_newest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R1",
+   "policy": "always_oldest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R1",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "R1",
+   "policy": "recency_general",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R1",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R1",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R1",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R1",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R2",
+   "policy": "always_newest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R2",
+   "policy": "always_oldest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R2",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "R2",
+   "policy": "recency_general",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "R2",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R2",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R2",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R2",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R3",
+   "policy": "always_newest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R3",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R3",
+   "policy": "flip_on_cancel",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R3",
+   "policy": "recency_general",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "R3",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R3",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "R3",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "R3",
+   "policy": "rollback",
+   "cases": [
+    false,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D1",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D1",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D1",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "D1",
+   "policy": "recency_general",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D1",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "D1",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "D1",
+   "policy": "copy_existing",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D1",
+   "policy": "rollback",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "D2",
+   "policy": "always_newest",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D2",
+   "policy": "always_oldest",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D2",
+   "policy": "flip_on_cancel",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  },
+  {
+   "block": "D2",
+   "policy": "recency_general",
+   "cases": [
+    false,
+    true
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D2",
+   "policy": "scoped_recency",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "D2",
+   "policy": "cancel_revives",
+   "cases": [
+    true,
+    true
+   ],
+   "block_pass": true,
+   "claimed": false
+  },
+  {
+   "block": "D2",
+   "policy": "copy_existing",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": true
+  },
+  {
+   "block": "D2",
+   "policy": "rollback",
+   "cases": [
+    true,
+    false
+   ],
+   "block_pass": false,
+   "claimed": false
+  }
+ ],
+ "problems": [],
+ "gate": "PASS"
+}

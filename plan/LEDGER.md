@@ -1,5 +1,44 @@
 # Relation classifier task ledger
 
+2026-09-13 — STATE: new direction. Astra's forward review
+(results/reviews/2026-09-13-a-screen-forward-astra.md) ranks four directions and
+recommends SCOPED INSTRUCTION COMPILATION at a 28% artifact-success forecast —
+the first direction above Brian's 25% bar. It is INFERENCE-TIME ONLY (no
+training), which returns to plan section G's original artifact concept. Candidate
+A (the cf adapter) ranks LAST at 15%. Astra: "These are alternative programs, not
+four stages to execute. Publish the negative result and stop ranks immediately
+after one bounded attempt at direction 1."
+
+STEP 1 IS DONE AND PASSES (CPU only, zero GPU): 16 development blocks with
+matched scope/restoration histories, an executable four-suite oracle, and eight
+policies run through it. Artifacts: src/stencil/scoped_blocks.py (engine),
+src/stencil/scoped_dev_blocks.py (the 16 blocks), scripts/scoped_gate.py,
+results/scoped/SEMANTICS.md (frozen semantics), results/scoped/STEP1.md,
+results/scoped/GATE.json, tests/test_scoped_blocks.py (39 tests).
+Reproduce: `uv run python scripts/scoped_gate.py`.
+
+The five required trivial policies and a whole-state rollback are defeated by
+16/16 blocks — cheap evidence, reported as such, because any scope-blind policy
+loses a block whose two cases need different values. The informative rows are two
+SCOPE-AWARE rivals added for anti-vacuity: scoped_recency (most recent applicable
+statement instead of most specific) fails 4/16, cancel_revives (cancellation
+revives what it replaced) fails 2/16. Both survive most blocks, so the oracle is
+not merely refusing everything. Known limitation recorded before any model
+outcome: only 4 blocks separate specificity from recency and only 2 separate
+cancellation from revival.
+
+NEXT: step 2 is freezing the rescue diagnostic and its timing/stop rules (~1 CPU
+hour). Step 3 is the first GPU spend — 64 short generations, 0.2-0.3 GPU-hours —
+and is BLOCKED by the standing pause below. Prespecified thresholds (Astra, not
+to be renegotiated after seeing results): >=12/16 blocks and >=6 wins with <=1
+loss -> 28% becomes ~40%; <=8/16 or <=2 net rescued -> ~12% and stop this
+workload; anything between -> 20-25%, do not launch the confirmation.
+
+SECOND STRAY WATCHER, disclosed not killed: pid 4066448, same self-matching
+`pgrep -f "a_screen_train.py --objective cf"` trap as 4048358 (which Brian ended
+with `! kill 4048358`). It holds no GPU memory. The guard refuses my kill; Brian
+can end it with `! kill 4066448`.
+
 2026-09-13 — STANDING INSTRUCTION (Brian, verbatim): "pause all GPU work until
 further notice." This OVERRIDES the execution order in
 plan/BACK-ON-TRACK-PLAN.md and every runbook in results/. Do not launch any GPU
