@@ -60,10 +60,14 @@ SUITES = (
     "protected_contract",
 )
 SUITE_TIMEOUT_S = 90.0  # passed to run_tests so one hung suite cannot stall a session
-TICK_S = 60.0  # spend-ledger heartbeat interval (round 6 F13)
-TICK_SLACK_S = 3 * TICK_S  # a launch whose heartbeat is intact died within this of
-# its last mark; three intervals so a starved writer thread cannot undercharge it
-ARM_BUDGET_MIN = 45.0  # registered per-arm evaluation ceiling, §18.2 (round 6 F12)
+TICK_S = 60.0  # spend-ledger progress mark interval; bounds nothing (round 7 F13)
+# Registered per-arm evaluation ceiling, derived in ``arm_budget_min`` below (§19.3).
+GEN_ESTIMATE_S = (
+    15.0 * 1.5
+)  # §15.5's registered per-generation estimate with its factor
+SUITE_COST_S = 0.189  # §16.7's MEASURED seconds per suite invocation
+LOAD_ALLOWANCE_S = 300.0  # allowance for import, tokenizer and weight load
+START_MARGIN_MIN = 5  # plan section E: stop STARTING work with this much budget left
 
 
 @dataclass(frozen=True)
@@ -603,21 +607,77 @@ def ledger_mark(
         fh.flush()
 
 
+def ledger_pid(launch: str) -> int | None:
+    """The OS pid inside a launch id (``{start}-{pid}``), or ``None`` if it has none."""
+    tail = launch.rsplit("-", 1)[-1]
+    return int(tail) if tail.isdigit() else None
+
+
+def ledger_observe(path: Path, now: float, mark: Callable | None = None) -> list[str]:
+    """Record VERIFIED termination for every unfinished launch whose process is gone.
+
+    Round 7 F13: the previous rule inferred death from the ABSENCE of a heartbeat, and
+    absence is not evidence -- a ledger with ticks to 600 s is equally consistent with
+    death at 600 s and with a ticker that failed at 600 s while the process ran to 1,200 s
+    (Astra killed the ticker thread by injecting an append failure and the main thread
+    carried on).  Silence now bounds nothing.  Instead, a process that is GONE at a known
+    time cannot have lived past that time, so the observation itself is the evidence and it
+    is written into the ledger once, after which the launch's charge never moves again.
+    A launch still running, or one whose pid has been recycled, is not observed and keeps
+    accruing its lifetime -- the conservative direction.  Returns the launches observed."""
+    if not path.exists():
+        return []
+    seen: dict[str, dict] = {}
+    for line in path.read_text().splitlines():
+        if not line.strip():
+            continue
+        try:
+            r = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(r, dict) or "launch" not in r:
+            continue
+        cur = seen.setdefault(
+            r["launch"], {"first": float(r.get("t", now)), "done": False, "max": 0.0}
+        )
+        cur["first"] = min(cur["first"], float(r.get("t", now)))
+        cur["max"] = max(cur["max"], float(r.get("elapsed_s", 0.0)))
+        cur["done"] = cur["done"] or r.get("event") in ("end", "observed_dead")
+    out = []
+    for launch, i in sorted(seen.items()):
+        pid = ledger_pid(launch)
+        if i["done"] or pid is None or Path(f"/proc/{pid}").exists():
+            continue
+        rec = {
+            "launch": launch,
+            "event": "observed_dead",
+            # never below a mark the launch actually wrote, so a clock that went backwards
+            # cannot turn an observation into a zero charge
+            "elapsed_s": max(now - i["first"], i["max"]),
+            "t": now,
+        }
+        with path.open("a") as fh:
+            fh.write(json.dumps(rec) + "\n")
+            fh.flush()
+        out.append(launch)
+        if mark is not None:
+            mark("observed_dead_recorded", dead=launch, charged_s=rec["elapsed_s"])
+    return out
+
+
 def ledger_charges(
     path: Path,
     exclude: str,
     now: float,
-    slack_s: float = TICK_SLACK_S,
 ) -> tuple[dict[str, float], int]:
     """``({launch: seconds charged}, malformed line count)`` for every launch but
     ``exclude``.
 
-    A finished launch (one that wrote ``end``) is charged its real elapsed time.  An
-    unfinished one is charged its last mark plus ``slack_s`` when its HEARTBEAT IS INTACT
-    -- it wrote at least one ``tick`` and no two consecutive marks are further apart than
-    the slack -- because the ticker would have written another mark had it lived longer.
-    Otherwise it is charged its whole lifetime (``now`` minus its first mark), uncapped:
-    round 6 F13 removed every cap that termination does not enforce."""
+    Three cases, and only the first two are bounded by evidence (round 7 F13):
+    a launch that wrote ``end`` is charged its real elapsed time; one whose termination was
+    OBSERVED is charged through that observation; and one that is neither -- no end, no
+    observation -- is charged its whole lifetime THROUGH ``now``, with no cap, because
+    nothing establishes that it ever stopped."""
     if not path.exists():
         return {}, 0
     by: dict[str, dict] = {}
@@ -636,43 +696,56 @@ def ledger_charges(
         if r["launch"] == exclude:
             continue
         cur = by.setdefault(
-            r["launch"],
-            {"first": float(r.get("t", now)), "end": False, "ticks": 0, "at": []},
+            r["launch"], {"first": float(r.get("t", now)), "max": 0.0, "fixed": None}
         )
         cur["first"] = min(cur["first"], float(r.get("t", now)))
-        cur["end"] = cur["end"] or r.get("event") == "end"
-        cur["ticks"] += int(r.get("event") == "tick")
-        cur["at"].append(float(r.get("elapsed_s", 0.0)))
+        cur["max"] = max(cur["max"], float(r.get("elapsed_s", 0.0)))
+        if r.get("event") in ("end", "observed_dead"):
+            cur["fixed"] = max(cur["fixed"] or 0.0, float(r.get("elapsed_s", 0.0)))
     out = {}
     for lid, i in by.items():
-        at = sorted(i["at"])
-        last = at[-1]
-        if i["end"]:
-            out[lid] = last
-            continue
-        # intact = a tick exists and every interval of the launch's life, from its own
-        # start to its last mark, is closed by a mark no further than the slack away
-        gaps = [b - a for a, b in zip([0.0] + at[:-1], at, strict=True)]
-        intact = i["ticks"] > 0 and all(g <= slack_s for g in gaps)
-        lifetime = now - i["first"]
-        if intact:
-            out[lid] = last + slack_s
+        # never below a mark the launch wrote, whichever case applies: a clock that went
+        # backwards must not erase a launch, and an ``end`` cannot predate its own marks
+        if i["fixed"] is not None:
+            out[lid] = max(i["fixed"], i["max"])
         else:
-            # a clock that went backwards must not erase a launch
-            out[lid] = last + slack_s if lifetime < last else lifetime
+            out[lid] = max(i["max"], now - i["first"])
     return out, malformed
 
 
 def ledger_tick(path: Path, launch: str, t0: float, stop, interval: float = TICK_S):
-    """Body of the heartbeat thread: append a ``tick`` every ``interval`` seconds until
-    ``stop`` is set.  The first tick is written BEFORE the first wait so even a launch
-    killed in its first minute has a verified alive-timestamp; every later interval of the
-    launch's life is closed the same way, which is what lets ``ledger_charges`` bound an
-    interrupted launch without a cap."""
+    """Body of the progress-mark thread: append a ``tick`` every ``interval`` seconds until
+    ``stop`` is set.  Round 7 F13: these marks are a PROGRESS LOG and bound nothing -- a
+    charge comes from ``end`` or from an observation, never from the last tick -- so a
+    thread that dies silently costs no accuracy."""
     while True:
         ledger_mark(path, launch, "tick", t0)
         if stop.wait(interval):
             return
+
+
+def arm_budget_min(
+    sessions: int = 48,
+    gen_s: float = GEN_ESTIMATE_S,
+    suite_s: float = SUITE_COST_S,
+    load_s: float = LOAD_ALLOWANCE_S,
+    margin_min: int = START_MARGIN_MIN,
+) -> float:
+    """The smallest per-arm ceiling under which the LAST request is still admitted.
+
+    Round 7, medium: §18.2 sized the ceiling against total work and forgot that
+    ``may_start`` refuses a request once less than ``margin_min`` remains, so the binding
+    constraint is when the last request STARTS, not when the arm finishes.  Under the
+    registered estimates a 45-minute ceiling left only 2.73 minutes for the model load and
+    refused request 96 at 2,416 s.  Computed here instead of asserted: the run loads, then
+    does every request but the last, and that moment must still be inside the margin."""
+    work_1 = gen_s + 5 * suite_s  # checkpoint 1 scores five suites
+    work_2 = gen_s + 6 * suite_s  # checkpoint 2 scores six
+    before_last = load_s + sessions * (work_1 + work_2) - work_2
+    return (before_last + margin_min * 60.0) / 60.0
+
+
+ARM_BUDGET_MIN = 50.0  # >= arm_budget_min() = 47.27; §19.3 records the derivation
 
 
 def write_status(path: Path, **fields: object) -> None:
@@ -713,13 +786,41 @@ def read_status(path: Path) -> tuple[dict | None, str | None]:
     return st, None
 
 
-def ledger_spent_min(path: Path, now: float | None = None) -> tuple[float, int]:
-    """``(minutes charged across every launch, malformed lines)`` — the INDEPENDENT reading
-    of an arm's spend, so the summary checks the ledger rather than trusting the status."""
+def ledger_spent_min(
+    path: Path, launches: set[str] | None = None, now: float | None = None
+) -> tuple[float, list[str]]:
+    """``(minutes charged across every launch, refusals)`` — the INDEPENDENT reading of an
+    arm's spend, so the summary checks the ledger rather than trusting the status.
+
+    Round 7 F12: a MISSING or EMPTY ledger read as zero spend, so deleting an ordinary
+    sidecar turned an over-budget arm into ``GATE PASSED``.  Absent evidence is not evidence
+    of nothing: the ledger must exist, be non-empty, parse completely, and account for every
+    launch the RECORDS say produced them (``launches``).  Anything else is a refusal, not a
+    zero."""
+    refusals: list[str] = []
+    if not path.exists():
+        return 0.0, [
+            f"{path.name} is missing: the arm's resident time cannot be accounted"
+        ]
+    if not path.read_text().strip():
+        return 0.0, [
+            f"{path.name} is empty: the arm's resident time cannot be accounted"
+        ]
     charges, malformed = ledger_charges(
         path, exclude="", now=time.time() if now is None else now
     )
-    return sum(charges.values()) / 60, malformed
+    if malformed:
+        refusals.append(
+            f"{path.name} has {malformed} malformed line(s), so the arm's resident time "
+            "cannot be accounted"
+        )
+    absent = sorted((launches or set()) - set(charges))
+    if absent:
+        refusals.append(
+            f"{path.name} accounts for no spend by launch(es) {', '.join(absent)}, which "
+            "the records say produced them"
+        )
+    return sum(charges.values()) / 60, refusals
 
 
 def may_start(budget_min: float | None, spent_min: float, margin_min: float) -> bool:

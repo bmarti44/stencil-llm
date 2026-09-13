@@ -246,25 +246,51 @@ def main() -> None:
         st, refusal = A.read_status(base.with_name(base.name + ".status.json"))
         if refusal:
             ineligible.append(f"{arm}: {refusal}")
-        spent, malformed = A.ledger_spent_min(
-            base.with_name(base.name + ".spend.jsonl")
-        )
-        if malformed:
+        # round 7 F12: the ledger must ACCOUNT for every launch the records came from,
+        # because a missing or emptied sidecar read as zero spend
+        launches = {
+            q.get("launch")
+            for rec in runs[arm].values()
+            for q in rec["requests"]
+            if q.get("launch")
+        }
+        nameless = [
+            s_
+            for s_, rec in runs[arm].items()
+            if any(not q.get("launch") for q in rec["requests"])
+        ]
+        if nameless:
             ineligible.append(
-                f"{arm}: its spend ledger has {malformed} malformed line(s), so the "
-                "run's resident time cannot be accounted"
+                f"{arm}: {len(nameless)} session(s) carry no launch id, so their spend "
+                f"cannot be traced to the ledger ({', '.join(sorted(nameless)[:4])})"
             )
-        elif st and spent > float(st.get("budget_min") or 0.0) > 0:
+        spent, refusals = A.ledger_spent_min(
+            base.with_name(base.name + ".spend.jsonl"), launches
+        )
+        ineligible.extend(f"{arm}: {r}" for r in refusals)
+        if not refusals and st and spent > float(st.get("budget_min") or 0.0) > 0:
             ineligible.append(
                 f"{arm}: its spend LEDGER charges {spent:.1f} min against a "
                 f"{float(st['budget_min']):.0f} min budget (status claims "
                 f"{float(st.get('spent_min') or 0.0):.1f})"
             )
-        elif st and sorted(st.get("sessions") or []) != expected:
+        if st and sorted(st.get("sessions") or []) != expected:
             ineligible.append(
                 f"{arm}: its status covers {len(st.get('sessions') or [])} "
                 "sessions, not the frozen 48"
             )
+        # round 7, medium: the arms AGREEING on a wrong output cap passed every identity
+        # check, so each registered generation constant is checked against its own value
+        ident = next(iter(runs[arm].values()))["identity"] if runs[arm] else {}
+        for key, want in (
+            ("max_new", A.MAX_NEW_TOKENS),
+            ("prompt_budget", A.PROMPT_BUDGET),
+            ("deadline_s", 300.0),
+        ):
+            if key in ident and ident[key] != want:
+                ineligible.append(
+                    f"{arm}: identity.{key} is {ident[key]!r}, not the registered {want!r}"
+                )
     # the three arms must differ ONLY in the adapter (re-review F15)
     shared = {
         arm: {
@@ -336,6 +362,31 @@ def main() -> None:
                     f"manifest's {lifecycle[sid]!r}"
                 )
     changing = [s for s in ids if lifecycle[s] != "stable"]
+    if ineligible:
+        # Round 7 F12: suppressing only the verdict still printed twelve "PASS" gate lines
+        # above it.  §8 says an exhausted ceiling is recorded INCOMPLETE and "no checkpoint
+        # is selected to rescue it", so for an ineligible evaluation the gates are not
+        # COMPUTED at all -- the arm table above stays as a description of what was spent.
+        lines.append("\n## Budget eligibility (rounds 6-7 F12)\n")
+        lines.extend(f"- {r}" for r in ineligible)
+        lines.append(
+            "\nThe contrasts and the five gates are NOT computed for an evaluation that is "
+            "not eligible."
+        )
+        verdict = (
+            f"INCOMPLETE (budget eligibility: {len(ineligible)} refusal(s); see above"
+            + (f"; and {len(missing)} manifest sessions incomplete" if missing else "")
+            + "). The gates are not read for an evaluation that is not eligible"
+        )
+        lines.append(
+            f"\n**Verdict: {verdict}** (a passed gate authorises only the CONFIRM "
+            "registration; no efficacy claim)."
+        )
+        text = "\n".join(lines) + "\n"
+        print(text)
+        if a.out:
+            Path(a.out).write_text(text)
+        return
     lines.append(
         "\n## Contrasts (wins/losses/ties, net, rates, diff with conservative 95% union-bound interval, two-sided exact McNemar)\n"
     )
@@ -392,18 +443,6 @@ def main() -> None:
         verdict = (
             f"INCOMPLETE ({len(ids)}/{len(expected)} manifest sessions complete in all "
             f"three arms; missing {', '.join(missing)}); provisional: {verdict}"
-        )
-    if ineligible:
-        lines.append("\n## Budget eligibility (round 6 F12)\n")
-        lines.extend(f"- {r}" for r in ineligible)
-        # §8: an exhausted ceiling is recorded INCOMPLETE, "N is not reduced, failures are
-        # not dropped, and no checkpoint is selected to rescue it".  A provisional gate
-        # reading is exactly the rescue that rule forbids, so the gates are NOT read here;
-        # the tables above stay as description of what was spent.
-        verdict = (
-            f"INCOMPLETE (budget eligibility: {len(ineligible)} refusal(s); see above"
-            + (f"; and {len(missing)} manifest sessions incomplete" if missing else "")
-            + "). The gates are not read for an evaluation that is not eligible"
         )
     lines.append(
         f"\n**Verdict: {verdict}** (a passed gate authorises only the CONFIRM registration; no efficacy claim)."

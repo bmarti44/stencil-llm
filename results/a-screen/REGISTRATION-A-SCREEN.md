@@ -1012,6 +1012,11 @@ No arm, model, outcome unit, gate, statistic or ceiling changed.
 
 ### 18.1 A killed launch is charged from its last VERIFIED alive-timestamp (F13)
 
+**SUPERSEDED BY §19.1.** Round 7 showed this rule infers termination from SILENCE: a ticker that
+dies while the process keeps running leaves a ledger indistinguishable from one whose process
+stopped. The heartbeat slack is gone; the reproduction and the replacement are in §19.1. The
+reported defects below are still the defects this section fixed.
+
 The round-5 rule charged an unfinished launch the smaller of its lifetime and its last mark plus a
 bound on the work that can follow a mark. Round 6 showed the bound is not enforced anywhere it
 matters. Both halves reproduced exactly as reported:
@@ -1051,6 +1056,12 @@ is still bounded (600 + 180 s, not 86,400), and a clean finish is still charged 
 `tests/test_a_screen_spend.py` holds each case, including the two round-6 ones by name.
 
 ### 18.2 Budget eligibility is durable, and the summary enforces it (F12/F13)
+
+**AMENDED BY §19.2 AND §19.3.** The mechanism stands; three things in it were wrong. A missing or
+empty ledger read as ZERO spend (§19.2); suppressing the verdict still printed the gate table
+(§19.2); and the 45-minute ceiling below omitted the five-minute admission margin, so its "7.3 min"
+of load headroom was really 2.73 min and the ceiling is now 50 min, derived rather than asserted
+(§19.3).
 
 Round 6 executed the session loop with a mocked clock: requests starting at 2,097 s and 2,396 s,
 299 s of generation each, scoring ending at 2,701 s against a 2,700 s budget. The runner printed
@@ -1102,7 +1113,9 @@ assume the artifacts are what the apparatus wrote).
 One operational consequence, recorded rather than engineered away: because `--budget-min` is
 cumulative and the status is rewritten at the end of every launch, relaunching an arm that is
 already complete spends more of its ceiling (a model load for no new session) and can turn a
-legitimate `COMPLETE` into `INCOMPLETE`. That is honest accounting — the GPU time was spent — so
+legitimate `COMPLETE` into `INCOMPLETE`. (§19.1 narrows this: the observation a relaunch records
+runs before the model load, so recovering from a KILL is free; it is relaunching a FINISHED arm
+that costs a load.) That is honest accounting — the GPU time was spent — so
 the rule is operational: do not relaunch a finished arm. The ledger would record the spend even if
 the status did not.
 
@@ -1202,3 +1215,158 @@ edited while they ran; the audit was re-run from scratch after §18.3's rule was
 970/9 figure quoted in §18.3 is the completed earlier run, not an extrapolation.
 
 No arm, model, outcome unit, gate, statistic or ceiling changed in this amendment.
+
+## 19. Amendment 7 (2026-09-14, after the Astra re-review round 7, before any pilot, training or evaluation generation)
+
+Round 6's instruments were wrong in a way worth stating plainly: the heartbeat rule inferred
+TERMINATION FROM SILENCE, and silence is not evidence. Round 7 demonstrated it, and also showed that
+absent spend evidence read as zero spend, that the ceiling was sized without the admission margin,
+and that the registered output cap was unenforced. Four items, each reproduced before it was changed.
+No arm, model, outcome unit, gate or statistic changed; the per-arm ceiling changed, and §19.3 gives
+its derivation.
+
+### 19.1 A charge is bounded by evidence or not at all (F13)
+
+Amendment 6 charged an unfinished launch its last mark plus three heartbeat intervals whenever no
+gap in its marks was wider than that slack. Round 7's counterexample: ticks through 600 s, the
+TICKER dies, the process runs to 1,200 s, the ledger is read at 1,500 s → charged **780 s**. The
+same ledger is equally consistent with death at 600 s, and Astra produced the failure in the real
+ticker by injecting an append failure, which killed the thread while the main thread carried on.
+Reproduced exactly: 780 s, zero malformed lines.
+
+The rule is now evidence or nothing, in three cases:
+
+| the launch | charged | why it is an upper bound |
+|---|---|---|
+| wrote `end` | its real elapsed time | it reported its own exit |
+| was OBSERVED terminated | through that observation | a process gone at a known time cannot have lived past it |
+| neither | its whole lifetime through `now`, uncapped | nothing establishes that it ever stopped |
+
+`ledger_observe` is the evidence: for every unfinished launch it checks whether the pid in the launch
+id still exists, and if it does not, appends one `observed_dead` line carrying the lifetime at that
+moment. The charge is then FIXED — later reads agree, so an arm does not drift out of budget by being
+looked at twice — and the observation is recorded once. A launch still running, or one whose pid has
+been recycled, is NOT observed and keeps accruing, which is the conservative direction. The runner
+observes at startup, BEFORE the model load, so recovering from a kill costs no GPU time and the
+common case (a relaunch minutes later) is charged tightly. The summary only reads; it never writes
+evidence it is about to judge.
+
+Two properties of the new rule are worth stating because they are the ways it could be wrong in the
+other direction, and both are guarded. A charge is NEVER below a mark the launch actually wrote, in
+all three cases, so a clock that moved backwards between a launch and its observation cannot turn an
+observation into a zero (tested). And a launch is charged from its FIRST ledger line, so the only
+uncharged window is between process start and that line — argparse and the adapter guard, before any
+`import torch`, holding no GPU memory. A launch id carrying no pid (nothing the runner writes) is
+never observable and so accrues forever, which is the conservative direction.
+
+The ticker stays as a progress log with its load-bearing role removed, which also retires the
+uncaught-exception defect: a thread that dies silently now costs no accuracy, because no charge
+depends on it. Verified: the 600 s-ticks ledger charges 1,500 s at a 1,500 s read and 9,000 s at a
+9,000 s read; after the observation it charges 1,500 s at both.
+
+### 19.2 Absent spend evidence is a refusal, not a zero (F12)
+
+Round 7: with complete 48-session records, DELETING the ordinary `.spend.jsonl` sidecar turned the
+over-budget refusal back into **`GATE PASSED`** — `ledger_charges` returned `{}` for a missing file
+and `{}` summed to zero. Reproduced, including the empty-file variant.
+
+`ledger_spent_min` now returns refusals rather than a number whenever the evidence is incomplete: the
+ledger must exist, be non-empty, parse without a malformed line, and ACCOUNT FOR EVERY LAUNCH the
+records say produced them (each record carries its `launch`; a record with no launch id is itself a
+refusal). Four independent ways to be ineligible, none of them satisfiable by removing a file.
+
+Round 7 also caught that suppressing the verdict was not enough: twelve `PASS` gate lines were still
+printed above it. For an ineligible evaluation the contrasts and gates are now **not computed at
+all** — the summary prints the arm table as a description of what was spent, the eligibility
+refusals, and the verdict, then stops. §8's "no checkpoint is selected to rescue it" is the reason;
+a printed gate table is a rescue waiting to be quoted.
+
+Verified end to end on synthetic complete records: over budget → INCOMPLETE with **0** gate lines;
+ledger deleted → INCOMPLETE; an unregistered output cap → INCOMPLETE; and the same records at
+40 minutes inside the ceiling → `GATE PASSED` with its 12 gate lines, so the refusals are not
+vacuous.
+
+### 19.3 The ceiling is derived, and it includes the admission margin (medium)
+
+§18.2 sized 45 minutes against TOTAL WORK and forgot that `may_start` refuses a request once less
+than `START_MARGIN_MIN` remains. The binding constraint is therefore when the LAST request starts,
+not when the arm finishes. Astra's arithmetic, which I recomputed: at the registered 22.5 s per
+generation and measured 0.189 s per suite invocation with a three-minute load, request 96 is refused
+at **2,416.158 s**, and had it run, the arm would have finished at 2,439.792 s = **40.66 min**. A
+45-minute ceiling therefore allowed only **2.73 min** for the model load, not the 7.3 min §18.2
+claimed.
+
+`A.arm_budget_min()` computes the ceiling instead of asserting it: load allowance + every request but
+the last + the margin, from the registered constants (`GEN_ESTIMATE_S = 15 × 1.5`, `SUITE_COST_S =
+0.189`, `LOAD_ALLOWANCE_S = 300`, `START_MARGIN_MIN = 5`), five suites at checkpoint 1 and six at
+checkpoint 2. It returns **47.27 min**, and the registered ceiling is **50 min** (`ARM_BUDGET_MIN`),
+which leaves the load its full 300 s allowance and keeps the admission guard off the last request.
+Three arms at 50 min is 2.5 h: §15.5's 1.8 h of generations plus 0.7 h of loads and suites, inside
+its 2.1 h remainder, so the re-run reserve still need not be surrendered. §18.2's one escape is
+unchanged — if the pilot measures a per-request cost that does not fit, the reserve goes first and
+the ceiling may be raised once, before any arm runs.
+
+`tests/test_a_screen_spend.py` encodes the arithmetic as a simulation of the real guard over all 48
+sessions: at 45 minutes it admits 95 of 96 requests, at 50 it admits all 96.
+
+### 19.4 The registered output cap is enforced (medium)
+
+`--max-new 2048` was accepted, and because all three arms shared it, every identity check passed and
+complete records produced `GATE PASSED`. Agreement between arms establishes comparability, not
+compliance. A full run now refuses any `--max-new` but the registered 1,536 at parse time, exactly as
+`--deadline` already was, and the summary checks `max_new`, `prompt_budget` and `deadline_s` against
+their registered values rather than only against each other.
+
+### 19.5 Recorded ambiguity overrides the naming fallback (low)
+
+Amendment 6 dropped an ambiguous name from `_env`, but `_expr_type` then fell back to `class_of`, so
+`a = B(); replace(a, status=...); a = A()` resolved as **A** while the updated object is **B**.
+Reproduced. Ambiguity is now a VALUE in the env (`AMBIGUOUS`) that no later resolution rule may see
+past, so the site is UNRESOLVED and the audit exits 1. The blanket guarantee amendment 6 claimed is
+now true.
+
+### 19.6 What round 7 accepted
+
+All 48 SCREEN and 576 TRAIN content hashes reproduce, including both pool hashes. 690 mutations
+across 35 slots with zero escapes; 77 private renames with zero rejections; no new demonstrated false
+J = 1 or false J = 0. S35's whole-record reachability is RESOLVED, and Astra examined the public API
+of the nine excluded resets directly rather than resting on §18.3's undetected-mutation argument:
+"their records are frozen, and I found no public path that supplies those non-default values at the
+excluded checkpoint", with the explicit caveat that the nine undetected mutations alone would not have
+proved unreachability. The parse-time budget restriction and the durable status both work. No separate
+concurrent-line corruption defect. All five gates and every statistic still match §7: McNemar 0.0625
+for 5–0, 0.25 for 3–0, ±0.0872490536 at zero discordance with N = 48.
+
+One correction to my own §18.1 claim, since the reverse risk is now different: the old text said a run
+would have to be interrupted about fifteen times before the slack alone consumed an arm's ceiling.
+With slack gone that sentence no longer describes the instrument. The reverse risk today is the
+uncapped lifetime of an UNOBSERVED launch, which is why the observation runs before the model load
+and why a relaunch, not a delay, is the way to recover from a kill.
+
+### 19.7 Pools unchanged, and self-checks
+
+Amendment 7, like amendment 6, touched no pool file: all 48 slot modules are byte-identical to
+`a3ec1c6a`, both pools keep their hashes, and `scripts/a_screen_freeze.py` recomputes the SCREEN hash
+from the current sources with zero problems.
+
+| pool | record | sha256 (first 16) | was |
+|---|---|---|---|
+| SCREEN | `results/a-screen/screen-pool.json` | `fa633cceefe47562` | unchanged; recomputed and reproduces |
+| TRAIN | `results/a-screen/train-pool.json` | `b8f504494a281858` | unchanged; no TRAIN file was touched |
+
+`uv run python scripts/a_screen_mutate.py` → **961 mutations, 0 undetected, 0 unresolved sites**
+(both checkpoints; 131 update sites typed; unchanged by §19.5, which only refuses a resolution the
+frozen pool never needed).
+`uv run python scripts/a_screen_rename.py` → **108 renames, 0 rejected**.
+`uv run python scripts/a_screen_containment.py --ref HEAD` → **0 violations, no authorizations**,
+48 slots untouched.
+`uv run pytest -q tests/test_a_screen.py tests/test_a_screen_spend.py
+tests/test_no_side_effect_imports.py tests/test_contracts.py` → **475 passed, 1 xfailed**
+(`tests/test_a_screen.py` collects **301**; `tests/test_a_screen_spend.py` grew 20 → **26**).
+`uv run ruff check .` and `ruff format --check .` → clean, 897 files.
+Four CLI guards smoke-checked by hand: `--budget-min 0`, `--budget-min 90`, `--max-new 2048` and
+`--deadline 600` are each refused by name on a full run, and the registered defaults are accepted.
+
+No arm, model, outcome unit, gate or statistic changed in this amendment. The per-arm evaluation
+ceiling changed from 45 to 50 minutes, derived in §19.3; §8's 16 GPU-hour total and its INCOMPLETE
+rule are untouched.

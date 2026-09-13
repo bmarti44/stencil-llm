@@ -81,6 +81,13 @@ def class_of(
     return None
 
 
+# Round 7, low: dropping an ambiguous name from the env was not enough -- ``_expr_type``
+# fell back to ``class_of``, so ``a = B(); replace(a, ...); a = A()`` resolved as A
+# while the updated object is B.  Recorded ambiguity is now a VALUE in the env that no
+# resolution rule may see past, so such a site is UNRESOLVED and the audit exits 1.
+AMBIGUOUS = "\x00ambiguous"
+
+
 def defaulted_fields(files: dict[str, str]) -> list[tuple[str, str]]:
     """(field, default) for every dataclass attribute in the project that has a default.
     Resetting one of these is how a reply silently erases an unrelated attribute."""
@@ -328,7 +335,10 @@ def _expr_type(node: ast.AST | None, t: Types, env: dict[str, str]) -> str | Non
     if node is None:
         return None
     if isinstance(node, ast.Name):
-        return env.get(node.id) or class_of(node.id, t.names)
+        got = env.get(node.id)
+        if got == AMBIGUOUS:
+            return None  # round 7: ambiguity overrides every later resolution rule
+        return got or class_of(node.id, t.names)
     if isinstance(node, ast.Attribute):
         base = _expr_type(node.value, t, env)
         return t.attrs.get((base, node.attr)) if base else None
@@ -405,11 +415,11 @@ def _env(fn: ast.FunctionDef, cls: str | None, t: Types) -> dict[str, str]:
             if target is None:
                 continue
             got = _expr_type(value, t, env)
-            if got:
-                if env.get(target, got) != got:
+            if got and got != AMBIGUOUS:
+                if env.get(target, got) not in (got, AMBIGUOUS):
                     ambiguous.add(target)
-                env[target] = got
-    return {k: v for k, v in env.items() if k not in ambiguous}
+                env[target] = AMBIGUOUS if target in ambiguous else got
+    return {k: (AMBIGUOUS if k in ambiguous else v) for k, v in env.items()}
 
 
 @dataclass

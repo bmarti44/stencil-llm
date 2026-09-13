@@ -1,4 +1,4 @@
-"""The candidate-A screen's launch spend ledger, heartbeat and budget guards (F13, F12).
+"""The candidate-A screen's launch spend ledger and budget guards (F13, F12).
 
 Every case here is one of the escapes a review demonstrated by executing the accounting:
 an interrupted launch charged less than it spent (round 5: a last checkpoint at 600 s
@@ -12,12 +12,14 @@ from an over-budget evaluation producing the authoritative GATE PASSED verdict.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from stencil import a_screen as A
 
 T0 = 1_000_000.0
-SLACK = A.TICK_SLACK_S
+DEAD = "1000-999999"  # a launch id whose pid cannot exist, so it can be observed dead
+MINE = f"1000-{os.getpid()}"  # a launch id whose pid is alive: this process
 
 
 def _write(path, launch, events, t0=T0):
@@ -36,79 +38,70 @@ def _write(path, launch, events, t0=T0):
             )
 
 
-def _beat(until, every=A.TICK_S):
-    """The heartbeat marks a launch alive until ``until`` seconds of life."""
-    out, t = [], 0.0
-    while t <= until:
-        out.append(("tick", t))
-        t += every
-    return out
-
-
-def test_the_heartbeat_slack_is_three_intervals():
-    assert A.TICK_S == 60.0 and SLACK == 180.0
-
-
-def test_an_interrupted_launch_is_charged_its_lifetime(tmp_path):
+def test_an_interrupted_launch_is_charged_through_now(tmp_path):
     # round 5: last checkpoint at 600 s, death at 1,200 s was charged 900 s
     p = tmp_path / "spend.jsonl"
-    _write(p, "A", [("start", 0.0), ("model_loaded", 80.0)] + _beat(1200.0))
+    _write(p, DEAD, [("start", 0.0), ("model_loaded", 80.0), ("record", 600.0)])
     charges, malformed = A.ledger_charges(p, "B", T0 + 1300.0)
     assert malformed == 0
-    assert charges["A"] >= 1200.0
+    assert charges[DEAD] == 1300.0
+
+
+def test_silence_does_not_bound_a_launch(tmp_path):
+    """Round 7 F13: the heartbeat rule charged a launch its last tick plus three
+    intervals when no gap was wider than the slack. But a ledger with ticks to 600 s
+    is equally consistent with death at 600 s and with a TICKER that failed at 600 s
+    while the process ran on -- Astra killed the ticker thread by injecting an append
+    failure and the main thread carried on. Absence of a mark is not evidence of
+    termination."""
+    p = tmp_path / "spend.jsonl"
+    ticks = [("tick", float(x)) for x in range(0, 601, 60)]
+    _write(p, DEAD, [("start", 0.0), *ticks])
+    # the old rule charged 600 + 180 = 780 whatever the read time
+    assert A.ledger_charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
+    assert A.ledger_charges(p, "B", T0 + 9000.0)[0][DEAD] == 9000.0
+
+
+def test_an_observation_bounds_it_and_then_never_moves(tmp_path):
+    # the charge is bounded by EVIDENCE: a process that is gone at a known time cannot
+    # have lived past it, and the observation is recorded once so later reads agree
+    p = tmp_path / "spend.jsonl"
+    _write(p, DEAD, [("start", 0.0), ("record", 600.0)])
+    assert A.ledger_observe(p, T0 + 1500.0) == [DEAD]
+    assert A.ledger_charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
+    assert A.ledger_charges(p, "B", T0 + 99_999.0)[0][DEAD] == 1500.0
+    assert A.ledger_observe(p, T0 + 99_999.0) == []  # recorded once, never re-recorded
+
+
+def test_a_live_launch_is_not_observed_dead(tmp_path):
+    # a running process, or a recycled pid, must keep accruing: the conservative
+    # direction
+    p = tmp_path / "spend.jsonl"
+    _write(p, MINE, [("start", 0.0)])
+    assert A.ledger_observe(p, T0 + 500.0) == []
+    assert A.ledger_charges(p, "other", T0 + 500.0)[0][MINE] == 500.0
 
 
 def test_a_launch_killed_while_loading_is_charged_its_loading_time(tmp_path):
     # round 6 F13: model loading had no enforced limit, so a launch killed while loading
-    # at 900 s and read at 1,200 s was charged the 600 s load bound.  The heartbeat runs
-    # from before the load, so its last tick bounds the charge from below.
+    # at 900 s and read at 1,200 s was charged the 600 s load bound
     p = tmp_path / "spend.jsonl"
-    _write(p, "A", [("start", 0.0)] + _beat(900.0))
-    charges, _ = A.ledger_charges(p, "B", T0 + 1200.0)
-    assert charges["A"] >= 900.0
-    assert charges["A"] == 900.0 + SLACK
+    _write(p, DEAD, [("start", 0.0)])
+    assert A.ledger_charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
+    A.ledger_observe(p, T0 + 1200.0)
+    assert A.ledger_charges(p, "B", T0 + 1200.0)[0][DEAD] == 1200.0
 
 
 def test_the_pilots_suite_cost_gap_is_inside_the_charge(tmp_path):
     # round 6 F13: the post-load bound assumed six suites between marks, and the pilot
-    # runs 44 (4 sessions x 11) between model_loaded and suite_cost_measured.
+    # runs 44 (4 sessions x 11) between model_loaded and suite_cost_measured
     p = tmp_path / "spend.jsonl"
     _write(
         p,
-        "A",
-        [("start", 0.0), ("model_loaded", 200.0)]
-        + _beat(1500.0)
-        + [("suite_cost_measured", 900.0)],
+        DEAD,
+        [("start", 0.0), ("model_loaded", 200.0), ("suite_cost_measured", 900.0)],
     )
-    charges, _ = A.ledger_charges(p, "B", T0 + 9_000.0)
-    assert charges["A"] >= 1500.0
-
-
-def test_an_intact_heartbeat_bounds_the_charge(tmp_path):
-    # read a day later, the charge must not grow to the whole day
-    p = tmp_path / "spend.jsonl"
-    _write(p, "A", [("start", 0.0), ("record", 600.0)] + _beat(600.0))
-    charges, _ = A.ledger_charges(p, "B", T0 + 86_400.0)
-    assert charges["A"] == 600.0 + SLACK
-
-
-def test_a_broken_heartbeat_is_charged_the_whole_lifetime(tmp_path):
-    # nothing bounds what a launch did across an interval no mark closes, so the cap is
-    # gone: a ten-minute hole (a stopped process, a full disk, a starved writer) is
-    # charged the lifetime, which is an upper bound whatever happened in the dark
-    p = tmp_path / "spend.jsonl"
-    _write(p, "A", [("start", 0.0), ("tick", 0.0), ("record", 600.0)])
-    charges, _ = A.ledger_charges(p, "B", T0 + 9_000.0)
-    assert charges["A"] == 9_000.0
-
-
-def test_a_launch_killed_in_its_first_minute_is_bounded(tmp_path):
-    # the ticker writes its first tick before its first wait, so a launch with no
-    # checkpoint yet still has a verified alive-timestamp
-    p = tmp_path / "spend.jsonl"
-    _write(p, "A", [("start", 0.0), ("tick", 0.0)])
-    charges, _ = A.ledger_charges(p, "B", T0 + 86_400.0)
-    assert charges["A"] == SLACK
+    assert A.ledger_charges(p, "B", T0 + 1500.0)[0][DEAD] == 1500.0
 
 
 def test_a_finished_launch_is_charged_its_elapsed_time(tmp_path):
@@ -212,27 +205,69 @@ def test_a_pilot_status_is_refused(tmp_path):
     assert "PILOT" in refusal
 
 
+def test_absent_spend_evidence_is_a_refusal_not_a_zero(tmp_path):
+    """Round 7 F12: a missing or emptied ledger read as zero spend, so deleting an
+    ordinary sidecar turned an over-budget arm into GATE PASSED.  Absence of evidence is
+    not evidence of nothing."""
+    missing = tmp_path / "gone.jsonl"
+    spent, refusals = A.ledger_spent_min(missing, {"L1"})
+    assert spent == 0.0 and len(refusals) == 1 and "missing" in refusals[0]
+    empty = tmp_path / "empty.jsonl"
+    empty.write_text("")
+    _, refusals = A.ledger_spent_min(empty, {"L1"})
+    assert len(refusals) == 1 and "empty" in refusals[0]
+
+
+def test_the_ledger_must_account_for_every_launch_the_records_name(tmp_path):
+    # a ledger covering only some of the launches that produced records accounts for
+    # none of the rest, which is a refusal rather than a smaller number
+    p = tmp_path / "spend.jsonl"
+    _write(p, "L1", [("start", 0.0), ("end", 60.0)])
+    spent, refusals = A.ledger_spent_min(p, {"L1", "L2"}, now=T0 + 60.0)
+    assert len(refusals) == 1 and "L2" in refusals[0]
+    assert A.ledger_spent_min(p, {"L1"}, now=T0 + 60.0)[1] == []
+
+
+def test_the_registered_ceiling_admits_the_last_request(tmp_path):
+    """Round 7, medium: §18.2 sized the ceiling against total work and forgot the
+    five-minute admission margin, so under the registered estimates a 45-minute ceiling
+    refused request 96 at 2,416 s.  Simulate the real guard over all 48 sessions."""
+    work = (
+        A.GEN_ESTIMATE_S + 5 * A.SUITE_COST_S,
+        A.GEN_ESTIMATE_S + 6 * A.SUITE_COST_S,
+    )
+    for ceiling, ok in ((45.0, False), (A.ARM_BUDGET_MIN, True)):
+        spent_s = A.LOAD_ALLOWANCE_S
+        admitted = 0
+        for _ in range(48):
+            for w in work:
+                if not A.may_start(ceiling, spent_s / 60, A.START_MARGIN_MIN):
+                    break
+                admitted += 1
+                spent_s += w
+        assert (admitted == 96) is ok, (ceiling, admitted, spent_s)
+    assert A.ARM_BUDGET_MIN >= A.arm_budget_min()
+
+
 def test_the_ledger_is_read_independently_of_the_status(tmp_path):
     # the status is the runner's claim; the ledger is the evidence.  A status claiming
     # COMPLETE and 40 minutes over a ledger holding 45.02 must not be believed.
     p = tmp_path / "cf.jsonl.spend.jsonl"
-    _write(p, "L1", [("start", 0.0), ("end", 2701.0)])
-    spent, malformed = A.ledger_spent_min(p, now=T0 + 2701.0)
-    assert malformed == 0
+    _write(p, "L1", [("start", 0.0), ("end", 3001.0)])
+    spent, refusals = A.ledger_spent_min(p, {"L1"}, now=T0 + 3001.0)
+    assert refusals == []
     assert spent > A.ARM_BUDGET_MIN
 
 
-def test_the_summary_refuses_an_over_budget_evaluation(tmp_path):
-    """The consumer's semantics (AGENTS.md): round 6 F12 was a check that existed in
-    the runner's console output and nowhere the summary reads, so complete 48-session
-    records from an over-budget evaluation produced ``Verdict: GATE PASSED``.  This
-    builds exactly those records and runs the real summary."""
-    import subprocess
-    import sys
+ROOT = Path(__file__).resolve().parents[1]
 
-    root = Path(__file__).resolve().parents[1]
-    manifest = json.loads((root / "results/a-screen/manifest.json").read_text())
-    pool = json.loads((root / "results/a-screen/screen-pool.json").read_text())
+
+def _screen_records(runs, spend_s, budget_min, max_new=A.MAX_NEW_TOKENS, ledger=True):
+    """Complete 48-session records for all three arms, with the spend ledger and status
+    artifact a run of that length would have left.  Nested winners (20/25/32 of 48) so
+    every count gate clears and only eligibility can change the verdict."""
+    manifest = json.loads((ROOT / "results/a-screen/manifest.json").read_text())
+    pool = json.loads((ROOT / "results/a-screen/screen-pool.json").read_text())
     ids = sorted(r["session"] for r in manifest["sessions"])
     ident = {
         "pool_sha256": pool["pool_sha256"],
@@ -242,20 +277,18 @@ def test_the_summary_refuses_an_over_budget_evaluation(tmp_path):
         "hub": "hub",
         "hub_sha256": "x",
         "eos": [1],
-        "max_new": A.MAX_NEW_TOKENS,
+        "max_new": max_new,
         "deadline_s": 300.0,
         "prompt_budget": A.PROMPT_BUDGET,
         "sessions": ids,
         "pilot_adapter": False,
     }
-    # nested winners so every count gate clears: off 20, sft 25, cf 32 of 48
     winners = {"off": set(ids[:20]), "sft": set(ids[:25]), "cf": set(ids[:32])}
-    runs = tmp_path / "runs"
-    runs.mkdir()
+    runs.mkdir(parents=True, exist_ok=True)
     for arm, adapter in (("off", "none"), ("sft", "s"), ("cf", "c")):
         with (runs / f"{arm}.jsonl").open("w") as fh:
-            for s in manifest["sessions"]:
-                ok = s["session"] in winners[arm]
+            for m in manifest["sessions"]:
+                ok = m["session"] in winners[arm]
                 sc = dict.fromkeys(A.SUITES, ok)
                 sc["all"] = sc["function_only"] = ok
                 for k in (1, 2):
@@ -263,10 +296,10 @@ def test_the_summary_refuses_an_over_budget_evaluation(tmp_path):
                         json.dumps(
                             {
                                 "arm": arm,
-                                "session": s["session"],
+                                "session": m["session"],
                                 "request": k,
-                                "target_family": s["target"],
-                                "lifecycle": s["lifecycle"],
+                                "target_family": m["target"],
+                                "lifecycle": m["lifecycle"],
                                 "terminal_reason": "applied" if ok else "truncated",
                                 "identity": dict(ident, adapter=adapter),
                                 "truncated": False,
@@ -276,31 +309,97 @@ def test_the_summary_refuses_an_over_budget_evaluation(tmp_path):
                                 "scores": sc,
                                 "J": ok,
                                 "function_only": ok,
+                                "launch": "L1",
                             }
                         )
                         + "\n"
                     )
-        # 2,701 s resident against the registered 45-minute (2,700 s) ceiling
-        _write(
-            runs / f"{arm}.jsonl.spend.jsonl", "L1", [("start", 0.0), ("end", 2701.0)]
-        )
+        if ledger:
+            _write(
+                runs / f"{arm}.jsonl.spend.jsonl",
+                "L1",
+                [("start", 0.0), ("end", spend_s)],
+            )
         A.write_status(
             runs / f"{arm}.jsonl.status.json",
             arm=arm,
             launch="L1",
-            status=A.run_status([], [], A.ARM_BUDGET_MIN, 2701.0 / 60),
-            spent_min=2701.0 / 60,
-            budget_min=A.ARM_BUDGET_MIN,
+            status=A.run_status([], [], budget_min, spend_s / 60),
+            spent_min=spend_s / 60,
+            budget_min=budget_min,
             registered_budget_min=A.ARM_BUDGET_MIN,
             sessions=ids,
             not_started=[],
             request2_not_started=[],
-            over_budget=True,
+            over_budget=spend_s / 60 > budget_min,
             pilot=False,
         )
-    cmd = [sys.executable, str(root / "scripts/a_screen_summary.py")]
+    return runs
+
+
+def _summary(runs):
+    """``(verdict line, gate PASS/FAIL lines printed)`` from the real summary."""
+    import subprocess
+    import sys
+
+    cmd = [sys.executable, str(ROOT / "scripts/a_screen_summary.py")]
     cmd += ["--runs", str(runs)]
-    done = subprocess.run(cmd, capture_output=True, text=True, cwd=root, check=True)
-    got = done.stdout
-    assert "**Verdict: INCOMPLETE (budget eligibility:" in got
-    assert "GATE PASSED**" not in got
+    out = subprocess.run(
+        cmd, capture_output=True, text=True, cwd=ROOT, check=True
+    ).stdout
+    verdict = next(ln for ln in out.splitlines() if ln.startswith("**Verdict"))
+    gates = sum(
+        1
+        for ln in out.splitlines()
+        if ln.startswith("- ") and (": PASS" in ln or ": FAIL" in ln)
+    )
+    return verdict, gates
+
+
+def test_the_summary_reads_the_gates_for_an_eligible_evaluation(tmp_path):
+    # the control: the same records inside budget must still produce the gate reading,
+    # or
+    # the three refusals below would prove nothing
+    runs = _screen_records(tmp_path / "runs", 2400.0, A.ARM_BUDGET_MIN)
+    verdict, gates = _summary(runs)
+    assert verdict.startswith("**Verdict: GATE PASSED**")
+    assert gates == 12
+
+
+def test_the_summary_refuses_an_over_budget_evaluation(tmp_path):
+    """The consumer's semantics (AGENTS.md): round 6 F12 was a check that existed in the
+    runner's console output and nowhere the summary reads, so complete 48-session
+    records from an over-budget evaluation produced ``Verdict: GATE PASSED``.  Round 7:
+    suppressing the verdict alone still printed twelve PASS lines above it, so the gates
+    must not be computed at all."""
+    runs = _screen_records(tmp_path / "runs", 3001.0, A.ARM_BUDGET_MIN)
+    verdict, gates = _summary(runs)
+    assert "INCOMPLETE (budget eligibility:" in verdict
+    assert "GATE PASSED**" not in verdict
+    assert gates == 0
+
+
+def test_the_summary_refuses_a_deleted_spend_ledger(tmp_path):
+    # round 7 F12: removing the sidecar made the independent evidence check read zero
+    runs = _screen_records(tmp_path / "runs", 3001.0, A.ARM_BUDGET_MIN, ledger=False)
+    verdict, gates = _summary(runs)
+    assert "INCOMPLETE (budget eligibility:" in verdict and gates == 0
+
+
+def test_the_summary_refuses_an_unregistered_output_cap(tmp_path):
+    # round 7, medium: the three arms AGREEING on --max-new 2048 passed every identity
+    # check, so the registered cap is checked against its own value
+    runs = _screen_records(tmp_path / "runs", 2400.0, A.ARM_BUDGET_MIN, max_new=2048)
+    verdict, gates = _summary(runs)
+    assert "INCOMPLETE (budget eligibility:" in verdict and gates == 0
+
+
+def test_a_backwards_clock_cannot_zero_a_charge(tmp_path):
+    # the observation's elapsed is a wall-clock difference, so a clock that moved
+    # backwards between the launch and the observation must not charge less than the
+    # launch's own marks
+    p = tmp_path / "spend.jsonl"
+    _write(p, DEAD, [("start", 0.0), ("record", 900.0)])
+    A.ledger_observe(p, T0 - 500.0)  # "now" is BEFORE the launch started
+    charges, _ = A.ledger_charges(p, "B", T0 + 1000.0)
+    assert charges[DEAD] == 900.0

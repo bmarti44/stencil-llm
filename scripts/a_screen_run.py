@@ -54,7 +54,6 @@ REGISTERED_TRAIN_CONFIG = {
 # registration §5: the per-request generation deadline, recorded and enforced
 REGISTERED_DEADLINE_S = 300
 # plan section E: a run stops STARTING new work when its reservation has 5 minutes left
-START_MARGIN_MIN = 5
 sys.path.insert(0, str(ROOT / "src"))
 
 import stencil.determinism  # noqa: E402, F401  (sets CUBLAS workspace before torch)
@@ -136,6 +135,15 @@ def main() -> None:
         ap.error(
             f"--budget-min {a.budget_min} is not inside the registered per-arm ceiling of "
             f"{A.ARM_BUDGET_MIN:.0f} min; a full screen arm may not run unbudgeted"
+        )
+    # Round 7, medium: --max-new was free to exceed the registered 1,536-token cap, and the
+    # three arms AGREEING on a wrong cap passed every identity check, so a full evaluation
+    # could run at 2,048 and still read GATE PASSED.  The deadline was already bound; the
+    # generation length is bound here the same way, and the summary checks it too.
+    if full_run and a.max_new != A.MAX_NEW_TOKENS:
+        ap.error(
+            f"--max-new {a.max_new} is not the registered {A.MAX_NEW_TOKENS}; a full "
+            "screen arm runs at the registered output cap"
         )
     adapter_steps = None
     if a.adapter:
@@ -248,6 +256,14 @@ def main() -> None:
     def mark(event: str, **extra: object) -> None:
         A.ledger_mark(spend_path, launch_id, event, t_start, **extra)
 
+    # Round 7 F13: an earlier launch that never wrote ``end`` is charged its lifetime
+    # THROUGH NOW until something verifies it stopped.  This is that verification, and it
+    # runs before the model load so recovering from a kill costs no GPU time: a launch whose
+    # pid is gone cannot have lived past this moment, and the observation is written once.
+    dead = A.ledger_observe(spend_path, time.time(), mark)
+    if dead:
+        print("observed terminated launch(es): " + ",".join(dead))
+
     def prior_launch_minutes() -> float:
         charges, malformed = A.ledger_charges(spend_path, launch_id, time.time())
         if malformed:
@@ -261,6 +277,7 @@ def main() -> None:
     # real elapsed time; a killed process is charged from its heartbeat instead.
     atexit.register(mark, "end")
     mark("start")
+    # a progress log, nothing more: round 7 F13 removed every charge that depended on it
     stop_tick = threading.Event()
     atexit.register(stop_tick.set)
     threading.Thread(
@@ -528,7 +545,7 @@ def main() -> None:
         # re-review F13: the guard covers EVERY session start, including one whose request 1
         # was already saved, because request 2 still has to be generated and scored.
         # plan section E: stop STARTING sessions when the reservation has 5 minutes left
-        if not A.may_start(a.budget_min, spent_min(), START_MARGIN_MIN):
+        if not A.may_start(a.budget_min, spent_min(), A.START_MARGIN_MIN):
             incomplete.append(s.id)
             continue
         files0 = dict(s.files)
@@ -580,7 +597,7 @@ def main() -> None:
         # inside the margin could run a whole second request past the budget and still
         # report COMPLETE.  Every request start is guarded; the saved request-1 record
         # lets a later launch finish this session.
-        if not A.may_start(a.budget_min, spent_min(), START_MARGIN_MIN):
+        if not A.may_start(a.budget_min, spent_min(), A.START_MARGIN_MIN):
             partial.append(s.id)
             continue
         g2 = generate(A.session_messages(s, 2, files0, g1["output"], files1), 2, s)
